@@ -26,17 +26,23 @@
 .search-history-panel {
     position: absolute;
     top: calc(100% + 8px);
-    left: 0;
-    right: 0;
+    bottom: auto;
+    left: 10px;
+    right: 10px;
     display: grid;
-    gap: 4px;
-    padding: 7px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 14px;
-    background: rgba(20, 20, 22, 0.72);
-    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(var(--search-blur, 24px));
-    -webkit-backdrop-filter: blur(var(--search-blur, 24px));
+    gap: 2px;
+    padding: 6px;
+    max-height: var(--search-history-max-height, none);
+    overflow-y: auto;
+    z-index: 1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background:
+        linear-gradient(rgba(8, 10, 14, 0.48), rgba(8, 10, 14, 0.48)),
+        rgba(255, 255, 255, var(--search-bg-opacity, 0.1));
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
+    backdrop-filter: blur(var(--search-hover-blur, var(--search-blur, 24px)));
+    -webkit-backdrop-filter: blur(var(--search-hover-blur, var(--search-blur, 24px)));
 }
 
 .search-history-panel[hidden] {
@@ -44,15 +50,16 @@
 }
 
 .search-history-item {
-    min-height: 34px;
-    padding: 7px 12px;
+    min-height: 32px;
+    padding: 6px 12px;
     border: 0;
-    border-radius: 9px;
+    border-radius: 12px;
     background: transparent;
-    color: rgba(255, 255, 255, 0.76);
+    color: rgba(255, 255, 255, 0.74);
     font: inherit;
     font-size: 13px;
     text-align: left;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -62,13 +69,16 @@
 
 .search-history-item:hover,
 .search-history-item.active {
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.94);
 }
 
-.search-bar[data-position="lower"] .search-history-panel,
-.search-bar[data-position="bottom"] .search-history-panel,
-.search-bar[data-position="edge-bottom"] .search-history-panel {
+.search-bar[data-history-placement="below"] .search-history-panel {
+    top: calc(100% + 8px);
+    bottom: auto;
+}
+
+.search-bar[data-history-placement="above"] .search-history-panel {
     top: auto;
     bottom: calc(100% + 8px);
 }

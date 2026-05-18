@@ -70,6 +70,10 @@
     var searchHistoryVisible = false;
     var searchHistoryMatches = [];
     var searchHistoryIndex = -1;
+    var searchHistoryHideTimer = null;
+    var suppressSearchHistoryOnFocus = false;
+    var SEARCH_HISTORY_GAP = 8;
+    var SEARCH_HISTORY_VIEWPORT_PADDING = 12;
     var paletteLoadPromise = null;
     var folderRescannedThisSession = false;
 
@@ -786,17 +790,40 @@
     }
 
     function hideSearchHistory() {
+        clearTimeout(searchHistoryHideTimer);
         if (!searchHistoryPanel) return;
         searchHistoryVisible = false;
         searchHistoryMatches = [];
         searchHistoryIndex = -1;
         searchHistoryPanel.hidden = true;
         searchHistoryPanel.innerHTML = '';
+        searchHistoryPanel.style.removeProperty('--search-history-max-height');
+        searchBar.removeAttribute('data-history-placement');
+    }
+
+    function updateSearchHistoryPlacement() {
+        if (!searchBar || !searchHistoryPanel || searchHistoryPanel.hidden) return;
+
+        searchHistoryPanel.style.removeProperty('--search-history-max-height');
+
+        var barRect = searchBar.getBoundingClientRect();
+        var panelHeight = searchHistoryPanel.scrollHeight;
+        var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        var availableBelow = viewportHeight - barRect.bottom - SEARCH_HISTORY_GAP - SEARCH_HISTORY_VIEWPORT_PADDING;
+        var availableAbove = barRect.top - SEARCH_HISTORY_GAP - SEARCH_HISTORY_VIEWPORT_PADDING;
+        var shouldOpenAbove = panelHeight > availableBelow && availableAbove > availableBelow;
+        var available = Math.max(0, shouldOpenAbove ? availableAbove : availableBelow);
+
+        searchBar.setAttribute('data-history-placement', shouldOpenAbove ? 'above' : 'below');
+        if (available > 0 && panelHeight > available) {
+            searchHistoryPanel.style.setProperty('--search-history-max-height', available + 'px');
+        }
     }
 
     function renderSearchHistory() {
         var panel = ensureSearchHistoryPanel();
         if (!panel || !D || !D.loadSearchHistory || !D.loadSearchHistoryLimit) return;
+        clearTimeout(searchHistoryHideTimer);
         if (D.loadSearchHistoryLimit() <= 0) {
             hideSearchHistory();
             return;
@@ -816,6 +843,7 @@
         }).join('');
         panel.hidden = false;
         searchHistoryVisible = true;
+        updateSearchHistoryPlacement();
     }
 
     function moveSearchHistory(delta) {
@@ -1036,17 +1064,24 @@
             }
             searchBar.classList.add('visible');
             clearTimeout(searchHideTimer);
-            renderSearchHistory();
+            if (suppressSearchHistoryOnFocus) {
+                suppressSearchHistoryOnFocus = false;
+                hideSearchHistory();
+                return;
+            }
         });
+        searchInput.addEventListener('click', renderSearchHistory);
         searchInput.addEventListener('input', function () {
             searchHistoryIndex = -1;
             renderSearchHistory();
         });
         searchInput.addEventListener('keydown', handleSearchInputKeydown);
         searchInput.addEventListener('blur', function () {
-            setTimeout(hideSearchHistory, 120);
+            clearTimeout(searchHistoryHideTimer);
+            searchHistoryHideTimer = setTimeout(hideSearchHistory, 120);
             hideSearch();
         });
+        window.addEventListener('resize', updateSearchHistoryPlacement);
 
         // --- 键盘快捷键 ---
 
@@ -1087,6 +1122,10 @@
         document.addEventListener('click', function (e) {
             if (window.Palette && window.Palette.isOpen && window.Palette.el && !window.Palette.el.contains(e.target)) window.Palette.close();
 
+            if (searchHistoryVisible && !e.target.closest('#searchBar')) {
+                hideSearchHistory();
+            }
+
             if (SP.isOpen() || SP.isLangPanelOpen()) {
                 var sp = document.getElementById('settingsPanel');
                 var lp = document.getElementById('langPanel');
@@ -1100,7 +1139,10 @@
             var paletteOpen = window.Palette && window.Palette.isOpen;
             if (!paletteOpen && !SP.isOpen() && !SP.isLangPanelOpen() && document.activeElement !== searchInput) {
                 if (e.target === document.body || e.target === wallpaperBackEl || e.target === wallpaperFrontEl || !e.target.closest('button, input, select, .settings-panel, .language-panel, .cmd-palette-overlay')) {
-                    if (canFocusSearchFromWallpaper()) searchInput.focus();
+                    if (canFocusSearchFromWallpaper()) {
+                        suppressSearchHistoryOnFocus = true;
+                        searchInput.focus();
+                    }
                 }
             }
 
