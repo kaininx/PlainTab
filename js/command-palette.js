@@ -16,6 +16,7 @@
 
     var LS_KEY_SHORTCUT_ICONS = 'ptab_shortcut_icons';
     var BUILTIN_GITHUB = { id: 'builtin-github', name: 'GitHub', url: 'https://github.com', freq: 0, added: 0 };
+    var BUILTIN_GITHUB_ICON = 'https://icons.duckduckgo.com/ip3/github.com.ico';
     var SHORTCUT_EXPORT_TYPE = 'plaintab-command-shortcuts';
 
     var CP_COMMANDS_NORMAL = ['add', 'edit', 'delete', 'hide', 'recent', 'import', 'export', 'reset', 'clear', 'restore', 'help'];
@@ -49,6 +50,15 @@
     var cpPlacement = loadPalettePlacement();
     var cpSkin = loadPaletteSkin();
     var cpLastAnchor = null;
+    var commandTerminalCommittedInput = '';
+    var commandTerminalResult = null;
+    var commandTerminalAsyncToken = 0;
+    var commandTerminalPendingAction = null;
+    var commandTerminalReturnTimer = 0;
+    var cpDragState = null;
+    var cpShellResizeState = null;
+    var cpShellSize = null;
+    var cpResizeFrame = 0;
 
     // 内存缓存
     var _shortcutsCache = null;
@@ -72,6 +82,7 @@
     function loadIcons() {
         if (_iconsCache !== null) return _iconsCache;
         try { _iconsCache = JSON.parse(localStorage.getItem(LS_KEY_SHORTCUT_ICONS) || '{}'); } catch (e) { _iconsCache = {}; }
+        if (ensureBuiltinGithubIcon(_iconsCache)) saveIcons(_iconsCache);
         return _iconsCache;
     }
     function saveIcons(obj) {
@@ -87,6 +98,22 @@
         _recentsCache = arr;
         return updateShortcutModel(function (model) { model.recents = arr; });
     }
+    function isGithubShortcut(shortcut) {
+        return !!(shortcut && String(shortcut.url || '').replace(/\/$/, '').toLowerCase() === BUILTIN_GITHUB.url);
+    }
+    function ensureBuiltinGithubIcon(icons) {
+        var shortcuts = loadShortcuts();
+        var changed = false;
+        shortcuts.forEach(function (shortcut) {
+            if (!isGithubShortcut(shortcut)) return;
+            var current = icons[shortcut.id];
+            if (!current || current === 'LETTER:G') {
+                icons[shortcut.id] = BUILTIN_GITHUB_ICON;
+                changed = true;
+            }
+        });
+        return changed;
+    }
     function loadHotkey() { return loadShortcutSettings().primaryHotkey || 'ctrl+k'; }
     function saveHotkey(key) { return updateShortcutSettings(function (settings) { settings.primaryHotkey = key; }); }
     function loadRecommend() { return loadShortcutSettings().recommendEnabled !== false; }
@@ -100,13 +127,26 @@
     function savePalettePlacement(value) {
         updateShortcutSettings(function (settings) { settings.palettePlacement = value === 'fixed' ? 'fixed' : 'follow'; });
     }
+    function loadPalettePosition() {
+        var position = loadShortcutSettings().palettePosition;
+        if (!position || typeof position.x !== 'number' || typeof position.y !== 'number') return null;
+        return { x: position.x, y: position.y };
+    }
+    function savePalettePosition(position) {
+        updateShortcutSettings(function (settings) {
+            settings.palettePosition = {
+                x: Math.round(position.x),
+                y: Math.round(position.y)
+            };
+        });
+    }
     function loadPaletteSkin() {
         var skin = loadShortcutSettings().paletteSkin;
-        return skin === 'terminal' || skin === 'shell' ? skin : 'default';
+        return skin === 'terminal' || skin === 'shell' || skin === 'command-terminal' ? skin : 'default';
     }
     function savePaletteSkin(value) {
         updateShortcutSettings(function (settings) {
-            settings.paletteSkin = value === 'terminal' || value === 'shell' ? value : 'default';
+            settings.paletteSkin = value === 'terminal' || value === 'shell' || value === 'command-terminal' ? value : 'default';
         });
     }
     function loadHidden() {
@@ -127,7 +167,7 @@
             items: [Object.assign({}, BUILTIN_GITHUB)],
             recents: [],
             hidden: [],
-            settings: { primaryHotkey: 'ctrl+k', hiddenHotkey: 'ctrl+shift+k', recommendEnabled: true, viewMode: 'list', commandsCollapsed: true, palettePlacement: 'follow', paletteSkin: 'default', builtinGithubAdded: true }
+            settings: { primaryHotkey: 'ctrl+k', hiddenHotkey: 'ctrl+shift+k', recommendEnabled: true, viewMode: 'list', commandsCollapsed: true, palettePlacement: 'follow', palettePosition: null, paletteSkin: 'default', builtinGithubAdded: true }
         };
     }
     function saveShortcutModel(model) {
@@ -188,6 +228,19 @@
 
     function urlHostLabel(url) {
         return String(url || '').replace(/^https?:\/\//, '').replace(/\/.*/, '');
+    }
+
+    function smartUrlName(url) {
+        var host = urlHostLabel(url).replace(/^www\./i, '');
+        var parts = host.split('.').filter(Boolean);
+        if (!parts.length) return host || 'Shortcut';
+        var main = parts.length > 2 ? parts.slice(0, -1).join(' ') : parts[0];
+        var brands = { github: 'GitHub', openai: 'OpenAI', youtube: 'YouTube' };
+        return main.split(/[-_\s]+/).filter(Boolean).map(function (part) {
+            var mapped = brands[part.toLowerCase()];
+            if (mapped) return mapped;
+            return part.charAt(0).toUpperCase() + part.slice(1);
+        }).join(' ') || host;
     }
 
     function shortcutScopeName(hiddenMode) {
@@ -288,6 +341,7 @@
     }
 
     function palettePromptLabel() {
+        if (cpSkin === 'command-terminal') return isHiddenMode ? 'hidden >' : 'plain >';
         if (cpSkin === 'shell') return shellPrompt();
         return isHiddenMode ? 'hidden@plaintab ~ %' : 'plain@plaintab ~ %';
     }
@@ -295,9 +349,12 @@
     function syncPaletteSkin() {
         cmdPalette.classList.toggle('terminal-skin', cpSkin === 'terminal');
         cmdPalette.classList.toggle('shell-skin', cpSkin === 'shell');
+        cmdPalette.classList.toggle('command-terminal-skin', cpSkin === 'command-terminal');
         cmdOverlay.classList.toggle('terminal-skin', cpSkin === 'terminal');
         cmdOverlay.classList.toggle('shell-skin', cpSkin === 'shell');
-        cpSearchInput.placeholder = cpSkin === 'terminal' || cpSkin === 'shell' ? palettePromptLabel() : '';
+        cmdOverlay.classList.toggle('command-terminal-skin', cpSkin === 'command-terminal');
+        cpSearchInput.placeholder = cpSkin === 'terminal' || cpSkin === 'shell' || cpSkin === 'command-terminal' ? palettePromptLabel() : '';
+        applyShellPaletteSize();
     }
 
     // ================================================================
@@ -422,6 +479,10 @@
     function renderShortcutList(filter) {
         setFeedbackContentMode(false);
         setIconPageMode(cpViewMode === 'icon');
+        if (cpSkin === 'command-terminal') {
+            renderCommandTerminal(filter || '', false, commandTerminalResult);
+            return;
+        }
         if (cpSkin === 'shell') {
             renderShellShortcutList(filter || '');
             return;
@@ -623,6 +684,858 @@
         cpContent.innerHTML = html;
         applyMarqueeLabels(cpContent);
         resetSelection();
+    }
+
+    function commandTerminalPrompt() {
+        return isHiddenMode ? 'hidden' : 'plain';
+    }
+
+    function commandTerminalInputState(input) {
+        var raw = String(input || '').trim();
+        if (!raw) return { type: 'boot', raw: '', query: '' };
+        var first = raw.split(/\s+/)[0].toLowerCase();
+        var rest = raw.slice(first.length).trim();
+        if (first === 'help' || first === 'h') return { type: 'help', raw: raw, query: '' };
+        if (first === 'ls') return { type: 'ls', raw: raw, query: '' };
+        if (first === 'open' || first === 'o') return { type: 'open', raw: raw, query: rest };
+        if (first === 'add') return { type: 'add', raw: raw, query: rest };
+        if (first === 'edit') return commandTerminalEditState(raw, rest);
+        if (first === 'delall' || first === 'deleteall' || (first === 'delete' && rest.toLowerCase() === 'all')) return { type: 'delete-all', raw: raw, query: rest };
+        if (first === 'del' || first === 'delete') return { type: 'delete', raw: raw, query: rest.replace(/\s+--yes\b/i, '').trim(), confirm: /\s--yes\b/i.test(' ' + rest), command: first };
+        if (first === 'hide' && !isHiddenMode) return { type: 'hide', raw: raw, query: rest };
+        if (first === 'unhide' && isHiddenMode) return { type: 'unhide', raw: raw, query: rest };
+        if (first === 'recent') return { type: 'recent', raw: raw, query: '' };
+        if (first === 'import') return { type: 'import', raw: raw, query: '' };
+        if (first === 'export') return { type: 'export', raw: raw, query: '' };
+        if (first === 'reset') return { type: 'reset', raw: raw, query: rest };
+        if (first === 'restore') return { type: 'restore', raw: raw, query: '' };
+        if (first === 'clear') {
+            return { type: 'clear-screen', raw: raw, query: '' };
+        }
+        return { type: 'search', raw: raw, query: raw };
+    }
+
+    function commandTerminalDisplayCommand(state) {
+        if (state.type === 'boot') return '';
+        if (state.type === 'search') return state.query;
+        if (state.type === 'open') return 'open ' + (state.query || '<shortcut>');
+        if (state.type === 'add') return 'add ' + (state.query || '<url>');
+        return state.raw;
+    }
+
+    function commandTerminalEditState(raw, rest) {
+        var args = commandTerminalEditArgs(rest);
+        var query = commandTerminalEditQuery(rest);
+        if (!args.name && !args.url) {
+            var inline = commandTerminalInlineEdit(rest);
+            if (inline.value) {
+                query = inline.query;
+                if (commandTerminalValueLooksLikeUrl(inline.value)) args.url = inline.value;
+                else args.name = inline.value;
+            }
+        }
+        return { type: 'edit', raw: raw, query: query, args: args };
+    }
+
+    function commandTerminalEditArgs(rest) {
+        var args = {};
+        String(rest || '').split(/\s+/).forEach(function (part) {
+            var idx = part.indexOf('=');
+            if (idx <= 0) return;
+            var key = part.slice(0, idx).toLowerCase();
+            var value = part.slice(idx + 1).trim();
+            if (key === 'name' || key === 'url') args[key] = value;
+        });
+        return args;
+    }
+
+    function commandTerminalEditQuery(rest) {
+        var parts = String(rest || '').split(/\s+/).filter(function (part) {
+            return part && part.indexOf('=') === -1;
+        });
+        return parts.join(' ').trim();
+    }
+
+    function commandTerminalValueLooksLikeUrl(value) {
+        value = String(value || '').trim();
+        return /^https?:\/\//i.test(value) || (/^[^\s]+\.[^\s]+/.test(value) && value.indexOf(' ') === -1);
+    }
+
+    function bestCommandTerminalMatch(query) {
+        query = String(query || '').trim();
+        if (!query) return null;
+        return shortcutsForCurrentMode().filter(function (shortcut) {
+            return commandTerminalMatchScore(shortcut, query) < 99;
+        }).sort(function (a, b) {
+            var scoreDiff = commandTerminalMatchScore(a, query) - commandTerminalMatchScore(b, query);
+            return scoreDiff || a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        })[0] || null;
+    }
+
+    function commandTerminalInlineEdit(rest) {
+        var parts = String(rest || '').trim().split(/\s+/).filter(Boolean);
+        if (parts.length < 2) return { query: rest, value: '' };
+        for (var i = parts.length - 1; i >= 1; i--) {
+            var query = parts.slice(0, i).join(' ');
+            if (bestCommandTerminalMatch(query)) {
+                return {
+                    query: query,
+                    value: parts.slice(i).join(' ')
+                };
+            }
+        }
+        return { query: rest, value: '' };
+    }
+
+    function commandTerminalEditHint(state, candidates) {
+        if (state.args.name || state.args.url) {
+            var target = candidates[0];
+            return target ? ('Press Enter to update ' + target.name + '.') : 'No matching shortcut to edit.';
+        }
+        if (candidates.length) return 'Press Enter to edit the target, or type edit <name> <new name/url>.';
+        return 'Type edit <name>, or edit <name> <new name/url>.';
+    }
+
+    function commandTerminalMatchScore(shortcut, query) {
+        query = String(query || '').trim().toLowerCase();
+        if (!query) return 0;
+        var name = shortcut.name.toLowerCase();
+        var path = shellPathLabel(shortcut).toLowerCase();
+        if (name === query || path === query) return 0;
+        if (name.indexOf(query) === 0) return 1;
+        if (path.indexOf(query) === 0) return 2;
+        if (name.indexOf(query) !== -1) return 3;
+        if (path.indexOf(query) !== -1) return 4;
+        return 99;
+    }
+
+    function commandTerminalSortedShortcuts(shortcuts) {
+        var recState = recommendationState(shortcuts, '');
+        var recommendedIds = recState.recommendedIds;
+        var recommended = recState.recommended.slice().sort(function (a, b) {
+            var freqDiff = (b.freq || 0) - (a.freq || 0);
+            return freqDiff || a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        });
+        var rest = shortcuts.filter(function (s) { return !recommendedIds[s.id]; });
+        rest.sort(function (a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); });
+        return recommended.concat(rest);
+    }
+
+    function commandTerminalRecentShortcuts() {
+        var scoped = shortcutsForCurrentMode();
+        var byId = {};
+        scoped.forEach(function (shortcut) { byId[shortcut.id] = shortcut; });
+        return loadRecents().map(function (id) { return byId[id]; }).filter(Boolean);
+    }
+
+    function commandTerminalCandidates(state) {
+        var shortcuts = shortcutsForCurrentMode();
+        if (state.type === 'boot' || state.type === 'help' || state.type === 'add' || state.type === 'import' || state.type === 'export' || state.type === 'clear-screen' || state.type === 'delete-all' || state.type === 'reset' || state.type === 'restore') return [];
+        if (state.type === 'recent') return commandTerminalRecentShortcuts();
+        if (state.type === 'ls' && !state.query) return commandTerminalSortedShortcuts(shortcuts);
+        var query = state.query || '';
+        if (!query) return [];
+        return shortcuts.filter(function (shortcut) {
+            return commandTerminalMatchScore(shortcut, query) < 99;
+        }).sort(function (a, b) {
+            var scoreDiff = commandTerminalMatchScore(a, query) - commandTerminalMatchScore(b, query);
+            return scoreDiff || a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        });
+    }
+
+    function commandTerminalIconHTML(shortcut, icons) {
+        var iconData = icons[shortcut.id] || '';
+        var letter = (shortcut.name || '?')[0].toUpperCase();
+        if (iconData && iconData.indexOf('LETTER:') !== 0) {
+            return '<span class="cp-command-terminal-icon"><img src="' + escapeHTML(iconData) + '" alt=""></span>';
+        }
+        return '<span class="cp-command-terminal-icon">' + escapeHTML(letter) + '</span>';
+    }
+
+    function buildCommandTerminalRow(shortcut, tag, icons) {
+        return '<button class="cp-item cp-command-terminal-row" data-id="' + escapeHTML(shortcut.id) + '">' +
+            commandTerminalIconHTML(shortcut, icons) +
+            '<span class="cp-command-terminal-name">' + escapeHTML(shortcut.name) + '</span>' +
+            '<span class="cp-command-terminal-path">' + escapeHTML(shellPathLabel(shortcut)) + '</span>' +
+            '<span class="cp-command-terminal-tag">' + escapeHTML(tag || 'link') + '</span>' +
+            '</button>';
+    }
+
+    function commandTerminalHelpHTML() {
+        var groups = [
+            {
+                title: 'navigation',
+                items: [
+                    ['help, h', 'show this command guide'],
+                    ['ls', 'list shortcuts in this panel'],
+                    ['<keyword>', 'search shortcuts'],
+                    ['open, o <name>', 'open first match'],
+                    ['recent', 'show recently opened shortcuts'],
+                    ['clear', 'clear terminal output']
+                ]
+            },
+            {
+                title: 'management',
+                items: [
+                    ['add <url>', 'add URL; title is fetched automatically'],
+                    ['edit <name> [new]', 'select target or update inline'],
+                    ['del <name>', 'select target, Enter again confirms'],
+                    [isHiddenMode ? 'unhide <name>' : 'hide <name>', isHiddenMode ? 'move shortcut to normal panel' : 'move shortcut to hidden panel'],
+                    ['delall', 'review, then delete all shortcuts in this panel']
+                ]
+            },
+            {
+                title: 'data and keys',
+                items: [
+                    ['import', 'import shortcuts from file'],
+                    ['export', 'export current panel shortcuts'],
+                    ['reset', 'reset usage stats in this panel'],
+                    ['restore', 'restore built-in defaults'],
+                    ['Tab', 'complete command or selected target'],
+                    ['Up / Down / Enter / Esc', 'select row, run/open, close']
+                ]
+            }
+        ];
+        return '<div class="cp-command-terminal-help">' + groups.map(function (group) {
+            return '<section class="cp-command-terminal-help-group">' +
+                '<div class="cp-command-terminal-help-title">' + escapeHTML(group.title) + '</div>' +
+                group.items.map(function (item) {
+                    return '<div class="cp-command-terminal-help-line"><code>' + escapeHTML(item[0]) + '</code><em>' + escapeHTML(item[1]) + '</em></div>';
+                }).join('') +
+                '</section>';
+        }).join('') + '</div>';
+    }
+
+    function commandTerminalMessageHTML(result) {
+        if (!result) return '';
+        var cls = result.pending ? ' pending' : (result.ok ? ' ok' : ' error');
+        return '<div class="cp-command-terminal-message' + cls + '">' + escapeHTML(result.message || '') + '</div>';
+    }
+
+    function renderCommandTerminal(input, committed, result) {
+        setIconPageMode(false);
+        setFeedbackContentMode(false);
+        var state = commandTerminalInputState(input);
+        var icons = loadIcons();
+        var candidates = commandTerminalCandidates(state);
+        var html = '<div class="cp-command-terminal-buffer">';
+        html += '<div class="cp-command-terminal-boot">PlainTab terminal ready.</div>';
+        html += '<div class="cp-command-terminal-boot">Type help or h to show commands. Try: ls, open github, add example.com</div>';
+        if (state.type !== 'boot') {
+            html += '<div class="cp-command-terminal-line"><span class="cp-command-terminal-prompt">' + commandTerminalPrompt() + '</span><span class="cp-command-terminal-command">' + escapeHTML(commandTerminalDisplayCommand(state)) + '</span><span class="cp-command-terminal-state">' + (committed ? 'executed' : 'preview') + '</span></div>';
+        }
+        if (state.type === 'boot') {
+            html += '<div class="cp-command-terminal-line"><span class="cp-command-terminal-prompt">' + commandTerminalPrompt() + '</span><span class="cp-command-terminal-command">help</span><span class="cp-command-terminal-state">hint</span></div>';
+            html += commandTerminalHelpHTML();
+        } else if (state.type === 'help') {
+            html += commandTerminalHelpHTML();
+        } else if (state.type === 'add') {
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to add ' + escapeHTML(state.query || '<url>') + '.</div>';
+        } else if (state.type === 'import') {
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to choose a shortcuts file.</div>';
+        } else if (state.type === 'export') {
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to export current panel shortcuts.</div>';
+        } else if (state.type === 'clear-screen') {
+            html += '<div class="cp-command-terminal-message">Press Enter to clear terminal output.</div>';
+        } else if (state.type === 'delete-all') {
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to review deleting all shortcuts in this panel.</div>';
+        } else if (state.type === 'reset') {
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to reset current panel usage stats.</div>';
+        } else if (state.type === 'restore') {
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to restore built-in defaults.</div>';
+        } else if (state.type === 'edit') {
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + escapeHTML(commandTerminalEditHint(state, candidates)) + '</div>';
+            if (candidates.length) {
+                html += '<div class="cp-command-terminal-section">target</div>';
+                candidates.forEach(function (shortcut, index) { html += buildCommandTerminalRow(shortcut, index === 0 ? 'target' : 'match', icons); });
+            }
+        } else if (state.type === 'delete' || state.type === 'hide' || state.type === 'unhide') {
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + escapeHTML(commandTerminalActionHint(state)) + '</div>';
+            if (candidates.length) {
+                html += '<div class="cp-command-terminal-section">target</div>';
+                candidates.forEach(function (shortcut, index) { html += buildCommandTerminalRow(shortcut, index === 0 ? 'target' : 'match', icons); });
+            }
+        } else {
+            if (result) html += commandTerminalMessageHTML(result);
+            if (candidates.length) {
+                html += '<div class="cp-command-terminal-section">' + (state.type === 'ls' ? 'shortcuts' : (state.type === 'recent' ? 'recent' : 'matches')) + '</div>';
+                candidates.forEach(function (shortcut, index) {
+                    var tag = state.type === 'recent' ? 'recent' : (state.type === 'ls' && (shortcut.freq || 0) > 0 ? 'hot' : (index === 0 ? 'best' : 'match'));
+                    html += buildCommandTerminalRow(shortcut, tag, icons);
+                });
+            } else {
+                html += '<div class="cp-command-terminal-empty">' + (state.type === 'recent' ? 'No recent shortcuts.' : 'No matching shortcuts.') + '</div>';
+            }
+        }
+        html += '</div>';
+        cpContent.innerHTML = html;
+        resetSelection();
+    }
+
+    function selectedCommandTerminalShortcut(candidates) {
+        var selected = cpContent.querySelector('.cp-command-terminal-row.key-hover');
+        if (selected && selected.dataset.id) {
+            for (var i = 0; i < candidates.length; i++) {
+                if (candidates[i].id === selected.dataset.id) return candidates[i];
+            }
+        }
+        return candidates[0] || null;
+    }
+
+    function clearCommandTerminalInput() {
+        cpSearchInput.value = '';
+        cpSearchTerm = '';
+    }
+
+    function cancelCommandTerminalReturn() {
+        if (!commandTerminalReturnTimer) return;
+        clearTimeout(commandTerminalReturnTimer);
+        commandTerminalReturnTimer = 0;
+    }
+
+    function scheduleCommandTerminalReturn(result) {
+        cancelCommandTerminalReturn();
+        if (!result || result.pending) return;
+        commandTerminalReturnTimer = setTimeout(function () {
+            commandTerminalReturnTimer = 0;
+            if (!isPaletteOpen || cpSkin !== 'command-terminal' || commandTerminalPendingAction) return;
+            commandTerminalCommittedInput = 'ls';
+            commandTerminalResult = null;
+            clearCommandTerminalInput();
+            renderCommandTerminal('ls', true, null);
+        }, 1400);
+    }
+
+    function renderCommandTerminalResult(input, result) {
+        commandTerminalResult = result;
+        renderCommandTerminal(input, true, commandTerminalResult);
+        scheduleCommandTerminalReturn(commandTerminalResult);
+    }
+
+    function setCommandTerminalInput(value, selectAll) {
+        value = String(value || '');
+        cancelCommandTerminalReturn();
+        cpSearchInput.value = value;
+        cpSearchTerm = value;
+        cpSearchInput.setSelectionRange(selectAll ? 0 : value.length, value.length);
+    }
+
+    function completeCommandTerminalInput() {
+        cancelCommandTerminalReturn();
+        var state = commandTerminalInputState(cpSearchInput.value);
+        var targetTypes = { search: true, open: true, edit: true, delete: true, hide: true, unhide: true };
+        if (state.type === 'search' && state.query && 'delall'.indexOf(state.query.toLowerCase()) === 0) {
+            cpSearchInput.value = 'delall';
+            cpSearchTerm = cpSearchInput.value;
+            commandTerminalResult = null;
+            renderCommandTerminal(cpSearchInput.value, false, null);
+            cpSearchInput.setSelectionRange(cpSearchInput.value.length, cpSearchInput.value.length);
+            return true;
+        }
+        if (!targetTypes[state.type]) return false;
+        var target = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
+        if (!target) return false;
+        if (state.type === 'search') {
+            cpSearchInput.value = 'open ' + target.name;
+        } else if (state.type === 'delete') {
+            cpSearchInput.value = 'del ' + target.name + (state.confirm ? ' --yes' : '');
+        } else if (state.type === 'edit') {
+            var editValue = state.args.url || state.args.name || '';
+            cpSearchInput.value = 'edit ' + target.name + (editValue ? ' ' + editValue : ' ');
+        } else {
+            cpSearchInput.value = state.type + ' ' + target.name;
+        }
+        cpSearchTerm = cpSearchInput.value;
+        commandTerminalResult = null;
+        renderCommandTerminal(cpSearchInput.value, false, null);
+        cpSearchInput.setSelectionRange(cpSearchInput.value.length, cpSearchInput.value.length);
+        return true;
+    }
+
+    function cleanCommandTerminalTitle(title, fallbackUrl) {
+        title = String(title || '').replace(/\s+/g, ' ').trim();
+        return title || smartUrlName(fallbackUrl);
+    }
+
+    function fetchTitleForCommandTerminal(url, callback) {
+        var isExt = typeof chrome !== 'undefined' && chrome.permissions && !!chrome.runtime && !!chrome.runtime.id;
+        var settled = false;
+        var timer = setTimeout(function () { finish(null); }, 2500);
+        var finish = function (title) {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            callback(cleanCommandTerminalTitle(title, url));
+        };
+        var doFetch = function () {
+            var fetcher = isExt ? fetchPageTitleInTempTab : fetchPageTitle;
+            fetcher(url, finish);
+        };
+
+        if (!isExt) {
+            doFetch();
+            return;
+        }
+
+        var origin;
+        try {
+            origin = new URL(url).origin + '/*';
+        } catch (e) {
+            finish(null);
+            return;
+        }
+
+        chrome.permissions.contains({ origins: [origin] }, function (hasPermission) {
+            if (hasPermission) {
+                doFetch();
+                return;
+            }
+            if (!chrome.permissions.request) {
+                finish(null);
+                return;
+            }
+            chrome.permissions.request({ origins: [origin] }, function (granted) {
+                if (granted) {
+                    doFetch();
+                    return;
+                }
+                finish(null);
+            });
+        });
+    }
+
+    function createCommandTerminalShortcut(name, url) {
+        var shortcuts = loadShortcuts();
+        var id = generateId();
+        shortcuts.push({ id: id, name: name, url: url, freq: 0, added: Date.now() });
+        saveShortcuts(shortcuts);
+        if (isHiddenMode) {
+            var hidden = loadHidden();
+            hidden.push(id);
+            saveHidden(hidden);
+        }
+        var icons = loadIcons();
+        var favUrl = getFaviconUrl(url);
+        icons[id] = 'LETTER:' + name[0].toUpperCase();
+        saveIcons(icons);
+        if (favUrl) {
+            var img = new Image();
+            img.onload = function () {
+                if (isDDGPlaceholder(this)) return;
+                var latestIcons = loadIcons();
+                latestIcons[id] = favUrl;
+                saveIcons(latestIcons);
+            };
+            img.src = favUrl;
+        }
+        return { ok: true, message: 'Added ' + name + ' to ' + (isHiddenMode ? 'hidden' : 'normal') + ' shortcuts.' };
+    }
+
+    function addShortcutFromCommandTerminal(urlValue, token, input) {
+        var url = normalizeHttpsUrl(urlValue);
+        if (!url) return { ok: false, message: 'Invalid URL. Use add example.com or add https://example.com.' };
+        var shortcuts = loadShortcuts();
+        if (shortcuts.some(function (s) { return s.url.toLowerCase() === url.toLowerCase(); })) {
+            return { ok: false, message: 'Shortcut already exists.' };
+        }
+        fetchTitleForCommandTerminal(url, function (name) {
+            if (token !== commandTerminalAsyncToken || commandTerminalCommittedInput !== input) return;
+            renderCommandTerminalResult(input, createCommandTerminalShortcut(name, url));
+        });
+        return { pending: true, message: 'Resolving page title for ' + urlHostLabel(url) + '...' };
+    }
+
+    function importShortcutsFromCommandTerminal(inputCommand) {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,.html,.htm,application/json,text/html';
+        input.addEventListener('change', function () {
+            var file = input.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function () {
+                var parsed = parseShortcutImportPayload(reader.result, file.name);
+                if (!parsed.items.length) {
+                    renderCommandTerminalResult(inputCommand, { ok: false, message: 'No importable shortcuts found.' });
+                    return;
+                }
+                var sourceScope = parsed.format === 'json' ? normalizeScope(parsed.scope, isHiddenMode) : null;
+                var targetScope = sourceScope || currentScopeName();
+                var result = importShortcutsToScope(parsed.items, targetScope);
+                renderCommandTerminalResult(inputCommand, {
+                    ok: true,
+                    message: 'Imported to ' + targetScope + ': added ' + result.added + ', moved ' + result.moved + ', skipped ' + result.skipped + '.'
+                });
+            };
+            reader.readAsText(file);
+        });
+        setTimeout(function () { input.click(); }, 0);
+        return { pending: true, message: 'Choose a JSON or HTML shortcuts file.' };
+    }
+
+    function exportShortcutsFromCommandTerminal() {
+        var count = shortcutsForScope(currentScopeName()).length;
+        handleExport();
+        return { ok: true, message: 'Exported ' + count + ' shortcuts from ' + currentScopeName() + ' panel.' };
+    }
+
+    function clearShortcutsFromCommandTerminal(confirmed) {
+        var scope = currentScopeName();
+        if (!confirmed) return { ok: false, message: 'Type delall, then press Enter again to confirm.' };
+        var hidden = loadHidden();
+        var removeIds = {};
+        var keptShortcuts = loadShortcuts().filter(function (shortcut) {
+            var remove = scope === 'hidden' ? isHiddenId(shortcut.id, hidden) : !isHiddenId(shortcut.id, hidden);
+            if (remove) removeIds[shortcut.id] = true;
+            return !remove;
+        });
+        var icons = loadIcons();
+        Object.keys(removeIds).forEach(function (id) { delete icons[id]; });
+        saveShortcuts(keptShortcuts);
+        saveIcons(icons);
+        saveRecents(loadRecents().filter(function (id) { return !removeIds[id]; }));
+        if (scope === 'hidden') saveHidden(hidden.filter(function (id) { return !removeIds[id]; }));
+        return { ok: true, message: 'Deleted ' + Object.keys(removeIds).length + ' shortcuts from ' + scope + ' panel.' };
+    }
+
+    function commandTerminalActionHint(state) {
+        if (state.type === 'delete') return state.confirm ? 'Press Enter to delete the target shortcut.' : 'Press Enter to select the target, then Enter again to confirm.';
+        if (state.type === 'hide') return 'Press Enter to move the target shortcut to hidden panel.';
+        if (state.type === 'unhide') return 'Press Enter to move the target shortcut to normal panel.';
+        return '';
+    }
+
+    function deleteShortcutFromCommandTerminal(state) {
+        if (!state.confirm) return { ok: false, message: 'Destructive command. Use del <name> --yes.' };
+        var target = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
+        if (!target) return { ok: false, message: 'No matching shortcut to delete.' };
+        return deleteCommandTerminalTarget(target);
+    }
+
+    function deleteCommandTerminalTarget(target) {
+        saveShortcuts(loadShortcuts().filter(function (shortcut) { return shortcut.id !== target.id; }));
+        var icons = loadIcons();
+        delete icons[target.id];
+        saveIcons(icons);
+        saveRecents(loadRecents().filter(function (id) { return id !== target.id; }));
+        saveHidden(loadHidden().filter(function (id) { return id !== target.id; }));
+        return { ok: true, message: 'Deleted ' + target.name + '.' };
+    }
+
+    function moveShortcutFromCommandTerminal(state, scope) {
+        var target = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
+        if (!target) return { ok: false, message: 'No matching shortcut.' };
+        saveHidden(setShortcutScope(target.id, scope, loadHidden().slice()));
+        return { ok: true, message: (scope === 'hidden' ? 'Hidden ' : 'Unhid ') + target.name + '.' };
+    }
+
+    function editShortcutFromCommandTerminal(state) {
+        var target = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
+        if (!target) return { ok: false, message: 'No matching shortcut to edit.' };
+        return editShortcutFromCommandTerminalByTarget(target, state);
+    }
+
+    function editCommandTerminalTarget(target, value) {
+        value = String(value || '').trim();
+        if (!target) return { ok: false, message: 'No matching shortcut to edit.' };
+        if (!value) return { pending: true, message: 'Type a new name or URL, then press Enter.' };
+        var state = { args: {}, query: target.name };
+        if (/^url\s+/i.test(value)) {
+            state.args.url = value.replace(/^url\s+/i, '').trim();
+        } else if (/^name\s+/i.test(value)) {
+            state.args.name = value.replace(/^name\s+/i, '').trim();
+        } else if (/^name=/i.test(value) || /^url=/i.test(value)) {
+            state.args = commandTerminalEditArgs(value);
+        } else if (commandTerminalValueLooksLikeUrl(value)) {
+            state.args.url = value;
+        } else {
+            state.args.name = value;
+        }
+        return editShortcutFromCommandTerminalByTarget(target, state);
+    }
+
+    function editShortcutFromCommandTerminalByTarget(target, state) {
+        if (!state.args.name && !state.args.url) return { ok: false, message: 'Type a new name or URL, then press Enter.' };
+        var oldName = target.name;
+        var nextName = state.args.name || target.name;
+        var nextUrl = target.url;
+        if (state.args.url) {
+            nextUrl = normalizeHttpsUrl(state.args.url);
+            if (!nextUrl) return { ok: false, message: 'Invalid URL. Type example.com or https://example.com.' };
+            if (loadShortcuts().some(function (shortcut) { return shortcut.id !== target.id && shortcut.url.toLowerCase() === nextUrl.toLowerCase(); })) {
+                return { ok: false, message: 'Shortcut URL already exists.' };
+            }
+        }
+        if (nextName === target.name && nextUrl === target.url) return { ok: true, message: 'No changes.' };
+        var shortcuts = loadShortcuts();
+        shortcuts.forEach(function (shortcut) {
+            if (shortcut.id === target.id) {
+                shortcut.name = nextName;
+                shortcut.url = nextUrl;
+            }
+        });
+        saveShortcuts(shortcuts);
+        var icons = loadIcons();
+        icons[target.id] = getFaviconUrl(nextUrl) || ('LETTER:' + nextName[0].toUpperCase());
+        saveIcons(icons);
+        return { ok: true, message: 'Updated ' + oldName + ' -> ' + nextName + '.' };
+    }
+
+    function resetStatsFromCommandTerminal() {
+        var targetIds = {};
+        shortcutsForScope(currentScopeName()).forEach(function (shortcut) { targetIds[shortcut.id] = true; });
+        var shortcuts = loadShortcuts();
+        shortcuts.forEach(function (shortcut) {
+            if (targetIds[shortcut.id]) shortcut.freq = 0;
+        });
+        saveShortcuts(shortcuts);
+        saveRecents(loadRecents().filter(function (id) { return !targetIds[id]; }));
+        return { ok: true, message: 'Reset usage stats in ' + currentScopeName() + ' panel.' };
+    }
+
+    function restoreDefaultsFromCommandTerminal() {
+        if (isHiddenMode) return { ok: false, message: 'Hidden panel has no built-in default shortcuts.' };
+        var shortcuts = loadShortcuts().slice();
+        var hidden = loadHidden().slice();
+        var existing = findShortcutByUrl(shortcuts, BUILTIN_GITHUB.url);
+        if (existing) {
+            hidden = setShortcutScope(existing.id, 'normal', hidden);
+        } else {
+            var restoreId = shortcuts.some(function (shortcut) { return shortcut.id === BUILTIN_GITHUB.id; }) ? generateId() : BUILTIN_GITHUB.id;
+            shortcuts.unshift({
+                id: restoreId,
+                name: BUILTIN_GITHUB.name,
+                url: BUILTIN_GITHUB.url,
+                freq: 0,
+                added: Date.now()
+            });
+            var icons = loadIcons();
+            icons[restoreId] = BUILTIN_GITHUB_ICON;
+            saveIcons(icons);
+        }
+        saveShortcuts(shortcuts);
+        saveHidden(hidden);
+        return { ok: true, message: 'Restored default shortcut GitHub.' };
+    }
+
+    function runCommandTerminalAction(input, action) {
+        commandTerminalPendingAction = null;
+        commandTerminalCommittedInput = input;
+        renderCommandTerminalResult(input, action());
+        clearCommandTerminalInput();
+        return true;
+    }
+
+    function commandTerminalPendingMessage(value) {
+        if (!commandTerminalPendingAction) return null;
+        if (commandTerminalPendingAction.type === 'delete-all') {
+            return { pending: true, message: 'Delete all shortcuts in ' + currentScopeName() + ' panel? Press Enter again to confirm, or type cancel.' };
+        }
+        var target = shortcutById(commandTerminalPendingAction.targetId);
+        if (!target) return { ok: false, message: 'Target shortcut no longer exists.' };
+        if (commandTerminalPendingAction.type === 'delete') {
+            return { pending: true, message: 'Delete ' + target.name + '? Press Enter again to confirm, or type cancel.' };
+        }
+        if (commandTerminalPendingAction.type === 'edit') {
+            return { pending: true, message: value ? 'Press Enter to update ' + target.name + ' with "' + value + '".' : 'Edit ' + target.name + '. Type a new name or URL, then press Enter.' };
+        }
+        return null;
+    }
+
+    function handleCommandTerminalPendingInput(input) {
+        if (!commandTerminalPendingAction) return false;
+        var command = commandTerminalPendingAction.command;
+        if (commandTerminalPendingAction.type === 'delete-all') {
+            if (/^(cancel|c|no|n)$/i.test(input)) {
+                commandTerminalPendingAction = null;
+                commandTerminalCommittedInput = command;
+                renderCommandTerminalResult(command, { ok: true, message: 'Canceled.' });
+                clearCommandTerminalInput();
+                return true;
+            }
+            if (!input || /^(yes|y)$/i.test(input)) {
+                commandTerminalPendingAction = null;
+                commandTerminalCommittedInput = command;
+                renderCommandTerminalResult(command, clearShortcutsFromCommandTerminal(true));
+                clearCommandTerminalInput();
+                return true;
+            }
+            commandTerminalResult = commandTerminalPendingMessage('');
+            renderCommandTerminal(command, true, commandTerminalResult);
+            clearCommandTerminalInput();
+            return true;
+        }
+        var target = shortcutById(commandTerminalPendingAction.targetId);
+        if (!target) {
+            commandTerminalPendingAction = null;
+            commandTerminalCommittedInput = command;
+            renderCommandTerminalResult(command, { ok: false, message: 'Target shortcut no longer exists.' });
+            clearCommandTerminalInput();
+            return true;
+        }
+        if (/^(cancel|c|no|n)$/i.test(input)) {
+            commandTerminalPendingAction = null;
+            commandTerminalCommittedInput = command;
+            renderCommandTerminalResult(command, { ok: true, message: 'Canceled.' });
+            clearCommandTerminalInput();
+            return true;
+        }
+        if (commandTerminalPendingAction.type === 'delete') {
+            if (!input || /^(yes|y)$/i.test(input)) {
+                commandTerminalPendingAction = null;
+                commandTerminalCommittedInput = command;
+                renderCommandTerminalResult(command, deleteCommandTerminalTarget(target));
+                clearCommandTerminalInput();
+                return true;
+            }
+            commandTerminalResult = { pending: true, message: 'Press Enter to confirm deleting ' + target.name + ', or type cancel.' };
+            renderCommandTerminal(command, true, commandTerminalResult);
+            clearCommandTerminalInput();
+            return true;
+        }
+        if (commandTerminalPendingAction.type === 'edit') {
+            if (!input) {
+                commandTerminalResult = commandTerminalPendingMessage('');
+                renderCommandTerminal(command, true, commandTerminalResult);
+                return true;
+            }
+            commandTerminalPendingAction = null;
+            commandTerminalCommittedInput = command;
+            renderCommandTerminalResult(command, editCommandTerminalTarget(target, input));
+            clearCommandTerminalInput();
+            return true;
+        }
+        return false;
+    }
+
+    function handleCommandTerminalInputEnter() {
+        var input = cpSearchInput.value.trim();
+        if (commandTerminalPendingAction && handleCommandTerminalPendingInput(input)) return true;
+        var state = commandTerminalInputState(input);
+        if (!input) {
+            if (commandTerminalCommittedInput) {
+                var previousState = commandTerminalInputState(commandTerminalCommittedInput);
+                var previousSelected = selectedCommandTerminalShortcut(commandTerminalCandidates(previousState));
+                if (previousSelected) handleShortcutClick(previousSelected.id);
+                return true;
+            }
+            commandTerminalCommittedInput = '';
+            commandTerminalResult = null;
+            renderCommandTerminal('', true, null);
+            return true;
+        }
+
+        if ((state.type === 'search' || state.type === 'ls' || state.type === 'recent') && commandTerminalCommittedInput === input) {
+            var selected = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
+            if (selected) handleShortcutClick(selected.id);
+            return true;
+        }
+
+        if (state.type === 'open') {
+            var target = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
+            if (target) {
+                handleShortcutClick(target.id);
+            } else {
+                commandTerminalCommittedInput = input;
+                renderCommandTerminalResult(input, { ok: false, message: 'No shortcut matches "' + (state.query || '') + '".' });
+                clearCommandTerminalInput();
+            }
+            return true;
+        }
+
+        if (state.type === 'add') {
+            commandTerminalCommittedInput = input;
+            commandTerminalResult = addShortcutFromCommandTerminal(state.query, ++commandTerminalAsyncToken, input);
+            renderCommandTerminal(input, true, commandTerminalResult);
+            scheduleCommandTerminalReturn(commandTerminalResult);
+            clearCommandTerminalInput();
+            return true;
+        }
+
+        if (state.type === 'import') {
+            commandTerminalCommittedInput = input;
+            commandTerminalResult = importShortcutsFromCommandTerminal(input);
+            renderCommandTerminal(input, true, commandTerminalResult);
+            scheduleCommandTerminalReturn(commandTerminalResult);
+            clearCommandTerminalInput();
+            return true;
+        }
+
+        if (state.type === 'export') {
+            commandTerminalCommittedInput = input;
+            renderCommandTerminalResult(input, exportShortcutsFromCommandTerminal());
+            clearCommandTerminalInput();
+            return true;
+        }
+
+        if (state.type === 'clear-screen') {
+            clearCommandTerminalInput();
+            commandTerminalCommittedInput = '';
+            commandTerminalResult = null;
+            commandTerminalPendingAction = null;
+            renderCommandTerminal('', true, null);
+            scheduleCommandTerminalReturn({ ok: true, message: '' });
+            return true;
+        }
+
+        if (state.type === 'delete-all') {
+            commandTerminalPendingAction = { type: 'delete-all', command: input };
+            commandTerminalCommittedInput = input;
+            commandTerminalResult = commandTerminalPendingMessage('');
+            renderCommandTerminal(input, true, commandTerminalResult);
+            clearCommandTerminalInput();
+            return true;
+        }
+
+        if (state.type === 'edit') {
+            if (state.args.name || state.args.url) {
+                return runCommandTerminalAction(input, function () { return editShortcutFromCommandTerminal(state); });
+            }
+            var editTarget = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
+            if (!editTarget) return runCommandTerminalAction(input, function () { return { ok: false, message: 'No matching shortcut to edit.' }; });
+            commandTerminalPendingAction = { type: 'edit', targetId: editTarget.id, command: input };
+            commandTerminalCommittedInput = input;
+            commandTerminalResult = commandTerminalPendingMessage('');
+            renderCommandTerminal(input, true, commandTerminalResult);
+            setCommandTerminalInput(editTarget.name, true);
+            return true;
+        }
+
+        if (state.type === 'delete') {
+            if (state.confirm) {
+                return runCommandTerminalAction(input, function () { return deleteShortcutFromCommandTerminal(state); });
+            }
+            var deleteTarget = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
+            if (!deleteTarget) return runCommandTerminalAction(input, function () { return { ok: false, message: 'No matching shortcut to delete.' }; });
+            commandTerminalPendingAction = { type: 'delete', targetId: deleteTarget.id, command: input };
+            commandTerminalCommittedInput = input;
+            commandTerminalResult = commandTerminalPendingMessage('');
+            renderCommandTerminal(input, true, commandTerminalResult);
+            clearCommandTerminalInput();
+            return true;
+        }
+
+        if (state.type === 'hide') {
+            return runCommandTerminalAction(input, function () { return moveShortcutFromCommandTerminal(state, 'hidden'); });
+        }
+
+        if (state.type === 'unhide') {
+            return runCommandTerminalAction(input, function () { return moveShortcutFromCommandTerminal(state, 'normal'); });
+        }
+
+        if (state.type === 'reset') {
+            return runCommandTerminalAction(input, resetStatsFromCommandTerminal);
+        }
+
+        if (state.type === 'restore') {
+            return runCommandTerminalAction(input, restoreDefaultsFromCommandTerminal);
+        }
+
+        commandTerminalCommittedInput = input;
+        commandTerminalResult = null;
+        renderCommandTerminal(input, true, null);
+        clearCommandTerminalInput();
+        return true;
     }
 
     function buildGridIconHTML(s, iconData, actionClass) {
@@ -1078,7 +1991,7 @@
         cpViewMode = settings.viewMode || 'list';
         cpCommandsCollapsed = settings.commandsCollapsed !== false;
         cpPlacement = settings.palettePlacement === 'fixed' ? 'fixed' : 'follow';
-        cpSkin = settings.paletteSkin === 'terminal' || settings.paletteSkin === 'shell' ? settings.paletteSkin : 'default';
+        cpSkin = settings.paletteSkin === 'terminal' || settings.paletteSkin === 'shell' || settings.paletteSkin === 'command-terminal' ? settings.paletteSkin : 'default';
         syncPaletteSkin();
     }
 
@@ -1102,8 +2015,83 @@
         cmdPalette.style.bottom = '';
     }
 
+    function clampPalettePosition(x, y) {
+        var rect = cmdPalette.getBoundingClientRect();
+        var width = rect.width || Math.min(700, window.innerWidth * 0.94);
+        var height = rect.height || Math.min(420, window.innerHeight * 0.64);
+        var margin = 10;
+        var maxX = Math.max(margin, window.innerWidth - width - margin);
+        var maxY = Math.max(margin, window.innerHeight - height - margin);
+        return {
+            x: Math.max(margin, Math.min(maxX, x)),
+            y: Math.max(margin, Math.min(maxY, y))
+        };
+    }
+
+    function applyPalettePosition(x, y) {
+        cmdOverlay.style.alignItems = 'flex-start';
+        cmdOverlay.style.justifyContent = 'flex-start';
+        cmdOverlay.style.paddingTop = '0';
+        cmdPalette.style.position = 'absolute';
+        cmdPalette.style.margin = '0';
+        cmdPalette.style.right = '';
+        cmdPalette.style.bottom = '';
+        var position = clampPalettePosition(x, y);
+        cmdPalette.style.left = Math.round(position.x) + 'px';
+        cmdPalette.style.top = Math.round(position.y) + 'px';
+        return position;
+    }
+
+    function paletteCanResize() {
+        return cpSkin === 'command-terminal';
+    }
+
+    function shellPaletteSizeLimits() {
+        var maxWidth = Math.max(280, window.innerWidth - 20);
+        var maxHeight = Math.max(260, window.innerHeight - 20);
+        return {
+            minWidth: Math.min(560, maxWidth),
+            minHeight: Math.min(340, maxHeight),
+            maxWidth: maxWidth,
+            maxHeight: maxHeight
+        };
+    }
+
+    function clampShellPaletteSize(width, height) {
+        var limits = shellPaletteSizeLimits();
+        return {
+            width: Math.max(limits.minWidth, Math.min(limits.maxWidth, width)),
+            height: Math.max(limits.minHeight, Math.min(limits.maxHeight, height))
+        };
+    }
+
+    function applyShellPaletteSize() {
+        if (!paletteCanResize()) {
+            cmdPalette.style.width = '';
+            cmdPalette.style.height = '';
+            return;
+        }
+        if (!cpShellSize) {
+            cmdPalette.style.width = '';
+            cmdPalette.style.height = '';
+            return;
+        }
+        cpShellSize = clampShellPaletteSize(cpShellSize.width, cpShellSize.height);
+        cmdPalette.style.width = Math.round(cpShellSize.width) + 'px';
+        cmdPalette.style.height = Math.round(cpShellSize.height) + 'px';
+        if (isPaletteOpen && cmdPalette.style.position === 'absolute') {
+            var rect = cmdPalette.getBoundingClientRect();
+            applyPalettePosition(rect.left, rect.top);
+        }
+    }
+
     function positionPalette(anchor) {
         resetPalettePosition();
+        var savedPosition = loadPalettePosition();
+        if (cpPlacement === 'fixed' && savedPosition) {
+            applyPalettePosition(savedPosition.x, savedPosition.y);
+            return;
+        }
         if (cpPlacement !== 'follow') return;
 
         anchor = normalizeAnchor(anchor || cpLastAnchor);
@@ -1111,12 +2099,6 @@
             anchor = { x: window.innerWidth / 2, y: Math.min(window.innerHeight * 0.34, 260) };
         }
         cpLastAnchor = anchor;
-
-        cmdOverlay.style.alignItems = 'flex-start';
-        cmdOverlay.style.justifyContent = 'flex-start';
-        cmdOverlay.style.paddingTop = '0';
-        cmdPalette.style.position = 'absolute';
-        cmdPalette.style.margin = '0';
 
         var rect = cmdPalette.getBoundingClientRect();
         var width = rect.width || Math.min(700, window.innerWidth * 0.94);
@@ -1126,9 +2108,105 @@
         var y = anchor.y - Math.min(78, height * 0.22);
         x = Math.max(margin, Math.min(window.innerWidth - width - margin, x));
         y = Math.max(margin, Math.min(window.innerHeight - height - margin, y));
+        applyPalettePosition(x, y);
+    }
 
-        cmdPalette.style.left = Math.round(x) + 'px';
-        cmdPalette.style.top = Math.round(y) + 'px';
+    function shouldStartPaletteDrag(e) {
+        if (e.button !== 0 || !isPaletteOpen) return false;
+        if (cpShellResizeState) return false;
+        var target = e.target;
+        if (!target || target.closest('input, textarea, button, a, select, [contenteditable="true"], .cp-content, .cp-pinned-btn, .cp-mode-chip')) return false;
+        if (target.closest('.cp-pinned-bar')) return true;
+        var rect = cmdPalette.getBoundingClientRect();
+        var topHandle = cpSkin === 'command-terminal' ? 34 : 18;
+        return e.clientY - rect.top <= topHandle;
+    }
+
+    function startPaletteDrag(e) {
+        if (!shouldStartPaletteDrag(e)) return;
+        var rect = cmdPalette.getBoundingClientRect();
+        var startPosition = applyPalettePosition(rect.left, rect.top);
+        cpDragState = {
+            pointerId: e.pointerId,
+            offsetX: e.clientX - startPosition.x,
+            offsetY: e.clientY - startPosition.y
+        };
+        cmdPalette.classList.add('dragging');
+        cmdPalette.setPointerCapture(e.pointerId);
+        e.preventDefault();
+    }
+
+    function movePaletteDrag(e) {
+        if (!cpDragState || e.pointerId !== cpDragState.pointerId) return;
+        var position = applyPalettePosition(e.clientX - cpDragState.offsetX, e.clientY - cpDragState.offsetY);
+        cpDragState.lastPosition = position;
+    }
+
+    function endPaletteDrag(e) {
+        if (!cpDragState || e.pointerId !== cpDragState.pointerId) return;
+        var position = cpDragState.lastPosition;
+        if (!position) {
+            var rect = cmdPalette.getBoundingClientRect();
+            position = clampPalettePosition(rect.left, rect.top);
+        }
+        savePalettePosition(position);
+        cmdPalette.classList.remove('dragging');
+        try { cmdPalette.releasePointerCapture(e.pointerId); } catch (err) { }
+        cpDragState = null;
+    }
+
+    function ensureShellResizeHandle() {
+        if (cmdPalette.querySelector('.cp-shell-resize-handle')) return;
+        var handle = document.createElement('span');
+        handle.className = 'cp-shell-resize-handle';
+        handle.setAttribute('aria-hidden', 'true');
+        handle.title = 'Resize command terminal';
+        handle.addEventListener('pointerdown', startShellPaletteResize);
+        cmdPalette.appendChild(handle);
+    }
+
+    function shouldStartShellPaletteResize(e) {
+        if (!paletteCanResize() || e.button !== 0 || !isPaletteOpen) return false;
+        var target = e.target;
+        if (target && target.closest && target.closest('.cp-shell-resize-handle')) return true;
+        var rect = cmdPalette.getBoundingClientRect();
+        return rect.right - e.clientX <= 38 && rect.bottom - e.clientY <= 38;
+    }
+
+    function startShellPaletteResize(e) {
+        if (!shouldStartShellPaletteResize(e)) return;
+        var rect = cmdPalette.getBoundingClientRect();
+        cpShellResizeState = {
+            pointerId: e.pointerId,
+            startX: e.clientX,
+            startY: e.clientY,
+            startWidth: rect.width,
+            startHeight: rect.height
+        };
+        cmdPalette.classList.add('shell-resizing');
+        cmdPalette.setPointerCapture(e.pointerId);
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+
+    function moveShellPaletteResize(e) {
+        if (!cpShellResizeState || e.pointerId !== cpShellResizeState.pointerId) return;
+        cpShellSize = clampShellPaletteSize(
+            cpShellResizeState.startWidth + e.clientX - cpShellResizeState.startX,
+            cpShellResizeState.startHeight + e.clientY - cpShellResizeState.startY
+        );
+        applyShellPaletteSize();
+        e.preventDefault();
+    }
+
+    function endShellPaletteResize(e) {
+        if (!cpShellResizeState || e.pointerId !== cpShellResizeState.pointerId) return;
+        moveShellPaletteResize(e);
+        cmdPalette.classList.remove('shell-resizing');
+        try { cmdPalette.releasePointerCapture(e.pointerId); } catch (err) { }
+        cpShellResizeState = null;
+        e.preventDefault();
     }
 
     function animatePaletteOpen() {
@@ -1159,6 +2237,11 @@
         renderPinnedBar();
         cpSearchInput.value = '';
         cpSearchTerm = '';
+        cancelCommandTerminalReturn();
+        commandTerminalCommittedInput = '';
+        commandTerminalResult = null;
+        commandTerminalPendingAction = null;
+        commandTerminalAsyncToken++;
         cpCurrentMode = 'list';
         cpCurrentPage = 1;
         cpKeyIndex = 0;
@@ -1182,10 +2265,19 @@
         paletteOpenFrame++;
         cmdOverlay.classList.remove('active', 'preparing');
         cpSearchTerm = '';
+        cancelCommandTerminalReturn();
+        commandTerminalCommittedInput = '';
+        commandTerminalResult = null;
+        commandTerminalPendingAction = null;
+        commandTerminalAsyncToken++;
         cpKeyIndex = 0;
         cpCurrentPage = 1;
         cpCurrentMode = 'list';
         cpEditTarget = null;
+        cpDragState = null;
+        cpShellResizeState = null;
+        cmdPalette.classList.remove('dragging');
+        cmdPalette.classList.remove('shell-resizing');
         cmdPalette.classList.remove('hidden-mode');
         resetPalettePosition();
     }
@@ -1193,6 +2285,21 @@
     function handleSearchInput(e) {
         var val = cpSearchInput.value.trim();
         cpSearchTerm = val;
+
+        if (cpSkin === 'command-terminal') {
+            cancelCommandTerminalReturn();
+            cpCurrentMode = 'list';
+            cpCurrentPage = 1;
+            commandTerminalAsyncToken++;
+            if (commandTerminalPendingAction) {
+                commandTerminalResult = commandTerminalPendingMessage(val);
+                renderCommandTerminal(commandTerminalPendingAction.command, true, commandTerminalResult);
+            } else {
+                commandTerminalResult = null;
+                renderCommandTerminal(val, commandTerminalCommittedInput === val && !!val, null);
+            }
+            return;
+        }
 
         if (val.indexOf('/') === 0) {
             var parts = val.split(/\s+/);
@@ -1262,7 +2369,7 @@
             feedbackMessage('这个快捷方式已经存在。');
             return true;
         }
-        var name = urlHostLabel(url);
+        var name = smartUrlName(url);
         var id = generateId();
         shortcuts.push({ id: id, name: name, url: url, freq: 0, added: Date.now() });
         saveShortcuts(shortcuts);
@@ -1425,8 +2532,6 @@
         }
     }
 
-    var _fetchPermOrigins = {};
-
     function handleFetchTitle() {
         var urlEl = document.getElementById('cpFormURL');
         var nameEl = document.getElementById('cpFormName');
@@ -1447,7 +2552,7 @@
                 if (title) {
                     nameEl.value = title;
                 } else {
-                    nameEl.value = urlHostLabel(url);
+                    nameEl.value = smartUrlName(url);
                 }
                 nameEl.focus();
             });
@@ -1462,26 +2567,22 @@
         try {
             origin = new URL(url).origin + '/*';
         } catch (e) {
-            nameEl.value = urlHostLabel(url);
+            nameEl.value = smartUrlName(url);
             nameEl.focus();
             return;
         }
 
-        if (_fetchPermOrigins[origin]) { doFetch(); return; }
-
         chrome.permissions.contains({ origins: [origin] }, function (hasPermission) {
             if (hasPermission) {
-                _fetchPermOrigins[origin] = true;
                 doFetch();
                 return;
             }
             chrome.permissions.request({ origins: [origin] }, function (granted) {
                 if (granted) {
-                    _fetchPermOrigins[origin] = true;
                     doFetch();
                     return;
                 }
-                nameEl.value = urlHostLabel(url);
+                nameEl.value = smartUrlName(url);
                 nameEl.focus();
             });
         });
@@ -1503,7 +2604,7 @@
             errorEl.textContent = t('duplicateURL'); errorEl.style.display = 'block'; urlEl.classList.add('error'); return;
         }
 
-        if (!name) name = urlHostLabel(url);
+        if (!name) name = smartUrlName(url);
 
         if (isEdit) {
             for (var i = 0; i < shortcuts.length; i++) {
@@ -1644,7 +2745,7 @@
         if (!raw || typeof raw !== 'object') return null;
         var url = normalizeHttpsUrl(raw.url || raw.href || raw.link);
         if (!url) return null;
-        var name = String(raw.name || raw.title || raw.label || '').trim() || urlHostLabel(url);
+        var name = String(raw.name || raw.title || raw.label || '').trim() || smartUrlName(url);
         return {
             name: name,
             url: url,
@@ -1882,7 +2983,7 @@
                 added: Date.now()
             });
             var icons = loadIcons();
-            icons[restoreId] = 'LETTER:G';
+            icons[restoreId] = BUILTIN_GITHUB_ICON;
             saveIcons(icons);
         }
         saveShortcuts(shortcuts);
@@ -1916,6 +3017,7 @@
         if (e.key === 'Enter') {
             e.preventDefault();
             if (cpCurrentMode === 'feedback') return;
+            if (cpSkin === 'command-terminal' && cpCurrentMode === 'list' && activeIsSearch && handleCommandTerminalInputEnter()) return;
             if (cpSkin === 'shell' && cpCurrentMode === 'list' && activeIsSearch && handleShellInputEnter()) return;
             if (cpCurrentMode === 'add') {
                 var submitBtn = document.getElementById('cpFormSubmit');
@@ -1924,6 +3026,12 @@
                 return;
             }
             activateSelectedItem();
+            return;
+        }
+
+        if (e.key === 'Tab' && cpSkin === 'command-terminal' && activeIsSearch) {
+            e.preventDefault();
+            completeCommandTerminalInput();
             return;
         }
 
@@ -2092,6 +3200,23 @@
         });
 
         cpPinnedBar.addEventListener('wheel', handlePinnedWheel);
+        ensureShellResizeHandle();
+        cmdPalette.addEventListener('pointerdown', startShellPaletteResize);
+        cmdPalette.addEventListener('pointermove', moveShellPaletteResize);
+        cmdPalette.addEventListener('pointerup', endShellPaletteResize);
+        cmdPalette.addEventListener('pointercancel', endShellPaletteResize);
+        cmdPalette.addEventListener('pointerdown', startPaletteDrag);
+        cmdPalette.addEventListener('pointermove', movePaletteDrag);
+        cmdPalette.addEventListener('pointerup', endPaletteDrag);
+        cmdPalette.addEventListener('pointercancel', endPaletteDrag);
+        window.addEventListener('resize', function () {
+            if (!isPaletteOpen || cpResizeFrame) return;
+            cpResizeFrame = requestAnimationFrame(function () {
+                cpResizeFrame = 0;
+                applyShellPaletteSize();
+                positionPalette(cpLastAnchor);
+            });
+        });
     }
 
     // 页面加载完成后绑定事件

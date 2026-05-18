@@ -249,6 +249,7 @@
             viewMode: 'list',
             commandsCollapsed: true,
             palettePlacement: 'follow',
+            palettePosition: null,
             paletteSkin: 'default',
             builtinGithubAdded: true
         }

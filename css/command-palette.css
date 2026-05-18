@@ -93,6 +93,15 @@
     transform: translate3d(0, 0, 0);
 }
 
+.cmd-palette.dragging {
+    cursor: grabbing;
+    user-select: none;
+}
+
+.cp-shell-resize-handle {
+    display: none;
+}
+
 .cp-pinned-bar {
     display: flex;
     flex-wrap: nowrap;
@@ -107,6 +116,7 @@
     border-bottom: 1px solid rgba(var(--accent-rgb), 0.18);
     overflow: hidden;
     position: relative;
+    cursor: grab;
 }
 
 .cp-pinned-bar::after {
@@ -211,6 +221,10 @@
     transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
     flex-shrink: 0;
     white-space: nowrap;
+}
+
+.cmd-palette.dragging .cp-pinned-bar {
+    cursor: grabbing;
 }
 
 .cp-pinned-btn.cp-home-btn {
@@ -1806,6 +1820,10 @@
     --cp-mode-signal-opacity: 0.90;
 
     width: 760px;
+    min-width: min(560px, calc(100vw - 20px));
+    min-height: min(340px, calc(100vh - 20px));
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
     color: var(--cp-shell-text);
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', 'Consolas', monospace;
     background:
@@ -1819,6 +1837,55 @@
         0 1px 0 rgba(255, 255, 255, 0.12) inset,
         0 0 0 1px rgba(255, 255, 255, 0.035) inset;
     padding: 44px 16px 16px;
+}
+
+.cmd-palette.command-terminal-skin.shell-resizing {
+    user-select: none;
+}
+
+.cmd-palette.command-terminal-skin .cp-shell-resize-handle {
+    display: block;
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 18px;
+    height: 18px;
+    z-index: 12;
+    cursor: nwse-resize;
+    touch-action: none;
+    opacity: 0.78;
+    border-radius: 4px;
+    background:
+        linear-gradient(135deg, transparent 0 50%, rgba(var(--cp-mode-signal-rgb), 0.42) 50% 100%);
+}
+
+.cmd-palette.command-terminal-skin .cp-shell-resize-handle::before {
+    content: '';
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    width: 11px;
+    height: 11px;
+    border-right: 2px solid rgba(var(--cp-mode-signal-rgb), 0.86);
+    border-bottom: 2px solid rgba(var(--cp-mode-signal-rgb), 0.86);
+    border-radius: 1px;
+    box-shadow: 0 0 8px rgba(var(--cp-mode-signal-rgb), 0.18);
+}
+
+.cmd-palette.command-terminal-skin .cp-shell-resize-handle::after {
+    content: '';
+    position: absolute;
+    right: 3px;
+    bottom: 8px;
+    width: 6px;
+    height: 6px;
+    border-right: 2px solid rgba(var(--cp-mode-signal-rgb), 0.60);
+    border-bottom: 2px solid rgba(var(--cp-mode-signal-rgb), 0.60);
+}
+
+.cmd-palette.command-terminal-skin .cp-shell-resize-handle:hover,
+.cmd-palette.command-terminal-skin.shell-resizing .cp-shell-resize-handle {
+    opacity: 1;
 }
 
 .cmd-palette.shell-skin.hidden-mode {
@@ -2063,6 +2130,313 @@
     font-size: 12px;
 }
 
+.cmd-palette-overlay.command-terminal-skin {
+    background:
+        radial-gradient(ellipse at 50% 18%, rgba(37, 99, 235, 0.12), transparent 42%),
+        rgba(3, 6, 12, 0.62);
+}
+
+.cmd-palette.command-terminal-skin {
+    --cp-command-terminal-bg: #070a11;
+    --cp-command-terminal-panel: #0b101a;
+    --cp-command-terminal-line: #1d2736;
+    --cp-command-terminal-text: #e6edf7;
+    --cp-command-terminal-muted: #8290a4;
+    --cp-command-terminal-dim: #526074;
+    --cp-command-terminal-blue: 111, 200, 255;
+    --cp-command-terminal-green: 89, 225, 157;
+    --cp-command-terminal-pink: 255, 91, 178;
+    --cp-command-terminal-yellow: 245, 200, 104;
+    --cp-mode-signal-rgb: var(--cp-command-terminal-green);
+    --cp-mode-signal-opacity: 0.88;
+
+    width: min(900px, calc(100vw - 20px));
+    height: min(590px, calc(100vh - 20px));
+    min-width: min(560px, calc(100vw - 20px));
+    min-height: min(340px, calc(100vh - 20px));
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    color: var(--cp-command-terminal-text);
+    font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', 'Consolas', monospace;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 16%),
+        radial-gradient(circle at 18% 0%, rgba(var(--cp-command-terminal-blue), 0.10), transparent 30%),
+        var(--cp-command-terminal-bg);
+    border: 1px solid rgba(139, 152, 172, 0.26);
+    border-radius: 12px;
+    box-shadow:
+        0 34px 86px rgba(0, 0, 0, 0.68),
+        0 1px 0 rgba(255, 255, 255, 0.10) inset;
+    padding: 14px;
+}
+
+.cmd-palette.command-terminal-skin.hidden-mode {
+    --cp-mode-signal-rgb: var(--cp-command-terminal-pink);
+}
+
+.cmd-palette.command-terminal-skin::before {
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 32px;
+    background:
+        radial-gradient(circle at 17px 16px, #ff5f57 0 4px, transparent 4.5px),
+        radial-gradient(circle at 34px 16px, #ffbd2e 0 4px, transparent 4.5px),
+        radial-gradient(circle at 51px 16px, #28c840 0 4px, transparent 4.5px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.012));
+    border-bottom: 1px solid var(--cp-command-terminal-line);
+    opacity: 1;
+    cursor: grab;
+}
+
+.cmd-palette.command-terminal-skin::after {
+    content: 'Command Terminal';
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--cp-command-terminal-muted);
+    font-size: 11px;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.cmd-palette.command-terminal-skin.hidden-mode::after {
+    content: 'Command Terminal hidden';
+    color: rgba(var(--cp-command-terminal-pink), 0.82);
+}
+
+.cmd-palette.command-terminal-skin.dragging::before {
+    cursor: grabbing;
+}
+
+.cmd-palette.command-terminal-skin .cp-pinned-bar {
+    display: none;
+}
+
+.cmd-palette.command-terminal-skin .cp-content {
+    order: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 34px 0 12px;
+    padding: 0 4px 0 0;
+    scrollbar-color: rgba(142, 156, 178, 0.36) transparent;
+}
+
+.cmd-palette.command-terminal-skin .cp-search-input {
+    order: 2;
+    min-height: 42px;
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: var(--cp-command-terminal-text);
+    caret-color: rgb(var(--cp-mode-signal-rgb));
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent),
+        #070910;
+    border: 1px solid var(--cp-command-terminal-line);
+    box-shadow:
+        0 0 0 1px rgba(var(--cp-mode-signal-rgb), 0.08) inset,
+        0 0 22px rgba(0, 0, 0, 0.16) inset;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.cmd-palette.command-terminal-skin .cp-search-input::placeholder {
+    color: rgba(var(--cp-mode-signal-rgb), 0.90);
+}
+
+.cmd-palette.command-terminal-skin .cp-search-input:hover,
+.cmd-palette.command-terminal-skin .cp-search-input:focus {
+    background: #090d16;
+    border-color: rgba(var(--cp-mode-signal-rgb), 0.46);
+    box-shadow:
+        0 0 0 1px rgba(var(--cp-mode-signal-rgb), 0.14) inset,
+        0 0 0 3px rgba(var(--cp-mode-signal-rgb), 0.08);
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-buffer {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-boot,
+.cmd-palette.command-terminal-skin .cp-command-terminal-empty,
+.cmd-palette.command-terminal-skin .cp-command-terminal-message {
+    color: var(--cp-command-terminal-muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-message.ok {
+    color: rgb(var(--cp-command-terminal-green));
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-message.pending {
+    color: rgb(var(--cp-command-terminal-yellow));
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-message.error {
+    color: #ff8ca3;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-line {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    min-height: 28px;
+    margin-top: 4px;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-prompt {
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #06110d;
+    background: rgb(var(--cp-mode-signal-rgb));
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-command {
+    color: var(--cp-command-terminal-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-state {
+    color: var(--cp-command-terminal-dim);
+    font-size: 10px;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-section {
+    margin-top: 7px;
+    color: rgb(var(--cp-command-terminal-yellow));
+    font-size: 11px;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-row {
+    display: grid;
+    grid-template-columns: 22px minmax(92px, 0.72fr) minmax(160px, 1fr) 46px;
+    align-items: center;
+    gap: 10px;
+    min-height: 32px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    color: var(--cp-command-terminal-text);
+    background: transparent;
+    border: 1px solid transparent;
+    font-family: inherit;
+    text-align: left;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-row:hover,
+.cmd-palette.command-terminal-skin .cp-command-terminal-row.key-hover {
+    background: rgba(var(--cp-command-terminal-blue), 0.08);
+    border-color: rgba(var(--cp-command-terminal-blue), 0.22);
+    box-shadow: inset 3px 0 0 rgba(var(--cp-mode-signal-rgb), 0.88);
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgb(var(--cp-command-terminal-blue));
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-icon img {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-path {
+    color: #96a3b7;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-tag {
+    justify-self: end;
+    color: rgb(var(--cp-mode-signal-rgb));
+    font-size: 10px;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-help {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-help-group {
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid rgba(142, 156, 178, 0.14);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.018);
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-help-title {
+    margin-bottom: 8px;
+    color: rgb(var(--cp-command-terminal-yellow));
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-help-line {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+    min-height: 32px;
+    padding: 6px 0;
+    border-top: 1px solid rgba(142, 156, 178, 0.10);
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-help-line:first-of-type {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-help-line code {
+    width: max-content;
+    max-width: 100%;
+    padding: 2px 6px;
+    border-radius: 5px;
+    color: rgb(var(--cp-command-terminal-blue));
+    background: rgba(var(--cp-command-terminal-blue), 0.075);
+    border: 1px solid rgba(var(--cp-command-terminal-blue), 0.16);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cmd-palette.command-terminal-skin .cp-command-terminal-help-line em {
+    color: var(--cp-command-terminal-muted);
+    font-size: 11px;
+    font-style: normal;
+    line-height: 1.4;
+}
+
 @media (max-width: 560px) {
     .cmd-palette-overlay {
         padding-top: 12vh;
@@ -2117,6 +2491,30 @@
     .cmd-palette.shell-skin .cp-shell-owner,
     .cmd-palette.shell-skin .cp-shell-freq,
     .cmd-palette.shell-skin .cp-shell-target {
+        display: none;
+    }
+
+    .cmd-palette.command-terminal-skin {
+        width: calc(100vw - 24px);
+        height: min(430px, 76vh);
+        max-height: 76vh;
+        padding: 42px 12px 12px;
+    }
+
+    .cmd-palette.command-terminal-skin .cp-content {
+        margin-top: 0;
+    }
+
+    .cmd-palette.command-terminal-skin .cp-command-terminal-help {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cmd-palette.command-terminal-skin .cp-command-terminal-row {
+        grid-template-columns: 20px minmax(0, 1fr) 42px;
+        gap: 8px;
+    }
+
+    .cmd-palette.command-terminal-skin .cp-command-terminal-path {
         display: none;
     }
 }

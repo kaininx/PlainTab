@@ -41,6 +41,7 @@
     var DEFAULT_WALLPAPER_BLUR_MAX = 15;
     var DEFAULT_UI_RADIUS = 'soft';
     var BACKUP_KDF_ITERATIONS = 150000;
+    var HTTPS_ALL_ORIGIN = 'https://*/*';
 
     var IS_EXTENSION = typeof chrome !== 'undefined' && chrome.runtime && !!chrome.runtime.id;
 
@@ -284,6 +285,7 @@
         if (!isModalOpen) return;
         isModalOpen = false;
         closeCustomSelects();
+        clearPermissionsStatus();
         modalOpenFrame++;
         modalOverlay.classList.remove('active', 'preparing');
         clearWallpaperDraft();
@@ -312,8 +314,10 @@
         });
 
         if (activeTab === 'appearance' && !_tabEventBound.appearance) { bindAppearanceEvents(); _tabEventBound.appearance = true; }
+        if (activeTab === 'search' && !_tabEventBound.search) { bindSearchEvents(); _tabEventBound.search = true; }
         if (activeTab === 'wallpaper' && !_tabEventBound.wallpaper) { bindWallpaperEvents(); _tabEventBound.wallpaper = true; }
         if (activeTab === 'shortcuts' && !_tabEventBound.shortcuts) { bindShortcutsEvents(); _tabEventBound.shortcuts = true; }
+        if (activeTab === 'permissions' && !_tabEventBound.permissions) { bindPermissionsEvents(); _tabEventBound.permissions = true; }
         if (activeTab === 'data' && !_tabEventBound.data) { bindDataEvents(); _tabEventBound.data = true; }
     }
 
@@ -322,8 +326,10 @@
 
         var builders = {
             appearance: buildAppearanceHTML,
+            search: buildSearchHTML,
             wallpaper: buildWallpaperHTML,
             shortcuts: buildShortcutsHTML,
+            permissions: buildPermissionsHTML,
             data: buildDataHTML,
             about: buildAboutHTML
         };
@@ -402,12 +408,12 @@
 
     function loadPaletteSkin() {
         var skin = loadShortcutSettings().paletteSkin;
-        return skin === 'terminal' || skin === 'shell' ? skin : 'default';
+        return skin === 'terminal' || skin === 'shell' || skin === 'command-terminal' ? skin : 'default';
     }
 
     function savePaletteSkin(value) {
         updateShortcutSettings(function (settings) {
-            settings.paletteSkin = value === 'terminal' || value === 'shell' ? value : 'default';
+            settings.paletteSkin = value === 'terminal' || value === 'shell' || value === 'command-terminal' ? value : 'default';
         });
     }
 
@@ -427,9 +433,11 @@
         var lang = I18N[currentLang] || {};
         var en = I18N.en || {};
         var enFallback = {
-            modalSubtitleAppearance: 'Search, overlay, theme, and panel texture live here.',
+            modalSubtitleAppearance: 'Theme, wallpaper display, and panel texture live here.',
+            modalSubtitleSearch: 'Search visibility, layout, surface, and engine live here.',
             modalSubtitleWallpaper: 'The five sources keep their own signal colors, with the current source expanded.',
-            modalSubtitleShortcuts: 'Shortcuts stay lightweight and focused on frequent entry points.',
+            modalSubtitleShortcuts: 'Command entry, hidden entry, recommendations, and panel skins live here.',
+            modalSubtitlePermissions: 'Browser permissions used by shortcuts, RSS, and API sources live here.',
             modalSubtitleData: 'Export or restore the full PlainTab configuration.',
             modalSubtitleAbout: 'PlainTab stays quietly behind your new tab page.',
             modalDescSearchMode: 'Choose when the search box should appear.',
@@ -453,7 +461,8 @@
             modalDescHiddenHotkey: 'Open hidden shortcut management directly.',
             modalDescRecommend: 'Keep the high-frequency recommendations area.',
             modalDescPalettePlacement: 'Open the command palette from the trigger point, or keep the old fixed position.',
-            modalDescPaletteSkin: 'Choose the themed surface, a modern terminal, or an Oh My Zsh command session.',
+            modalDescPaletteSkin: 'Choose the command panel style. Regular follows theme colors; the other styles use independent colors. Terminal is recommended and supports temporary resize.',
+            modalDescWebAccess: 'Allow PlainTab to read HTTPS pages for shortcut titles, RSS/API tests, and configured data sources. PlainTab does not modify page content.',
             modalDescDataJson: 'Readable JSON is convenient for archives and troubleshooting.',
             modalDescDataEncrypted: 'Password-protected backup, compressed before encryption.',
             modalDescDataImport: 'Import JSON or encrypted PlainTab backup files.',
@@ -919,7 +928,7 @@
             '</div>';
     }
 
-    function buildAppearanceHTML() {
+    function buildSearchHTML() {
         var searchModeControl = '<select id="modalSearchMode">' +
             '<option value="hover"' + (searchMode === 'hover' ? ' selected' : '') + '>' + (t('searchHover') || '悬停时显示') + '</option>' +
             '<option value="always"' + (searchMode === 'always' ? ' selected' : '') + '>' + (t('searchAlways') || '始终显示') + '</option>' +
@@ -946,7 +955,7 @@
             '<option value="right"' + (searchIconPosition === 'right' ? ' selected' : '') + '>' + tr('iconRight', '右侧') + '</option>' +
             '</select>';
         var radiusControl = '<select id="modalSearchRadius">' +
-            '<option value="capsule"' + (searchRadius === 'capsule' ? ' selected' : '') + '>' + (t('radiusCapsule') || '胶囊 (偏圆)') + '</option>' +
+            '<option value="capsule"' + (searchRadius === 'capsule' ? ' selected' : '') + '>' + (t('radiusCapsule') || '胶囊') + '</option>' +
             '<option value="rounded"' + (searchRadius === 'rounded' ? ' selected' : '') + '>' + (t('radiusRounded') || '圆角') + '</option>' +
             '<option value="sharp"' + (searchRadius === 'sharp' ? ' selected' : '') + '>' + (t('radiusSharp') || '直角') + '</option>' +
             '</select>';
@@ -956,6 +965,31 @@
             '<input type="number" id="modalSearchBgNum" class="input-w-55" min="0.04" max="0.32" step="0.01" value="' + searchBackgroundOpacity + '">';
         var searchBlurControl = '<input type="range" id="modalSearchBlurRange" min="0" max="40" step="1" value="' + searchBlur + '">' +
             '<input type="number" id="modalSearchBlurNum" class="input-w-55" min="0" max="40" step="1" value="' + searchBlur + '">';
+        var engineControl = '<select id="modalEngineSel">' +
+            '<option value="google"' + (currentEngine === 'google' ? ' selected' : '') + '>Google</option>' +
+            '<option value="bing"' + (currentEngine === 'bing' ? ' selected' : '') + '>Bing</option>' +
+            '<option value="baidu"' + (currentEngine === 'baidu' ? ' selected' : '') + '>Baidu</option>' +
+            '<option value="duckduckgo"' + (currentEngine === 'duckduckgo' ? ' selected' : '') + '>DuckDuckGo</option>' +
+            '</select>';
+        var body =
+            settingGroup(tr('settingsGroupSearchVisibility', '显示'),
+            settingItem(t('searchLabel') || '搜索栏显示', modalCopy('modalDescSearchMode', '设定搜索框出现的时机。'), searchModeControl) +
+            settingItem(tr('searchHistory', '搜索历史'), modalCopy('modalDescSearchHistory', '在搜索栏下方保留最近搜索。'), searchHistoryControl)) +
+            settingGroup(tr('settingsGroupSearchLayout', '布局'),
+            settingItem(t('searchPosition') || '搜索栏位置', modalCopy('modalDescSearchPosition', '选择搜索框在画面中轴上的高度。'), searchPosControl) +
+            settingItem(tr('searchWidth', '搜索栏宽度'), modalCopy('modalDescSearchWidth', '调整搜索框占据的横向空间。'), searchWidthControl) +
+            settingItem(tr('searchIconPosition', '搜索图标位置'), modalCopy('modalDescSearchIconPosition', '选择搜索图标或网页版引擎 Logo 在左侧还是右侧。'), searchIconPositionControl)) +
+            settingGroup(tr('settingsGroupSearchSurface', '样式'),
+            settingItem(t('searchRadius') || '搜索栏圆角', modalCopy('modalDescSearchRadius', '让搜索框形态匹配当前壁纸氛围。'), radiusControl) +
+            settingItem(tr('searchBackground', '搜索框背景'), modalCopy('modalDescSearchBackground', '调节搜索框玻璃表面的强弱。'), searchBgControl) +
+            settingItem(tr('searchBlur', '搜索框模糊'), modalCopy('modalDescSearchBlur', '调节搜索框背后的壁纸扩散程度。'), searchBlurControl)) +
+            settingGroup(tr('settingsGroupSearchEngine', '搜索引擎'),
+            settingItem(t('engineLabel') || '搜索引擎', modalCopy('modalDescEngine', '网页版可切换，扩展版沿用浏览器默认搜索。'), engineControl, IS_EXTENSION ? 'engine-row-hidden' : ''));
+
+        return buildPageShell(tr('tabSearch', '搜索设置'), modalCopy('modalSubtitleSearch', '搜索栏的显示、位置、形态和搜索引擎集中在这里。'), body);
+    }
+
+    function buildAppearanceHTML() {
         var wallpaperFitControl = '<select id="modalWallpaperFit">' +
             '<option value="cover"' + (wallpaperFit === 'cover' ? ' selected' : '') + '>' + tr('fitCover', '铺满裁切') + '</option>' +
             '<option value="contain"' + (wallpaperFit === 'contain' ? ' selected' : '') + '>' + tr('fitContain', '完整显示') + '</option>' +
@@ -982,26 +1016,10 @@
             '<option value="soft"' + (uiRadius === 'soft' ? ' selected' : '') + '>' + tr('radiusSoft', '柔和') + '</option>' +
             '<option value="round"' + (uiRadius === 'round' ? ' selected' : '') + '>' + tr('radiusRound', '圆润') + '</option>' +
             '</select>';
-        var engineControl = '<select id="modalEngineSel">' +
-            '<option value="google"' + (currentEngine === 'google' ? ' selected' : '') + '>Google</option>' +
-            '<option value="bing"' + (currentEngine === 'bing' ? ' selected' : '') + '>Bing</option>' +
-            '<option value="baidu"' + (currentEngine === 'baidu' ? ' selected' : '') + '>Baidu</option>' +
-            '<option value="duckduckgo"' + (currentEngine === 'duckduckgo' ? ' selected' : '') + '>DuckDuckGo</option>' +
-            '</select>';
 
         var body =
             settingGroup(tr('settingsGroupTheme', '主题'),
             settingItem(t('themeEnableLabel') || '壁纸主题色', modalCopy('modalDescTheme', '从当前壁纸提取表面、描边、强调和文字色。'), themeControl, 'setting-compact')) +
-            settingGroup(tr('settingsGroupSearch', '搜索栏'),
-            settingItem(t('searchLabel') || '搜索栏显示', modalCopy('modalDescSearchMode', '设定搜索框出现的时机。'), searchModeControl) +
-            settingItem(tr('searchHistory', '搜索历史'), modalCopy('modalDescSearchHistory', '在搜索栏下方保留最近搜索。'), searchHistoryControl) +
-            settingItem(t('searchPosition') || '搜索栏位置', modalCopy('modalDescSearchPosition', '选择搜索框在画面中轴上的高度。'), searchPosControl) +
-            settingItem(tr('searchWidth', '搜索栏宽度'), modalCopy('modalDescSearchWidth', '调整搜索框占据的横向空间。'), searchWidthControl) +
-            settingItem(t('searchRadius') || '搜索栏圆角', modalCopy('modalDescSearchRadius', '让搜索框形态匹配当前壁纸氛围。'), radiusControl) +
-            settingItem(tr('searchBackground', '搜索框背景'), modalCopy('modalDescSearchBackground', '调节搜索框玻璃表面的强弱。'), searchBgControl) +
-            settingItem(tr('searchBlur', '搜索框模糊'), modalCopy('modalDescSearchBlur', '调节搜索框背后的壁纸扩散程度。'), searchBlurControl) +
-            settingItem(tr('searchIconPosition', '搜索图标位置'), modalCopy('modalDescSearchIconPosition', '选择搜索图标或网页版引擎 Logo 在左侧还是右侧。'), searchIconPositionControl) +
-            settingItem(t('engineLabel') || '搜索引擎', modalCopy('modalDescEngine', '网页版可切换，扩展版沿用浏览器默认搜索。'), engineControl, IS_EXTENSION ? 'engine-row-hidden' : '')) +
             settingGroup(tr('settingsGroupWallpaper', '壁纸'),
             settingItem(tr('wallpaperFit', '壁纸适配'), modalCopy('modalDescWallpaperFit', '选择壁纸如何填充整个视口。'), wallpaperFitControl) +
             settingItem(tr('wallpaperPosition', '壁纸焦点'), modalCopy('modalDescWallpaperPosition', '当壁纸被裁切时选择画面锚点。'), wallpaperPositionControl) +
@@ -1013,10 +1031,10 @@
             settingItem(tr('uiRadiusLabel', '界面圆角'), modalCopy('modalDescUiRadius', '切换面板和控件的整体圆角语言。'), uiRadiusControl)) +
             '<div class="settings-actions"><button class="reset-defaults-btn" id="modalResetBtn">' + (t('resetAdv') || '恢复默认设置') + '</button></div>';
 
-        return buildPageShell(tr('tabAppearance', '界面设置'), modalCopy('modalSubtitleAppearance', '搜索、遮罩、主题和浮层质感集中在这里。'), body);
+        return buildPageShell(tr('tabAppearance', '界面设置'), modalCopy('modalSubtitleAppearance', '主题、壁纸显示和浮层质感集中在这里。'), body);
     }
 
-    function bindAppearanceEvents() {
+    function bindSearchEvents() {
         var selMode = document.getElementById('modalSearchMode');
         var selHistoryLimit = document.getElementById('modalSearchHistoryLimit');
         var selPos = document.getElementById('modalSearchPos');
@@ -1028,20 +1046,7 @@
         var searchBgNum = document.getElementById('modalSearchBgNum');
         var searchBlurRange = document.getElementById('modalSearchBlurRange');
         var searchBlurNum = document.getElementById('modalSearchBlurNum');
-        var wallpaperFitSel = document.getElementById('modalWallpaperFit');
-        var wallpaperPositionSel = document.getElementById('modalWallpaperPosition');
-        var wallpaperBlurRange = document.getElementById('modalWallpaperBlurRange');
-        var wallpaperBlurNum = document.getElementById('modalWallpaperBlurNum');
-        var overlayRange = document.getElementById('modalOverlayRange');
-        var overlayNum = document.getElementById('modalOverlayNum');
-        var opacityRange = document.getElementById('modalOpacityRange');
-        var opacityNum = document.getElementById('modalOpacityNum');
-        var themeCheck = document.getElementById('modalThemeEnabled');
-        var panelOpacityRange = document.getElementById('modalPanelOpacityRange');
-        var panelOpacityNum = document.getElementById('modalPanelOpacityNum');
-        var uiRadiusSel = document.getElementById('modalUiRadius');
         var engineSel = document.getElementById('modalEngineSel');
-        var resetBtn = document.getElementById('modalResetBtn');
 
         if (selMode) selMode.addEventListener('change', function () { applySearchMode(this.value); });
         if (selHistoryLimit) selHistoryLimit.addEventListener('change', function () { applySearchHistoryLimit(this.value); });
@@ -1054,6 +1059,25 @@
         if (searchBgNum) searchBgNum.addEventListener('change', function () { applySearchBackgroundOpacity(this.value); if (searchBgRange) searchBgRange.value = searchBackgroundOpacity; this.value = searchBackgroundOpacity; });
         if (searchBlurRange) searchBlurRange.addEventListener('input', function () { applySearchBlur(this.value); if (searchBlurNum) searchBlurNum.value = searchBlur; });
         if (searchBlurNum) searchBlurNum.addEventListener('change', function () { applySearchBlur(this.value); if (searchBlurRange) searchBlurRange.value = searchBlur; this.value = searchBlur; });
+        if (engineSel) engineSel.addEventListener('change', function () { applyEngine(this.value); });
+        syncCustomSelects(modalContent);
+    }
+
+    function bindAppearanceEvents() {
+        var wallpaperFitSel = document.getElementById('modalWallpaperFit');
+        var wallpaperPositionSel = document.getElementById('modalWallpaperPosition');
+        var wallpaperBlurRange = document.getElementById('modalWallpaperBlurRange');
+        var wallpaperBlurNum = document.getElementById('modalWallpaperBlurNum');
+        var overlayRange = document.getElementById('modalOverlayRange');
+        var overlayNum = document.getElementById('modalOverlayNum');
+        var opacityRange = document.getElementById('modalOpacityRange');
+        var opacityNum = document.getElementById('modalOpacityNum');
+        var themeCheck = document.getElementById('modalThemeEnabled');
+        var panelOpacityRange = document.getElementById('modalPanelOpacityRange');
+        var panelOpacityNum = document.getElementById('modalPanelOpacityNum');
+        var uiRadiusSel = document.getElementById('modalUiRadius');
+        var resetBtn = document.getElementById('modalResetBtn');
+
         if (wallpaperFitSel) wallpaperFitSel.addEventListener('change', function () { applyWallpaperFit(this.value); });
         if (wallpaperPositionSel) wallpaperPositionSel.addEventListener('change', function () { applyWallpaperPosition(this.value); });
         if (wallpaperBlurRange) wallpaperBlurRange.addEventListener('input', function () { applyWallpaperBlur(this.value, { preview: true }); this.value = wallpaperBlur; if (wallpaperBlurNum) wallpaperBlurNum.value = wallpaperBlur; });
@@ -1067,7 +1091,6 @@
         if (panelOpacityRange) panelOpacityRange.addEventListener('input', function () { applyPanelOpacity(this.value); if (panelOpacityNum) panelOpacityNum.value = this.value; });
         if (panelOpacityNum) panelOpacityNum.addEventListener('change', function () { applyPanelOpacity(this.value); if (panelOpacityRange) panelOpacityRange.value = this.value; });
         if (uiRadiusSel) uiRadiusSel.addEventListener('change', function () { applyUiRadius(this.value); });
-        if (engineSel) engineSel.addEventListener('change', function () { applyEngine(this.value); });
         if (resetBtn) resetBtn.addEventListener('click', resetAppearanceDefaults);
         syncCustomSelects(modalContent);
     }
@@ -1574,20 +1597,23 @@
             '</select>';
         var skin = loadPaletteSkin();
         var skinControl = '<select id="cpSkin">' +
-            '<option value="default"' + (skin === 'default' ? ' selected' : '') + '>' + tr('cpSkinDefault', '\u9ed8\u8ba4\u76ae\u80a4') + '</option>' +
-            '<option value="terminal"' + (skin === 'terminal' ? ' selected' : '') + '>' + tr('cpSkinTerminal', '\u7ec8\u7aef\u76ae\u80a4') + '</option>' +
-            '<option value="shell"' + (skin === 'shell' ? ' selected' : '') + '>' + tr('cpSkinShell', 'Oh My Zsh') + '</option>' +
+            '<option value="default"' + (skin === 'default' ? ' selected' : '') + '>' + tr('cpSkinDefault', '\u5e38\u89c4') + '</option>' +
+            '<option value="terminal"' + (skin === 'terminal' ? ' selected' : '') + '>' + tr('cpSkinTerminal', '\u6781\u5ba2') + '</option>' +
+            '<option value="shell"' + (skin === 'shell' ? ' selected' : '') + '>' + tr('cpSkinShell', '\u63a7\u5236\u53f0') + '</option>' +
+            '<option value="command-terminal"' + (skin === 'command-terminal' ? ' selected' : '') + '>' + tr('cpSkinCommandTerminal', '\u7ec8\u7aef \u00b7 \u63a8\u8350') + '</option>' +
             '</select>';
 
-        var body = '<div class="setting-stack">' +
-            settingItem(tr('cpSkinLabel', '\u547d\u4ee4\u9762\u677f\u76ae\u80a4'), modalCopy('modalDescPaletteSkin', '\u5728\u8ddf\u968f\u4e3b\u9898\u7684\u9ed8\u8ba4\u5916\u89c2\u3001\u73b0\u4ee3\u7ec8\u7aef\u548c Oh My Zsh \u547d\u4ee4\u4f1a\u8bdd\u4e4b\u95f4\u5207\u6362\u3002'), skinControl, 'setting-compact') +
+        var body =
+            settingGroup(tr('cpGroupAppearance', '外观'),
+            settingItem(tr('cpSkinLabel', '\u547d\u4ee4\u9762\u677f\u6837\u5f0f'), modalCopy('modalDescPaletteSkin', '\u5e38\u89c4\u8ddf\u968f\u4e3b\u9898\u8272\uff1b\u5176\u4ed6\u6837\u5f0f\u4f7f\u7528\u72ec\u7acb\u914d\u8272\u3002\u63a8\u8350\u4f7f\u7528\u7ec8\u7aef\u6837\u5f0f\uff0c\u652f\u6301\u53f3\u4e0b\u89d2\u4e34\u65f6\u8c03\u6574\u5927\u5c0f\u3002'), skinControl, 'setting-compact')) +
+            settingGroup(tr('cpGroupOpen', '打开方式'),
             settingItem(tr('cpPlacementLabel', '\u547d\u4ee4\u9762\u677f\u4f4d\u7f6e'), modalCopy('modalDescPalettePlacement', '\u4ece\u89e6\u53d1\u70b9\u8ddf\u624b\u6253\u5f00\uff0c\u6216\u4fdd\u6301\u539f\u6765\u7684\u56fa\u5b9a\u4f4d\u7f6e\u3002'), placementControl, 'setting-compact') +
             settingItem(t('cpHotkeyLabel') || '命令面板快捷键', modalCopy('modalDescHotkey', '打开命令面板与快捷入口。'), '<input type="text" class="hotkey-input" id="hkNormal" value="' + hkNormal + '" readonly>') +
-            settingItem(t('cpHiddenHotkeyLabel') || '隐藏面板快捷键', modalCopy('modalDescHiddenHotkey', '直接打开隐藏快捷入口管理。'), '<input type="text" class="hotkey-input" id="hkHidden" value="' + hkHidden + '" readonly>') +
-            settingItem(t('cpRecommendLabel') || '显示推荐', modalCopy('modalDescRecommend', '保留高频入口的推荐区域。'), '<label class="switch-control"><input type="checkbox" id="cpRecommend"' + checked + '><span></span></label>', 'setting-compact') +
-            '</div>';
+            settingItem(t('cpHiddenHotkeyLabel') || '隐藏面板快捷键', modalCopy('modalDescHiddenHotkey', '直接打开隐藏快捷入口管理。'), '<input type="text" class="hotkey-input" id="hkHidden" value="' + hkHidden + '" readonly>')) +
+            settingGroup(tr('cpGroupContent', '内容'),
+            settingItem(t('cpRecommendLabel') || '显示推荐', modalCopy('modalDescRecommend', '保留高频入口的推荐区域。'), '<label class="switch-control"><input type="checkbox" id="cpRecommend"' + checked + '><span></span></label>', 'setting-compact'));
 
-        return buildPageShell(tr('tabShortcuts', '快捷键设置'), modalCopy('modalSubtitleShortcuts', '快捷键保持轻量，只保留真正高频的入口。'), body);
+        return buildPageShell(tr('tabShortcuts', '命令面板'), modalCopy('modalSubtitleShortcuts', '命令入口、隐藏入口、推荐和面板皮肤集中在这里。'), body);
     }
 
     function bindShortcutsEvents() {
@@ -1627,6 +1653,32 @@
         return buildPageShell(tr('tabData', '数据'), modalCopy('modalSubtitleData', '导出或恢复 PlainTab 的完整用户配置。'), body);
     }
 
+    function buildPermissionsHTML() {
+        var webAccessControl = '<section class="permission-card" id="webAccessCard" data-state="checking">' +
+            '<div class="permission-card-header">' +
+            '<div class="permission-card-copy">' +
+            '<span class="permission-eyebrow">' + tr('permissionGroupWebAccess', '网页读取') + '</span>' +
+            '<h3>' + tr('webAccessTitle', 'HTTPS 网站读取权限') + '</h3>' +
+            '<p>' + modalCopy('modalDescWebAccess', '用于添加快捷方式时获取网页标题，也用于 RSS/API 测试与读取你配置的数据源。PlainTab 不会修改网页内容。') + '</p>' +
+            '</div>' +
+            '<span class="permission-state" id="webAccessState" data-type="info">' + tr('webAccessChecking', '正在检查权限...') + '</span>' +
+            '</div>' +
+            '<div class="permission-uses" aria-label="' + tr('permissionUsesLabel', '用途') + '">' +
+            '<span>' + tr('permissionUseShortcut', '快捷方式标题') + '</span>' +
+            '<span>' + tr('permissionUseRss', 'RSS 测试') + '</span>' +
+            '<span>' + tr('permissionUseApi', 'API 读取') + '</span>' +
+            '</div>' +
+            '<div class="permission-note">' + tr('webAccessHint', '默认会按站点请求授权；一次性授权后，PlainTab 可在 HTTPS 站点上更顺畅地自动读取标题与测试数据源。') + '</div>' +
+            '<div class="permission-control">' +
+            '<button class="primary-action" id="webAccessGrantBtn" type="button">' + tr('webAccessGrant', '一次性授权 HTTPS 网站') + '</button>' +
+            '<button class="permission-revoke-action" id="webAccessRevokeBtn" type="button">' + tr('webAccessRevoke', '改回按需授权') + '</button>' +
+            '</div>' +
+            '</section>';
+        var body = webAccessControl +
+            '<div class="permission-status" id="permissionsStatus" hidden></div>';
+        return buildPageShell(tr('tabPermissions', '权限'), modalCopy('modalSubtitlePermissions', '快捷方式、RSS 和 API 共用的浏览器权限放在这里。'), body);
+    }
+
     function bindDataEvents() {
         var jsonBtn = document.getElementById('dataExportJsonBtn');
         var encryptedBtn = document.getElementById('dataExportEncryptedBtn');
@@ -1647,6 +1699,86 @@
             if (fileName) fileName.textContent = file.name;
             importDataBackup(file);
         });
+    }
+
+    function bindPermissionsEvents() {
+        var grantBtn = document.getElementById('webAccessGrantBtn');
+        var revokeBtn = document.getElementById('webAccessRevokeBtn');
+        if (grantBtn) grantBtn.addEventListener('click', grantAllHttpsAccess);
+        if (revokeBtn) revokeBtn.addEventListener('click', revokeAllHttpsAccess);
+        refreshAllHttpsAccessState();
+    }
+
+    function hasPermissionApi() {
+        return !!(IS_EXTENSION && chrome.permissions && chrome.permissions.contains);
+    }
+
+    function setWebAccessStatus(message, type) {
+        var stateEl = document.getElementById('webAccessState');
+        if (!stateEl) return;
+        stateEl.textContent = message || '';
+        stateEl.dataset.type = type || 'info';
+    }
+
+    function updateWebAccessControls(granted, disabled) {
+        var card = document.getElementById('webAccessCard');
+        var grantBtn = document.getElementById('webAccessGrantBtn');
+        var revokeBtn = document.getElementById('webAccessRevokeBtn');
+        if (grantBtn) grantBtn.disabled = !!disabled || !!granted;
+        if (grantBtn) grantBtn.hidden = !!granted;
+        if (revokeBtn) revokeBtn.disabled = !!disabled || !granted;
+        if (revokeBtn) revokeBtn.hidden = !granted;
+        if (card) card.dataset.state = disabled ? 'checking' : (granted ? 'granted' : 'ondemand');
+        if (granted) setWebAccessStatus(tr('webAccessEnabled', '已授权所有 HTTPS 网站读取'), 'success');
+        else setWebAccessStatus(tr('webAccessDisabled', '按需授权；未授权时使用降级名称'), 'info');
+    }
+
+    function refreshAllHttpsAccessState() {
+        if (!hasPermissionApi()) {
+            updateWebAccessControls(false, true);
+            setWebAccessStatus(tr('webAccessUnsupported', '仅扩展模式支持此授权'), 'info');
+            return;
+        }
+        chrome.permissions.contains({ origins: [HTTPS_ALL_ORIGIN] }, function (granted) {
+            updateWebAccessControls(!!granted, false);
+        });
+    }
+
+    function grantAllHttpsAccess() {
+        if (!hasPermissionApi() || !chrome.permissions.request) {
+            refreshAllHttpsAccessState();
+            return;
+        }
+        updateWebAccessControls(false, true);
+        setWebAccessStatus(tr('webAccessRequesting', '等待浏览器授权确认...'), 'info');
+        chrome.permissions.request({ origins: [HTTPS_ALL_ORIGIN] }, function (granted) {
+            updateWebAccessControls(!!granted, false);
+            setPermissionsStatus(granted ? tr('webAccessGrantOk', '已启用 HTTPS 网站读取权限') : tr('webAccessGrantCanceled', '授权已取消'), granted ? 'success' : 'info');
+        });
+    }
+
+    function revokeAllHttpsAccess() {
+        if (!hasPermissionApi() || !chrome.permissions.remove) {
+            refreshAllHttpsAccessState();
+            return;
+        }
+        updateWebAccessControls(true, true);
+        chrome.permissions.remove({ origins: [HTTPS_ALL_ORIGIN] }, function (removed) {
+            updateWebAccessControls(!removed, false);
+            setPermissionsStatus(removed ? tr('webAccessRevokeOk', '已改回按需获取') : tr('webAccessRevokeFailed', '没有可撤销的 HTTPS 网站读取授权'), removed ? 'success' : 'info');
+        });
+    }
+
+    function clearPermissionsStatus() {
+        setPermissionsStatus('', 'info');
+    }
+
+    function setPermissionsStatus(message, type) {
+        var el = document.getElementById('permissionsStatus');
+        if (!el) return;
+        el.textContent = message || '';
+        el.dataset.type = type || 'info';
+        el.hidden = !message;
     }
 
     function setDataStatus(message, type) {
@@ -1863,6 +1995,7 @@
     // ================================================================
     function switchTab(tabName) {
         closeCustomSelects();
+        if (activeTab === 'permissions' && tabName !== 'permissions') clearPermissionsStatus();
         activeTab = tabName;
         var tabs = modalWindow.querySelectorAll('.modal-tab');
         tabs.forEach(function (t) { t.classList.toggle('active', t.dataset.tab === tabName); });
