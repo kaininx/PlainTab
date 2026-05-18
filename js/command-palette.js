@@ -422,11 +422,11 @@
     function renderShortcutList(filter) {
         setFeedbackContentMode(false);
         setIconPageMode(cpViewMode === 'icon');
-        filter = (filter || '').toLowerCase();
         if (cpSkin === 'shell') {
-            renderShellShortcutList(filter);
+            renderShellShortcutList(filter || '');
             return;
         }
+        filter = (filter || '').toLowerCase();
         var shortcuts = shortcutsForCurrentMode();
         var icons = loadIcons();
         var recState = recommendationState(shortcuts, filter);
@@ -509,6 +509,53 @@
         }
     }
 
+    function shellInputState(input) {
+        var raw = String(input || '').trim();
+        if (!raw) return { type: 'home', raw: '', query: '' };
+        var first = raw.split(/\s+/)[0].toLowerCase();
+        var rest = raw.slice(first.length).trim();
+        if (first === 'open' || first === 'o') return { type: 'open', raw: raw, query: rest };
+        if (first === 'ls') return { type: 'ls', raw: raw, query: rest };
+        if (first === 'help' || first === 'h') return { type: 'help', raw: raw, query: '' };
+        if (first === 'add') return { type: 'add', raw: raw, query: rest };
+        return { type: 'shortcut', raw: raw, query: raw };
+    }
+
+    function shellShortcutMatches(shortcut, query) {
+        query = String(query || '').trim().toLowerCase();
+        if (!query) return true;
+        var name = shortcut.name.toLowerCase();
+        var path = shellPathLabel(shortcut).toLowerCase();
+        return name.indexOf(query) === 0 || path.indexOf(query) === 0;
+    }
+
+    function shellShortcutCandidates(state) {
+        if (!state || state.type === 'help' || state.type === 'add') return [];
+        return shortcutsForCurrentMode().filter(function (shortcut) {
+            return shellShortcutMatches(shortcut, state.query);
+        }).sort(function (a, b) {
+            return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        });
+    }
+
+    function shellCommandOutput(state) {
+        if (state.type === 'help') return 'help';
+        if (state.type === 'add') return 'add ' + (state.query || '<url>');
+        if (state.type === 'open') return 'open ' + (state.query || '<shortcut>');
+        if (state.type === 'shortcut') return 'open ' + state.query;
+        return state.raw || 'ls --hot --all';
+    }
+
+    function renderShellHelpOutput() {
+        var commands = ['open <name>', 'ls', 'add <url>', 'recent', 'import', 'export', 'clear', 'restore', 'help'];
+        if (isHiddenMode) commands.splice(7, 0, 'unhide');
+        else commands.splice(7, 0, 'hide');
+        return '<div class="cp-shell-section"># commands</div>' +
+            '<div class="cp-shell-help-grid">' + commands.map(function (cmd) {
+                return '<span class="cp-shell-help-cmd">' + escapeHTML(cmd) + '</span>';
+            }).join('') + '</div>';
+    }
+
     function buildShellShortcutHTML(shortcut, tag) {
         var freq = String(shortcut.freq || 0);
         while (freq.length < 3) freq = '0' + freq;
@@ -522,44 +569,54 @@
             '</button>';
     }
 
-    function renderShellShortcutList(filter) {
+    function renderShellShortcutList(input) {
         setIconPageMode(false);
+        var state = shellInputState(input);
         var shortcuts = shortcutsForCurrentMode();
-        var recState = recommendationState(shortcuts, filter);
+        var recState = recommendationState(shortcuts, '');
         var recommended = recState.recommended;
         var recommendedIds = recState.recommendedIds;
         var rest = shortcuts.filter(function (s) { return !recommendedIds[s.id]; });
         rest.sort(function (a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); });
 
-        if (filter) {
+        if (state.raw) {
             recommended = [];
             recommendedIds = {};
-            rest = filterShortcutsByTerm(shortcuts, filter);
+            rest = shellShortcutCandidates(state);
         }
 
         var html = '<div class="cp-shell-buffer">' +
-            '<div class="cp-shell-line cp-shell-boot">Last login: just now on plaintab. Click any command output to open it.</div>' +
-            '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> aliases</span></div>' +
-            '<div class="cp-shell-alias-grid">' + shellCommandButtons() + '</div>';
+            '<div class="cp-shell-line cp-shell-boot">PlainTab shell ready. Type help or h for commands.</div>';
 
-        if (filter) {
-            html += '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> grep -i "' + escapeHTML(filter) + '" bookmarks.zsh</span></div>';
-        } else {
-            html += '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> ptab list ' + (isHiddenMode ? '--hidden' : '--hot --all') + '</span></div>';
+        if (!state.raw || state.type === 'help') {
+            html += '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> aliases</span></div>' +
+                '<div class="cp-shell-alias-grid">' + shellCommandButtons() + '</div>';
         }
 
-        if (recommended.length) {
+        html += '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> ' + escapeHTML(shellCommandOutput(state)) + '</span></div>';
+
+        if (state.type === 'help') {
+            html += renderShellHelpOutput();
+        } else if (state.type === 'add') {
+            html += '<div class="cp-shell-empty">press Enter to add ' + escapeHTML(state.query || '<url>') + '</div>';
+        } else if (state.raw && (state.type === 'open' || state.type === 'shortcut') && rest.length) {
+            html += '<div class="cp-shell-section"># completions</div>';
+            rest.forEach(function (s) { html += buildShellShortcutHTML(s, 'tab'); });
+        } else if (recommended.length) {
             html += '<div class="cp-shell-section"># recommended</div>';
             recommended.forEach(function (s) { html += buildShellShortcutHTML(s, 'hot'); });
         }
 
-        if (rest.length) {
-            html += '<div class="cp-shell-section"># ' + (filter ? 'matches' : 'all shortcuts') + '</div>';
-            rest.forEach(function (s) { html += buildShellShortcutHTML(s, filter ? 'match' : 'link'); });
+        if (!state.raw && rest.length) {
+            html += '<div class="cp-shell-section"># all shortcuts</div>';
+            rest.forEach(function (s) { html += buildShellShortcutHTML(s, 'link'); });
+        } else if (state.type === 'ls' && rest.length) {
+            html += '<div class="cp-shell-section"># ' + (state.query ? 'matches' : 'shortcuts') + '</div>';
+            rest.forEach(function (s) { html += buildShellShortcutHTML(s, state.query ? 'match' : 'link'); });
         }
 
-        if (!recommended.length && !rest.length) {
-            html += '<div class="cp-shell-empty">exit code 1: ' + escapeHTML(filter ? t('noResults') : t('noShortcuts')) + '</div>';
+        if (state.type !== 'help' && state.type !== 'add' && !recommended.length && !rest.length) {
+            html += '<div class="cp-shell-empty">exit code 1: ' + escapeHTML(state.raw ? t('noResults') : t('noShortcuts')) + '</div>';
         }
 
         html += '</div>';
@@ -1160,6 +1217,92 @@
         cpCurrentMode = 'list';
         cpCurrentPage = 1;
         renderShortcutList(val);
+    }
+
+    function shellNativeCommand(input) {
+        var value = String(input || '').trim().toLowerCase();
+        var commands = isHiddenMode ? CP_COMMANDS_HIDDEN : CP_COMMANDS_NORMAL;
+        if (value === 'h') return 'help';
+        return commands.indexOf(value) !== -1 ? value : '';
+    }
+
+    function selectedShellShortcut(candidates) {
+        var selected = cpContent.querySelector('.cp-shell-entry.key-hover');
+        if (selected && selected.dataset.id) {
+            for (var i = 0; i < candidates.length; i++) {
+                if (candidates[i].id === selected.dataset.id) return candidates[i];
+            }
+        }
+        return candidates[0] || null;
+    }
+
+    function completeShellInput() {
+        var state = shellInputState(cpSearchInput.value);
+        if (state.type !== 'open' && state.type !== 'shortcut') return false;
+        var candidates = shellShortcutCandidates(state);
+        var target = selectedShellShortcut(candidates);
+        if (!target) return false;
+        cpSearchInput.value = 'open ' + target.name;
+        cpSearchTerm = cpSearchInput.value;
+        renderShortcutList(cpSearchInput.value);
+        cpSearchInput.setSelectionRange(cpSearchInput.value.length, cpSearchInput.value.length);
+        return true;
+    }
+
+    function addShortcutFromShell(urlValue) {
+        var url = normalizeHttpsUrl(urlValue);
+        if (!url) {
+            cpCurrentMode = 'feedback';
+            feedbackMessage('无法添加：请输入有效的 HTTPS 地址。');
+            return true;
+        }
+        var shortcuts = loadShortcuts();
+        if (shortcuts.some(function (s) { return s.url.toLowerCase() === url.toLowerCase(); })) {
+            cpCurrentMode = 'feedback';
+            feedbackMessage('这个快捷方式已经存在。');
+            return true;
+        }
+        var name = urlHostLabel(url);
+        var id = generateId();
+        shortcuts.push({ id: id, name: name, url: url, freq: 0, added: Date.now() });
+        saveShortcuts(shortcuts);
+        if (isHiddenMode) {
+            var hidden = loadHidden();
+            hidden.push(id);
+            saveHidden(hidden);
+        }
+        var icons = loadIcons();
+        var favUrl = getFaviconUrl(url);
+        var letterFallback = 'LETTER:' + name[0].toUpperCase();
+        icons[id] = letterFallback;
+        saveIcons(icons);
+        cpCurrentMode = 'feedback';
+        if (favUrl) {
+            showFeedbackWithFavicon(name, favUrl, letterFallback, id);
+        } else {
+            renderFeedback(name, letterFallback);
+            scheduleFeedbackReturn();
+        }
+        return true;
+    }
+
+    function handleShellInputEnter() {
+        var input = cpSearchInput.value.trim();
+        if (!input) return false;
+        var state = shellInputState(input);
+        if (state.type === 'ls' || state.type === 'help') return true;
+        var nativeCommand = shellNativeCommand(input);
+        if (nativeCommand) {
+            handleCommand(nativeCommand);
+            return true;
+        }
+        if (state.type === 'add') return addShortcutFromShell(state.query);
+        if (state.type === 'open' || state.type === 'shortcut') {
+            var target = selectedShellShortcut(shellShortcutCandidates(state));
+            if (target) handleShortcutClick(target.id);
+            return true;
+        }
+        return false;
     }
 
     function handleCommand(cmd) {
@@ -1773,6 +1916,7 @@
         if (e.key === 'Enter') {
             e.preventDefault();
             if (cpCurrentMode === 'feedback') return;
+            if (cpSkin === 'shell' && cpCurrentMode === 'list' && activeIsSearch && handleShellInputEnter()) return;
             if (cpCurrentMode === 'add') {
                 var submitBtn = document.getElementById('cpFormSubmit');
                 if (submitBtn && (activeIsSearch || (active && active.id === 'cpFormName'))) return;
@@ -1780,6 +1924,12 @@
                 return;
             }
             activateSelectedItem();
+            return;
+        }
+
+        if (e.key === 'Tab' && cpSkin === 'shell' && activeIsSearch) {
+            e.preventDefault();
+            completeShellInput();
             return;
         }
 

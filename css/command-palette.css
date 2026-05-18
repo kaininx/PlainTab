@@ -1481,7 +1481,7 @@
 }
 
 .cmd-palette.shell-skin::after {
-    content: 'zsh - PlainTab';
+    content: 'PlainTab Shell';
     position: absolute;
     top: 9px;
     left: 14px;
@@ -1492,7 +1492,7 @@
 }
 
 .cmd-palette.shell-skin.hidden-mode::after {
-    content: 'zsh - PlainTab hidden';
+    content: 'PlainTab Shell hidden';
     color: rgba(var(--cp-shell-pink), 0.80);
 }
 
@@ -1836,7 +1836,7 @@
 }
 
 .cmd-palette.shell-skin::after {
-    content: 'zsh - PlainTab';
+    content: 'PlainTab Shell';
     top: 11px;
     left: 50%;
     transform: translateX(-50%);
@@ -1846,7 +1846,7 @@
 }
 
 .cmd-palette.shell-skin.hidden-mode::after {
-    content: 'zsh - PlainTab hidden';
+    content: 'PlainTab Shell hidden';
     color: rgba(var(--cp-shell-pink), 0.82);
 }
 
@@ -1963,6 +1963,22 @@
 .cmd-palette.shell-skin .cp-shell-alias-path {
     color: var(--cp-shell-muted);
     font-size: 10px;
+}
+
+.cmd-palette.shell-skin .cp-shell-help-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 3px 0 8px;
+}
+
+.cmd-palette.shell-skin .cp-shell-help-cmd {
+    padding: 5px 8px;
+    border-radius: 6px;
+    color: rgb(var(--cp-shell-blue));
+    background: rgba(var(--cp-shell-blue), 0.07);
+    border: 1px solid rgba(var(--cp-shell-blue), 0.18);
+    font-size: 11px;
 }
 
 .cmd-palette.shell-skin .cp-shell-section {
