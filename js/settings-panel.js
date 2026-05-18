@@ -400,6 +400,17 @@
         });
     }
 
+    function loadPaletteSkin() {
+        var skin = loadShortcutSettings().paletteSkin;
+        return skin === 'terminal' || skin === 'shell' ? skin : 'default';
+    }
+
+    function savePaletteSkin(value) {
+        updateShortcutSettings(function (settings) {
+            settings.paletteSkin = value === 'terminal' || value === 'shell' ? value : 'default';
+        });
+    }
+
     function buildPageShell(title, subtitle, body) {
         return '<div class="settings-page-shell">' +
             '<div class="settings-page-header">' +
@@ -442,6 +453,7 @@
             modalDescHiddenHotkey: 'Open hidden shortcut management directly.',
             modalDescRecommend: 'Keep the high-frequency recommendations area.',
             modalDescPalettePlacement: 'Open the command palette from the trigger point, or keep the old fixed position.',
+            modalDescPaletteSkin: 'Choose the themed surface, a modern terminal, or an Oh My Zsh command session.',
             modalDescDataJson: 'Readable JSON is convenient for archives and troubleshooting.',
             modalDescDataEncrypted: 'Password-protected backup, compressed before encryption.',
             modalDescDataImport: 'Import JSON or encrypted PlainTab backup files.',
@@ -1560,8 +1572,15 @@
             '<option value="follow"' + (placement === 'follow' ? ' selected' : '') + '>' + tr('cpPlacementFollow', '\u8ddf\u968f\u89e6\u53d1\u4f4d\u7f6e') + '</option>' +
             '<option value="fixed"' + (placement === 'fixed' ? ' selected' : '') + '>' + tr('cpPlacementFixed', '\u56fa\u5b9a\u4f4d\u7f6e') + '</option>' +
             '</select>';
+        var skin = loadPaletteSkin();
+        var skinControl = '<select id="cpSkin">' +
+            '<option value="default"' + (skin === 'default' ? ' selected' : '') + '>' + tr('cpSkinDefault', '\u9ed8\u8ba4\u76ae\u80a4') + '</option>' +
+            '<option value="terminal"' + (skin === 'terminal' ? ' selected' : '') + '>' + tr('cpSkinTerminal', '\u7ec8\u7aef\u76ae\u80a4') + '</option>' +
+            '<option value="shell"' + (skin === 'shell' ? ' selected' : '') + '>' + tr('cpSkinShell', 'Oh My Zsh') + '</option>' +
+            '</select>';
 
         var body = '<div class="setting-stack">' +
+            settingItem(tr('cpSkinLabel', '\u547d\u4ee4\u9762\u677f\u76ae\u80a4'), modalCopy('modalDescPaletteSkin', '\u5728\u8ddf\u968f\u4e3b\u9898\u7684\u9ed8\u8ba4\u5916\u89c2\u3001\u73b0\u4ee3\u7ec8\u7aef\u548c Oh My Zsh \u547d\u4ee4\u4f1a\u8bdd\u4e4b\u95f4\u5207\u6362\u3002'), skinControl, 'setting-compact') +
             settingItem(tr('cpPlacementLabel', '\u547d\u4ee4\u9762\u677f\u4f4d\u7f6e'), modalCopy('modalDescPalettePlacement', '\u4ece\u89e6\u53d1\u70b9\u8ddf\u624b\u6253\u5f00\uff0c\u6216\u4fdd\u6301\u539f\u6765\u7684\u56fa\u5b9a\u4f4d\u7f6e\u3002'), placementControl, 'setting-compact') +
             settingItem(t('cpHotkeyLabel') || '命令面板快捷键', modalCopy('modalDescHotkey', '打开命令面板与快捷入口。'), '<input type="text" class="hotkey-input" id="hkNormal" value="' + hkNormal + '" readonly>') +
             settingItem(t('cpHiddenHotkeyLabel') || '隐藏面板快捷键', modalCopy('modalDescHiddenHotkey', '直接打开隐藏快捷入口管理。'), '<input type="text" class="hotkey-input" id="hkHidden" value="' + hkHidden + '" readonly>') +
@@ -1576,11 +1595,16 @@
         var hkHiddenEl = document.getElementById('hkHidden');
         var cpRec = document.getElementById('cpRecommend');
         var cpPlacement = document.getElementById('cpPlacement');
+        var cpSkin = document.getElementById('cpSkin');
 
         if (hkNormalEl) hkNormalEl.addEventListener('click', function () { startRecording('normal', hkNormalEl); });
         if (hkHiddenEl) hkHiddenEl.addEventListener('click', function () { startRecording('hidden', hkHiddenEl); });
         if (cpPlacement) cpPlacement.addEventListener('change', function () {
             savePalettePlacement(cpPlacement.value);
+            if (window.Palette && window.Palette.refresh) window.Palette.refresh();
+        });
+        if (cpSkin) cpSkin.addEventListener('change', function () {
+            savePaletteSkin(cpSkin.value);
             if (window.Palette && window.Palette.refresh) window.Palette.refresh();
         });
         if (cpRec) cpRec.addEventListener('change', function () {

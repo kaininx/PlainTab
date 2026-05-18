@@ -15,9 +15,11 @@
     // ================================================================
 
     var LS_KEY_SHORTCUT_ICONS = 'ptab_shortcut_icons';
+    var BUILTIN_GITHUB = { id: 'builtin-github', name: 'GitHub', url: 'https://github.com', freq: 0, added: 0 };
+    var SHORTCUT_EXPORT_TYPE = 'plaintab-command-shortcuts';
 
-    var CP_COMMANDS_NORMAL = ['add', 'edit', 'delete', 'hide', 'recent', 'import', 'export', 'reset', 'clear', 'help'];
-    var CP_COMMANDS_HIDDEN = ['add', 'edit', 'delete', 'unhide', 'recent', 'import', 'export', 'reset', 'clear', 'help'];
+    var CP_COMMANDS_NORMAL = ['add', 'edit', 'delete', 'hide', 'recent', 'import', 'export', 'reset', 'clear', 'restore', 'help'];
+    var CP_COMMANDS_HIDDEN = ['add', 'edit', 'delete', 'unhide', 'recent', 'import', 'export', 'reset', 'clear', 'restore', 'help'];
 
     // ================================================================
     // DOM 元素
@@ -45,6 +47,7 @@
     var paletteOpenFrame = 0;
     var cpCommandsCollapsed = loadCommandsCollapsed();
     var cpPlacement = loadPalettePlacement();
+    var cpSkin = loadPaletteSkin();
     var cpLastAnchor = null;
 
     // 内存缓存
@@ -97,6 +100,15 @@
     function savePalettePlacement(value) {
         updateShortcutSettings(function (settings) { settings.palettePlacement = value === 'fixed' ? 'fixed' : 'follow'; });
     }
+    function loadPaletteSkin() {
+        var skin = loadShortcutSettings().paletteSkin;
+        return skin === 'terminal' || skin === 'shell' ? skin : 'default';
+    }
+    function savePaletteSkin(value) {
+        updateShortcutSettings(function (settings) {
+            settings.paletteSkin = value === 'terminal' || value === 'shell' ? value : 'default';
+        });
+    }
     function loadHidden() {
         if (_hiddenCache !== null) return _hiddenCache;
         _hiddenCache = loadShortcutModel().hidden || [];
@@ -111,7 +123,12 @@
 
     function loadShortcutModel() {
         if (window.WallpaperData && window.WallpaperData.loadShortcutsModel) return window.WallpaperData.loadShortcutsModel();
-        return { items: [], recents: [], hidden: [], settings: { primaryHotkey: 'ctrl+k', hiddenHotkey: 'ctrl+shift+k', recommendEnabled: true, viewMode: 'list', commandsCollapsed: true, palettePlacement: 'follow' } };
+        return {
+            items: [Object.assign({}, BUILTIN_GITHUB)],
+            recents: [],
+            hidden: [],
+            settings: { primaryHotkey: 'ctrl+k', hiddenHotkey: 'ctrl+shift+k', recommendEnabled: true, viewMode: 'list', commandsCollapsed: true, palettePlacement: 'follow', paletteSkin: 'default', builtinGithubAdded: true }
+        };
     }
     function saveShortcutModel(model) {
         if (window.WallpaperData && window.WallpaperData.saveShortcutsModel) return window.WallpaperData.saveShortcutsModel(model);
@@ -173,6 +190,65 @@
         return String(url || '').replace(/^https?:\/\//, '').replace(/\/.*/, '');
     }
 
+    function shortcutScopeName(hiddenMode) {
+        return hiddenMode ? 'hidden' : 'normal';
+    }
+
+    function currentScopeName() {
+        return shortcutScopeName(isHiddenMode);
+    }
+
+    function normalizeScope(scope, fallbackHiddenMode) {
+        if (scope === 'hidden' || scope === 'normal') return scope;
+        return shortcutScopeName(fallbackHiddenMode);
+    }
+
+    function normalizeUrlKey(url) {
+        return String(url || '').replace(/\/$/, '').toLowerCase();
+    }
+
+    function findShortcutByUrl(shortcuts, url) {
+        var key = normalizeUrlKey(url);
+        return shortcuts.filter(function (s) { return normalizeUrlKey(s.url) === key; })[0] || null;
+    }
+
+    function isHiddenId(id, hidden) {
+        return hidden.indexOf(id) !== -1;
+    }
+
+    function uniqueIds(ids) {
+        var seen = {};
+        var result = [];
+        (ids || []).forEach(function (id) {
+            if (!id || seen[id]) return;
+            seen[id] = true;
+            result.push(id);
+        });
+        return result;
+    }
+
+    function setShortcutScope(id, scope, hidden) {
+        hidden = hidden || loadHidden();
+        hidden = hidden.filter(function (hid) { return hid !== id; });
+        if (scope === 'hidden') hidden.push(id);
+        return uniqueIds(hidden);
+    }
+
+    function feedbackMessage(message, kind) {
+        var hintClass = 'cp-hint';
+        if (kind === 'info') hintClass += ' cp-hint-info';
+        setFeedbackContentMode(true);
+        cpContent.innerHTML = '<div class="' + hintClass + '">' + escapeHTML(message) + '</div>';
+        setTimeout(function () {
+            if (cpCurrentMode !== 'feedback') return;
+            cpCurrentMode = 'list';
+            renderShortcutList('');
+            cpSearchInput.value = '';
+            cpSearchTerm = '';
+            cpSearchInput.focus();
+        }, 1600);
+    }
+
     function letterColor(letter) {
         var colors = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#1abc9c', '#3498db', '#9b59b6', '#34495e',
             '#c0392b', '#d35400', '#27ae60', '#2980b9', '#8e44ad', '#16a085', '#f39c12', '#2c3e50'];
@@ -209,6 +285,19 @@
         var label = t(key);
         if (label && label !== key) return label;
         return cpCommandsCollapsed ? 'Show shortcut links' : 'Hide shortcut links';
+    }
+
+    function palettePromptLabel() {
+        if (cpSkin === 'shell') return shellPrompt();
+        return isHiddenMode ? 'hidden@plaintab ~ %' : 'plain@plaintab ~ %';
+    }
+
+    function syncPaletteSkin() {
+        cmdPalette.classList.toggle('terminal-skin', cpSkin === 'terminal');
+        cmdPalette.classList.toggle('shell-skin', cpSkin === 'shell');
+        cmdOverlay.classList.toggle('terminal-skin', cpSkin === 'terminal');
+        cmdOverlay.classList.toggle('shell-skin', cpSkin === 'shell');
+        cpSearchInput.placeholder = cpSkin === 'terminal' || cpSkin === 'shell' ? palettePromptLabel() : '';
     }
 
     // ================================================================
@@ -313,6 +402,10 @@
         return shortcutsForCurrentMode();
     }
 
+    function shellPrompt() {
+        return isHiddenMode ? 'admin@PlainTab ~/hidden %' : 'coffee@PlainTab ~/shortcuts %';
+    }
+
     function filterShortcutsByTerm(shortcuts, term) {
         term = (term || '').toLowerCase();
         if (!term) return shortcuts;
@@ -330,6 +423,10 @@
         setFeedbackContentMode(false);
         setIconPageMode(cpViewMode === 'icon');
         filter = (filter || '').toLowerCase();
+        if (cpSkin === 'shell') {
+            renderShellShortcutList(filter);
+            return;
+        }
         var shortcuts = shortcutsForCurrentMode();
         var icons = loadIcons();
         var recState = recommendationState(shortcuts, filter);
@@ -389,6 +486,84 @@
 
         cpContent.innerHTML = html;
         applyIconStyles(cpContent);
+        applyMarqueeLabels(cpContent);
+        resetSelection();
+    }
+
+    function shellCommandButtons() {
+        var cmds = isHiddenMode ? CP_COMMANDS_HIDDEN : CP_COMMANDS_NORMAL;
+        return cmds.map(function (cmd) {
+            return '<button class="cp-command-option cp-shell-alias" data-command="' + cmd + '">' +
+                '<span class="cp-shell-alias-name">' + cmd + '</span>' +
+                '<span class="cp-shell-alias-path">alias ' + cmd + '</span>' +
+                '</button>';
+        }).join('');
+    }
+
+    function shellPathLabel(shortcut) {
+        try {
+            var u = new URL(shortcut.url);
+            return u.hostname + u.pathname.replace(/\/$/, '');
+        } catch (e) {
+            return shortcut.url.replace(/^https?:\/\//, '');
+        }
+    }
+
+    function buildShellShortcutHTML(shortcut, tag) {
+        var freq = String(shortcut.freq || 0);
+        while (freq.length < 3) freq = '0' + freq;
+        return '<button class="cp-item cp-shell-entry" data-id="' + escapeHTML(shortcut.id) + '">' +
+            '<span class="cp-shell-perm">cmd</span>' +
+            '<span class="cp-shell-owner">' + (isHiddenMode ? 'root' : 'user') + '</span>' +
+            '<span class="cp-shell-freq">' + freq + '</span>' +
+            '<span class="cp-shell-name">' + escapeHTML(shortcut.name) + '</span>' +
+            '<span class="cp-shell-target">' + escapeHTML(shellPathLabel(shortcut)) + '</span>' +
+            '<span class="cp-shell-tag">' + tag + '</span>' +
+            '</button>';
+    }
+
+    function renderShellShortcutList(filter) {
+        setIconPageMode(false);
+        var shortcuts = shortcutsForCurrentMode();
+        var recState = recommendationState(shortcuts, filter);
+        var recommended = recState.recommended;
+        var recommendedIds = recState.recommendedIds;
+        var rest = shortcuts.filter(function (s) { return !recommendedIds[s.id]; });
+        rest.sort(function (a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()); });
+
+        if (filter) {
+            recommended = [];
+            recommendedIds = {};
+            rest = filterShortcutsByTerm(shortcuts, filter);
+        }
+
+        var html = '<div class="cp-shell-buffer">' +
+            '<div class="cp-shell-line cp-shell-boot">Last login: just now on plaintab. Click any command output to open it.</div>' +
+            '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> aliases</span></div>' +
+            '<div class="cp-shell-alias-grid">' + shellCommandButtons() + '</div>';
+
+        if (filter) {
+            html += '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> grep -i "' + escapeHTML(filter) + '" bookmarks.zsh</span></div>';
+        } else {
+            html += '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> ptab list ' + (isHiddenMode ? '--hidden' : '--hot --all') + '</span></div>';
+        }
+
+        if (recommended.length) {
+            html += '<div class="cp-shell-section"># recommended</div>';
+            recommended.forEach(function (s) { html += buildShellShortcutHTML(s, 'hot'); });
+        }
+
+        if (rest.length) {
+            html += '<div class="cp-shell-section"># ' + (filter ? 'matches' : 'all shortcuts') + '</div>';
+            rest.forEach(function (s) { html += buildShellShortcutHTML(s, filter ? 'match' : 'link'); });
+        }
+
+        if (!recommended.length && !rest.length) {
+            html += '<div class="cp-shell-empty">exit code 1: ' + escapeHTML(filter ? t('noResults') : t('noShortcuts')) + '</div>';
+        }
+
+        html += '</div>';
+        cpContent.innerHTML = html;
         applyMarqueeLabels(cpContent);
         resetSelection();
     }
@@ -743,7 +918,8 @@
             { cmd: '/reset', desc: t('helpReset') },
             { cmd: '/import', desc: t('helpImport') },
             { cmd: '/export', desc: t('helpExport') },
-            { cmd: '/clear', desc: t('helpClear') }
+            { cmd: '/clear', desc: t('helpClear') },
+            { cmd: '/restore', desc: commandDescription('restore') }
         ];
         var html = '<div class="cp-section-title">' + t('commands') + '</div><div class="cp-help-list">';
         helpItems.forEach(function (h) {
@@ -764,9 +940,18 @@
             reset: 'helpReset',
             import: 'helpImport',
             export: 'helpExport',
-            clear: 'helpClear'
+            clear: 'helpClear',
+            restore: 'helpRestore'
         };
-        return cmd === 'help' ? t('commands') : t(map[cmd] || 'commands');
+        if (cmd === 'help') return t('commands');
+        var key = map[cmd] || 'commands';
+        var desc = t(key);
+        if (desc && desc !== key) return desc;
+        if (cmd === 'restore') {
+            var lang = window.SettingsPanel && window.SettingsPanel.getCurrentLang ? window.SettingsPanel.getCurrentLang() : '';
+            return lang && lang.indexOf('zh') === 0 ? '恢复默认快捷方式' : 'Restore default shortcuts';
+        }
+        return desc || key;
     }
 
     function renderCommandSuggestions(query) {
@@ -836,6 +1021,8 @@
         cpViewMode = settings.viewMode || 'list';
         cpCommandsCollapsed = settings.commandsCollapsed !== false;
         cpPlacement = settings.palettePlacement === 'fixed' ? 'fixed' : 'follow';
+        cpSkin = settings.paletteSkin === 'terminal' || settings.paletteSkin === 'shell' ? settings.paletteSkin : 'default';
+        syncPaletteSkin();
     }
 
     function normalizeAnchor(anchor) {
@@ -910,6 +1097,7 @@
         isHiddenMode = hiddenMode;
         refreshShortcutSettings();
         cmdPalette.classList.toggle('hidden-mode', hiddenMode);
+        syncPaletteSkin();
         cmdPalette.setAttribute('aria-label', hiddenMode ? 'Hidden command palette' : 'Command palette');
         renderPinnedBar();
         cpSearchInput.value = '';
@@ -964,6 +1152,7 @@
             if (cmd === '/export') { handleCommand('export'); return; }
             if (cmd === '/reset') { handleCommand('reset'); return; }
             if (cmd === '/clear') { handleCommand('clear'); return; }
+            if (cmd === '/restore') { handleCommand('restore'); return; }
             renderCommandSuggestions(cmd);
             return;
         }
@@ -1010,6 +1199,8 @@
         } else if (cmd === 'clear') {
             cpCurrentMode = 'clear';
             handleClear();
+        } else if (cmd === 'restore') {
+            handleRestore();
         } else if (cmd.indexOf('sort') === 0) {
             var mode = cmd.split(/\s+/)[1] || 'a-z';
             handleSort(mode);
@@ -1306,47 +1497,128 @@
         window.open(item.url, '_self');
     }
 
+    function normalizeImportedShortcut(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        var url = normalizeHttpsUrl(raw.url || raw.href || raw.link);
+        if (!url) return null;
+        var name = String(raw.name || raw.title || raw.label || '').trim() || urlHostLabel(url);
+        return {
+            name: name,
+            url: url,
+            freq: raw.freq || 0,
+            added: raw.added || Date.now()
+        };
+    }
+
+    function shortcutsForScope(scope) {
+        var hidden = loadHidden();
+        return loadShortcuts().filter(function (shortcut) {
+            var hiddenShortcut = isHiddenId(shortcut.id, hidden);
+            return scope === 'hidden' ? hiddenShortcut : !hiddenShortcut;
+        });
+    }
+
+    function parseShortcutImportPayload(text, filename) {
+        var trimmed = String(text || '').trim();
+        if (trimmed.charAt(0) === '[' || trimmed.charAt(0) === '{' || /\.json$/i.test(filename || '')) {
+            try {
+                var json = JSON.parse(trimmed);
+                var items = Array.isArray(json) ? json : (Array.isArray(json.items) ? json.items : (Array.isArray(json.shortcuts) ? json.shortcuts : []));
+                return {
+                    scope: Array.isArray(json) ? null : json.scope,
+                    items: items.map(normalizeImportedShortcut).filter(Boolean),
+                    format: 'json'
+                };
+            } catch (e) {
+                return { scope: null, items: [], format: 'json' };
+            }
+        }
+
+        var links = [];
+        var re = /<A\s+[^>]*HREF="([^"]*)"[^>]*>([^<]*)<\/A>/gi;
+        var m;
+        while ((m = re.exec(text)) !== null) {
+            links.push(normalizeImportedShortcut({
+                url: m[1],
+                name: m[2].replace(/<[^>]+>/g, '').trim()
+            }));
+        }
+        return { scope: null, items: links.filter(Boolean), format: 'html' };
+    }
+
+    function importShortcutsToScope(items, scope) {
+        var shortcuts = loadShortcuts().slice();
+        var hidden = loadHidden().slice();
+        var icons = loadIcons();
+        var added = 0;
+        var moved = 0;
+        var skipped = 0;
+
+        items.forEach(function (item) {
+            var existing = findShortcutByUrl(shortcuts, item.url);
+            if (existing) {
+                var wasHidden = isHiddenId(existing.id, hidden);
+                if (shortcutScopeName(wasHidden) !== scope) {
+                    hidden = setShortcutScope(existing.id, scope, hidden);
+                    moved++;
+                } else {
+                    skipped++;
+                }
+                return;
+            }
+
+            var id = generateId();
+            var name = item.name || urlHostLabel(item.url);
+            shortcuts.push({
+                id: id,
+                name: name,
+                url: item.url,
+                freq: item.freq || 0,
+                added: item.added || Date.now()
+            });
+            if (scope === 'hidden') hidden.push(id);
+            icons[id] = 'LETTER:' + name[0].toUpperCase();
+            added++;
+        });
+
+        saveShortcuts(shortcuts);
+        saveHidden(uniqueIds(hidden));
+        saveIcons(icons);
+        return { added: added, moved: moved, skipped: skipped };
+    }
+
+    function importResultMessage(result, scope, sourceScope) {
+        var target = scope === 'hidden' ? '隐藏面板' : '普通面板';
+        var msg = '已导入到' + target + '：新增 ' + result.added + '，迁移 ' + result.moved + '，跳过 ' + result.skipped + '。';
+        if (sourceScope && sourceScope !== currentScopeName()) {
+            msg = '这是' + (sourceScope === 'hidden' ? '隐藏' : '普通') + '面板数据，' + msg;
+        }
+        return msg;
+    }
+
     function handleImport() {
         var input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.html,.htm';
+        input.accept = '.json,.html,.htm,application/json,text/html';
         input.addEventListener('change', function () {
             var file = input.files[0];
             if (!file) return;
             var reader = new FileReader();
             reader.onload = function () {
-                var text = reader.result;
-                var links = [];
-                var re = /<A\s+[^>]*HREF="([^"]*)"[^>]*>([^<]*)<\/A>/gi;
-                var m;
-                while ((m = re.exec(text)) !== null) {
-                    var linkUrl = m[1];
-                    var linkName = m[2].replace(/<[^>]+>/g, '').trim();
-                    if (linkUrl && linkName && linkUrl.match(/^https?:\/\//)) links.push({ name: linkName, url: linkUrl });
+                var parsed = parseShortcutImportPayload(reader.result, file.name);
+                if (!parsed.items.length) {
+                    cpCurrentMode = 'feedback';
+                    feedbackMessage('未找到可导入的快捷方式。');
+                    return;
                 }
-                if (!links.length) { log('CmdPalette', 'no bookmarks found'); return; }
-                var shortcuts = loadShortcuts();
-                var existUrls = {};
-                shortcuts.forEach(function (s) { existUrls[s.url.toLowerCase()] = true; });
-                var added = 0;
-                var newIds = [];
-                links.forEach(function (l) {
-                    if (existUrls[l.url.toLowerCase()]) return;
-                    var newId = generateId();
-                    shortcuts.push({ id: newId, name: l.name, url: l.url, freq: 0, added: Date.now() });
-                    existUrls[l.url.toLowerCase()] = true;
-                    newIds.push(newId);
-                    added++;
-                });
-                saveShortcuts(shortcuts);
-                if (isHiddenMode && newIds.length) {
-                    var h = loadHidden();
-                    h = h.concat(newIds);
-                    saveHidden(h);
-                }
-                log('CmdPalette', 'imported ' + added + ' bookmarks (' + (links.length - added) + ' duplicates skipped)');
+                var sourceScope = parsed.format === 'json' ? normalizeScope(parsed.scope, isHiddenMode) : null;
+                var targetScope = sourceScope || currentScopeName();
+                var result = importShortcutsToScope(parsed.items, targetScope);
+                log('CmdPalette', 'imported shortcuts to ' + targetScope + ': ' + JSON.stringify(result));
                 cpCurrentMode = 'list';
                 renderShortcutList('');
+                cpCurrentMode = 'feedback';
+                feedbackMessage(importResultMessage(result, targetScope, sourceScope), 'info');
             };
             reader.readAsText(file);
         });
@@ -1354,22 +1626,44 @@
     }
 
     function handleExport() {
-        var shortcuts = loadShortcuts();
-        var data = JSON.stringify(shortcuts, null, 2);
+        var scope = currentScopeName();
+        var shortcuts = shortcutsForScope(scope).map(function (shortcut) {
+            return {
+                name: shortcut.name,
+                url: shortcut.url,
+                freq: shortcut.freq || 0,
+                added: shortcut.added || 0
+            };
+        });
+        var data = JSON.stringify({
+            type: SHORTCUT_EXPORT_TYPE,
+            version: 1,
+            scope: scope,
+            exportedAt: new Date().toISOString(),
+            items: shortcuts
+        }, null, 2);
         var blob = new Blob([data], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = 'plaintab-shortcuts-' + new Date().toISOString().slice(0, 10) + '.json';
+        a.download = 'plaintab-shortcuts-' + scope + '-' + new Date().toISOString().slice(0, 10) + '.json';
         a.click();
         URL.revokeObjectURL(url);
     }
 
     function handleReset() {
+        var targetScope = currentScopeName();
+        var targetIds = {};
+        shortcutsForScope(targetScope).forEach(function (s) { targetIds[s.id] = true; });
         var shortcuts = loadShortcuts();
-        shortcuts.forEach(function (s) { s.freq = 0; });
+        shortcuts.forEach(function (s) {
+            if (targetIds[s.id]) s.freq = 0;
+        });
         saveShortcuts(shortcuts);
+        saveRecents(loadRecents().filter(function (id) { return !targetIds[id]; }));
         renderShortcutList('');
+        cpCurrentMode = 'feedback';
+        feedbackMessage((targetScope === 'hidden' ? '隐藏面板' : '普通面板') + '的使用统计已重置。');
     }
 
     function hideShortcut(id) {
@@ -1387,16 +1681,27 @@
     function handleClear() {
         setFeedbackContentMode(false);
         setIconPageMode(false);
+        var scope = currentScopeName();
+        var scopeLabel = scope === 'hidden' ? '隐藏面板' : '普通面板';
         cpContent.innerHTML = '<div class="cp-clear-confirm">' +
-            '<p class="cp-clear-text">' + t('clearConfirm') + '</p>' +
+            '<p class="cp-clear-text">确定清空' + scopeLabel + '的快捷方式？另一侧不会被清空。</p>' +
             '<button id="cpClearYes" class="cp-clear-btn-yes">' + t('yes') + '</button>' +
             '<button id="cpClearNo" class="cp-clear-btn-no">' + t('no') + '</button>' +
             '</div>';
         document.getElementById('cpClearYes').addEventListener('click', function () {
-            saveShortcuts([]);
-            saveIcons({});
-            saveRecents([]);
-            saveHidden([]);
+            var hidden = loadHidden();
+            var removeIds = {};
+            var keptShortcuts = loadShortcuts().filter(function (shortcut) {
+                var remove = scope === 'hidden' ? isHiddenId(shortcut.id, hidden) : !isHiddenId(shortcut.id, hidden);
+                if (remove) removeIds[shortcut.id] = true;
+                return !remove;
+            });
+            saveShortcuts(keptShortcuts);
+            saveHidden(scope === 'hidden' ? hidden.filter(function (id) { return !removeIds[id]; }) : hidden);
+            var icons = loadIcons();
+            Object.keys(removeIds).forEach(function (id) { delete icons[id]; });
+            saveIcons(icons);
+            saveRecents(loadRecents().filter(function (id) { return !removeIds[id]; }));
             cpCurrentMode = 'list';
             renderShortcutList('');
             cpSearchInput.value = '';
@@ -1410,6 +1715,39 @@
             cpSearchTerm = '';
             requestAnimationFrame(function () { cpSearchInput.focus(); });
         });
+    }
+
+    function handleRestore() {
+        if (isHiddenMode) {
+            cpCurrentMode = 'feedback';
+            feedbackMessage('隐藏面板默认没有内置快捷方式。');
+            return;
+        }
+
+        var shortcuts = loadShortcuts().slice();
+        var hidden = loadHidden().slice();
+        var existing = findShortcutByUrl(shortcuts, BUILTIN_GITHUB.url);
+        if (existing) {
+            hidden = setShortcutScope(existing.id, 'normal', hidden);
+        } else {
+            var restoreId = shortcuts.some(function (s) { return s.id === BUILTIN_GITHUB.id; }) ? generateId() : BUILTIN_GITHUB.id;
+            shortcuts.unshift({
+                id: restoreId,
+                name: BUILTIN_GITHUB.name,
+                url: BUILTIN_GITHUB.url,
+                freq: 0,
+                added: Date.now()
+            });
+            var icons = loadIcons();
+            icons[restoreId] = 'LETTER:G';
+            saveIcons(icons);
+        }
+        saveShortcuts(shortcuts);
+        saveHidden(hidden);
+        cpCurrentMode = 'list';
+        renderShortcutList('');
+        cpCurrentMode = 'feedback';
+        feedbackMessage('已恢复默认快捷方式 GitHub。');
     }
 
     // ================================================================
@@ -1648,6 +1986,8 @@
         saveRecommend: saveRecommend,
         loadPalettePlacement: loadPalettePlacement,
         savePalettePlacement: savePalettePlacement,
+        loadPaletteSkin: loadPaletteSkin,
+        savePaletteSkin: savePaletteSkin,
         refresh: refreshPaletteData
     };
 

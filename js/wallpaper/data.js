@@ -231,7 +231,15 @@
     };
 
     var DEFAULT_SHORTCUTS = {
-        items: [],
+        items: [
+            {
+                id: 'builtin-github',
+                name: 'GitHub',
+                url: 'https://github.com',
+                freq: 0,
+                added: 0
+            }
+        ],
         recents: [],
         hidden: [],
         settings: {
@@ -240,7 +248,9 @@
             recommendEnabled: true,
             viewMode: 'list',
             commandsCollapsed: true,
-            palettePlacement: 'follow'
+            palettePlacement: 'follow',
+            paletteSkin: 'default',
+            builtinGithubAdded: true
         }
     };
 
@@ -712,7 +722,25 @@
 
     function loadShortcutsModel() {
         if (_shortcutsCache !== null) return _shortcutsCache;
-        _shortcutsCache = mergeDefaults(readJSON(KEYS.SHORTCUTS, DEFAULT_SHORTCUTS), DEFAULT_SHORTCUTS);
+        var raw = readJSON(KEYS.SHORTCUTS, DEFAULT_SHORTCUTS);
+        var needsBuiltinGithub = !(raw.settings && raw.settings.builtinGithubAdded === true);
+        _shortcutsCache = mergeDefaults(raw, DEFAULT_SHORTCUTS);
+        if (needsBuiltinGithub) {
+            var hasGithub = (_shortcutsCache.items || []).some(function (item) {
+                return item && String(item.url || '').replace(/\/$/, '').toLowerCase() === 'https://github.com';
+            });
+            if (!hasGithub) {
+                _shortcutsCache.items.unshift({
+                    id: 'builtin-github',
+                    name: 'GitHub',
+                    url: 'https://github.com',
+                    freq: 0,
+                    added: 0
+                });
+            }
+            _shortcutsCache.settings.builtinGithubAdded = true;
+            writeJSON(KEYS.SHORTCUTS, _shortcutsCache);
+        }
         return _shortcutsCache;
     }
 
