@@ -734,6 +734,8 @@ window.I18N = {
         yes: 'Yes, delete',
         no: 'Cancel',
         commands: 'Commands',
+        expandShortcutLinks: 'Show shortcut links',
+        collapseShortcutLinks: 'Hide shortcut links',
         helpAdd: 'Add a new shortcut',
         helpEdit: 'Edit an existing shortcut',
         helpDelete: 'Delete a shortcut',

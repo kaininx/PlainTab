@@ -21,7 +21,7 @@
     opacity: 0;
     visibility: hidden;
     transform: translateY(-6px);
-    transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: opacity 0.14s ease-out, transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     user-select: none;
 }
 
@@ -384,7 +384,9 @@ input[type="file"] {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(var(--surface-base-rgb), 0.58);
+    background:
+        radial-gradient(ellipse at 50% 18%, rgba(var(--tint-rgb), 0.18), transparent 46%),
+        rgba(var(--surface-base-rgb), 0.58);
     color: var(--text-primary);
     z-index: 200;
     display: flex;
@@ -393,37 +395,66 @@ input[type="file"] {
     padding: 24px;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.18s ease;
+    pointer-events: none;
+    transition: opacity 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: opacity;
+    backface-visibility: hidden;
+}
+
+.modal-overlay.preparing,
+.modal-overlay.active {
+    visibility: visible;
 }
 
 .modal-overlay.active {
     opacity: 1;
-    visibility: visible;
+    pointer-events: auto;
 }
 
 .modal-window {
+    position: relative;
     width: 900px;
     height: 640px;
     max-width: 94vw;
     max-height: 88vh;
-    background: rgba(var(--surface-base-rgb), var(--panel-opacity));
+    background:
+        radial-gradient(circle at 10% 0%, rgba(var(--accent-rgb), 0.18), transparent 32%),
+        linear-gradient(118deg, rgba(var(--on-surface-rgb), 0.15), rgba(var(--on-surface-rgb), 0.04) 18%, transparent 46%),
+        linear-gradient(180deg, rgba(var(--tint-rgb), 0.15), rgba(var(--surface-base-rgb), 0.04) 44%, transparent),
+        rgba(var(--surface-base-rgb), var(--panel-opacity));
     border-radius: var(--radius-lg);
-    border: 1px solid rgba(var(--stroke-rgb), 0.86);
+    border: 1px solid rgba(var(--accent-rgb), 0.24);
     box-shadow:
-        0 24px 72px rgba(0, 0, 0, 0.46),
-        0 1px 0 rgba(var(--on-surface-rgb), 0.04) inset;
+        0 28px 76px rgba(0, 0, 0, 0.48),
+        0 1px 0 rgba(var(--on-surface-rgb), 0.18) inset,
+        0 0 0 1px rgba(var(--on-surface-rgb), 0.045) inset,
+        0 0 36px rgba(var(--accent-rgb), 0.10);
     display: flex;
     overflow: hidden;
-    contain: paint;
-    transform: translateY(-12px);
-    transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.18s ease;
+    contain: layout paint;
+    transform: translate3d(0, -10px, 0);
+    transition:
+        transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.13s ease-out;
     opacity: 0;
     will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+.modal-window::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(var(--on-surface-rgb), 0.72), rgba(var(--accent-rgb), 0.54), transparent);
+    opacity: 0.76;
+    pointer-events: none;
 }
 
 .modal-overlay.active .modal-window {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
     opacity: 1;
 }
 
@@ -436,7 +467,9 @@ input[type="file"] {
     flex-direction: column;
     gap: 6px;
     border-right: 1px solid rgba(var(--stroke-rgb), 0.92);
-    background: rgba(var(--surface-base-rgb), var(--panel-opacity));
+    background:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.08), rgba(var(--tint-rgb), 0.095)),
+        rgba(var(--surface-base-rgb), var(--panel-opacity));
     position: relative;
 }
 
@@ -470,8 +503,10 @@ input[type="file"] {
 .modal-tab.active {
     color: var(--text-primary);
     font-weight: 600;
-    background: rgba(var(--surface-elevated-rgb), 0.52);
-    border-color: rgba(var(--stroke-rgb), 0.92);
+    background:
+        linear-gradient(90deg, rgba(var(--accent-rgb), 0.18), transparent 76%),
+        rgba(var(--surface-elevated-rgb), 0.52);
+    border-color: rgba(var(--accent-rgb), 0.24);
     box-shadow: none;
 }
 
@@ -493,7 +528,11 @@ input[type="file"] {
     padding: 0;
     overflow: hidden;
     min-height: 0;
-    background: rgba(var(--surface-elevated-rgb), var(--panel-opacity));
+    background:
+        radial-gradient(circle at 8% 0%, rgba(var(--accent-rgb), 0.10), transparent 34%),
+        linear-gradient(135deg, rgba(var(--on-surface-rgb), 0.055), transparent 34%),
+        linear-gradient(180deg, rgba(var(--tint-rgb), 0.08), transparent 42%),
+        rgba(var(--surface-elevated-rgb), var(--panel-opacity));
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -509,7 +548,7 @@ input[type="file"] {
 .tab-page.active {
     height: 100%;
     min-height: 0;
-    animation: tabPageIn 0.18s ease both;
+    animation: tabPageIn 0.14s ease-out both;
 }
 
 @keyframes tabPageIn {
@@ -527,27 +566,32 @@ input[type="file"] {
     height: 100%;
     min-height: 0;
     padding: 0 34px;
-    display: flex;
-    flex-direction: column;
+    position: relative;
+    display: block;
+    overflow: hidden;
 }
 
 .settings-page-header {
-    position: relative;
-    z-index: 3;
+    position: absolute;
+    z-index: 4;
+    top: 0;
+    left: 34px;
+    right: 34px;
     padding: 30px 0 20px;
     margin-bottom: 0;
-    border-bottom: 1px solid rgba(var(--stroke-rgb), 0.66);
-    background: rgba(var(--surface-elevated-rgb), var(--panel-opacity));
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    pointer-events: none;
 }
 
 .settings-page-body {
-    flex: 1;
+    height: 100%;
     min-height: 0;
     overflow-y: auto;
-    padding-top: 20px;
+    padding-top: 178px;
     padding-bottom: 34px;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 32px, #000 100%);
-    mask-image: linear-gradient(to bottom, transparent 0, #000 32px, #000 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent 122px, rgba(0, 0, 0, 0.12) 150px, #000 204px, #000 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, transparent 122px, rgba(0, 0, 0, 0.12) 150px, #000 204px, #000 100%);
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -581,16 +625,22 @@ input[type="file"] {
     height: 100%;
     min-height: 0;
     padding: 0 34px;
+    position: relative;
     display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden;
 }
 
 .wallpaper-tab-header {
-    position: relative;
-    z-index: 3;
+    position: absolute;
+    z-index: 4;
+    top: 0;
+    left: 34px;
+    right: 34px;
     padding: 30px 0 20px;
-    border-bottom: 1px solid rgba(var(--stroke-rgb), 0.66);
-    background: rgba(var(--surface-elevated-rgb), var(--panel-opacity));
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    pointer-events: none;
 }
 
 .wallpaper-tab-header p {
@@ -603,8 +653,10 @@ input[type="file"] {
 .wallpaper-tab-body {
     min-height: 0;
     overflow-y: auto;
-    padding-top: 20px;
+    padding-top: 178px;
     padding-bottom: 20px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent 122px, rgba(0, 0, 0, 0.12) 150px, #000 204px, #000 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, transparent 122px, rgba(0, 0, 0, 0.12) 150px, #000 204px, #000 100%);
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -1986,11 +2038,14 @@ input[type="file"] {
 
     .wallpaper-tab-header,
     .settings-page-header {
+        left: 18px;
+        right: 18px;
         padding-top: 22px;
     }
 
     .wallpaper-tab-body,
     .settings-page-body {
+        padding-top: 164px;
         padding-bottom: 24px;
     }
 

@@ -238,7 +238,9 @@
             primaryHotkey: 'ctrl+k',
             hiddenHotkey: 'ctrl+shift+k',
             recommendEnabled: true,
-            viewMode: 'list'
+            viewMode: 'list',
+            commandsCollapsed: true,
+            palettePlacement: 'follow'
         }
     };
 

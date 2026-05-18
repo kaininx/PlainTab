@@ -227,15 +227,15 @@ int spatial_weight(int x, int y, int width, int height) {
 
 int color_weight(int r, int g, int b, int l) {
     int sat = saturation255(r, g, b);
-    int weight = 128 + min_int(sat, 192) / 3;
+    int weight = 128 + min_int(sat, 192) / 6;
 
-    if (sat < 12) weight -= 56;
-    if (l < 28) weight -= (28 - l) * 3;
-    if (l > 232) weight -= (l - 232) * 4;
-    if (l > 214 && sat < 28) weight -= 64;
-    if (l < 40 && sat < 32) weight -= 48;
+    if (sat < 12) weight -= 16;
+    if (l < 20) weight -= (20 - l);
+    if (l > 238) weight -= (l - 238) * 2;
+    if (l > 224 && sat < 28) weight -= 24;
+    if (l < 32 && sat < 32) weight -= 20;
 
-    return clamp_int(weight, 24, 224);
+    return clamp_int(weight, 64, 192);
 }
 
 } // namespace
@@ -284,7 +284,6 @@ int theme_analyze(int width, int height, int color_limit) {
         int g = g_pixels[p + 1];
         int b = g_pixels[p + 2];
         int l = lum(r, g, b);
-        if (l < 12 || l > 245) continue;
 
         int x = i % width;
         int y = i / width;

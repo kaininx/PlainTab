@@ -1013,11 +1013,24 @@
         return paletteLoadPromise;
     }
 
-    function openPalette(hidden) {
+    var lastPointerAnchor = null;
+
+    function pointerAnchorFromEvent(e) {
+        if (!e || typeof e.clientX !== 'number' || typeof e.clientY !== 'number') return null;
+        return { x: e.clientX, y: e.clientY };
+    }
+
+    function rememberPointerAnchor(e) {
+        var anchor = pointerAnchorFromEvent(e);
+        if (anchor) lastPointerAnchor = anchor;
+    }
+
+    function openPalette(hidden, anchor) {
         ensurePalette().then(function (palette) {
             if (!palette) return;
-            if (hidden) palette.openHidden();
-            else palette.open();
+            var resolvedAnchor = anchor || lastPointerAnchor;
+            if (hidden) palette.openHidden(resolvedAnchor);
+            else palette.open(resolvedAnchor);
         }).catch(function (e) {
             warn('Palette', e.message || 'failed to load command palette');
         });
@@ -1085,6 +1098,9 @@
 
         // --- 键盘快捷键 ---
 
+        document.addEventListener('pointermove', rememberPointerAnchor, { passive: true });
+        document.addEventListener('pointerdown', rememberPointerAnchor, { passive: true });
+
         document.addEventListener('keydown', function (e) {
             if (window.Palette && window.Palette.isOpen) {
                 var isFormInput = document.activeElement && document.activeElement.closest('#cpFormName, #cpFormURL');
@@ -1107,14 +1123,14 @@
         document.addEventListener('dblclick', function (e) {
             if (window.Palette && window.Palette.isOpen) return;
             if (e.target.closest('button, input, select, .settings-panel, .language-panel')) return;
-            openPalette(false);
+            openPalette(false, pointerAnchorFromEvent(e));
         });
 
         document.addEventListener('auxclick', function (e) {
             if (e.button !== 1) return;
             if (window.Palette && window.Palette.isOpen) return;
             e.preventDefault();
-            openPalette(true);
+            openPalette(true, pointerAnchorFromEvent(e));
         });
 
         // --- 全局点击关闭 / 搜索聚焦 ---

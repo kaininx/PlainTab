@@ -41,6 +41,15 @@
     function lift(c, amount) {
         return mix(c, { r: 255, g: 255, b: 255 }, amount);
     }
+    function boostChroma(c, amount) {
+        var l = Math.round(lum(c.r, c.g, c.b));
+        var gray = { r: l, g: l, b: l };
+        return clampColor({
+            r: Math.round(gray.r + (c.r - gray.r) * amount),
+            g: Math.round(gray.g + (c.g - gray.g) * amount),
+            b: Math.round(gray.b + (c.b - gray.b) * amount)
+        });
+    }
     function sat(c) {
         var max = Math.max(c.r, c.g, c.b), min = Math.min(c.r, c.g, c.b);
         return max === 0 ? 0 : (max - min) / max;
@@ -75,6 +84,17 @@
             g: Math.round(g / total),
             b: Math.round(b / total)
         };
+    }
+    function paletteShare(items, predicate) {
+        var total = 0;
+        var matched = 0;
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var weight = item.n || 1;
+            total += weight;
+            if (predicate(item)) matched += weight;
+        }
+        return total ? matched / total : 0;
     }
     function fitLum(c, minL, maxL) {
         var adjusted = c;
@@ -261,7 +281,6 @@
         for (var i = 0; i < data.length; i += 4) {
             if (data[i + 3] < 128) continue;
             var l = lum(data[i], data[i + 1], data[i + 2]);
-            if (l < 12 || l > 245) continue;
             var bin = (data[i] >> 4 << 8) | (data[i + 1] >> 4 << 4) | (data[i + 2] >> 4);
             freq[bin] = (freq[bin] || 0) + 1;
             totalL += l;
@@ -301,16 +320,30 @@
         var black = { r: 0, g: 0, b: 0 };
         var dominant = palette.dominant || top[0];
         var mood = palette.mood || weightedAverage(top, 16);
-        var isLight = avgL > 150;
+        var dominantL = lum(dominant.r, dominant.g, dominant.b);
+        var darkShare = paletteShare(top, function (item) { return lum(item.r, item.g, item.b) < 96; });
+        var lightShare = paletteShare(top, function (item) { return lum(item.r, item.g, item.b) > 176; });
+        var isLight = avgL > 158;
+        if (dominantL < 96 || darkShare > lightShare * 1.08) isLight = false;
+        else if (dominantL > 178 && lightShare > darkShare * 0.75) isLight = true;
 
-        var surfaceBase = isLight ? mix(mood, white, 0.62) : mix(mood, { r: 14, g: 16, b: 21 }, 0.82);
-        var surfaceElevated = isLight ? mix(mood, white, 0.84) : mix(mood, { r: 34, g: 37, b: 45 }, 0.66);
-        surfaceBase = isLight ? fitLum(surfaceBase, 166, 214) : fitLum(surfaceBase, 16, 34);
-        surfaceElevated = isLight ? fitLum(surfaceElevated, 190, 232) : fitLum(surfaceElevated, 34, 62);
+        var colorfulness = Math.max(sat(dominant), sat(mood));
+        var hasHue = colorfulness > 0.12;
+        var baseSeed = mix(mood, dominant, hasHue ? 0.22 : 0.08);
+        var contentSeed = mix(dominant, mood, hasHue ? 0.18 : 0.28);
+        if (hasHue) {
+            baseSeed = boostChroma(baseSeed, 1.18);
+            contentSeed = boostChroma(contentSeed, 1.36);
+        }
+
+        var surfaceBase = isLight ? mix(baseSeed, white, hasHue ? 0.36 : 0.48) : mix(baseSeed, { r: 14, g: 16, b: 21 }, hasHue ? 0.50 : 0.68);
+        var surfaceElevated = isLight ? mix(contentSeed, white, hasHue ? 0.42 : 0.62) : mix(contentSeed, { r: 34, g: 37, b: 45 }, hasHue ? 0.24 : 0.42);
+        surfaceBase = isLight ? fitLum(surfaceBase, hasHue ? 148 : 160, hasHue ? 222 : 218) : fitLum(surfaceBase, hasHue ? 22 : 20, hasHue ? 56 : 48);
+        surfaceElevated = isLight ? fitLum(surfaceElevated, hasHue ? 168 : 184, hasHue ? 238 : 236) : fitLum(surfaceElevated, hasHue ? 48 : 40, hasHue ? 96 : 82);
         surfaceElevated = ensureContrast(surfaceBase, surfaceElevated, 14, true);
 
-        var tint = isLight ? mix(dominant, white, 0.54) : mix(dominant, white, 0.24);
-        tint = isLight ? fitLum(tint, 156, 220) : fitLum(tint, 82, 150);
+        var tint = isLight ? mix(dominant, white, hasHue ? 0.34 : 0.46) : mix(dominant, white, hasHue ? 0.10 : 0.18);
+        tint = isLight ? fitLum(tint, 148, 222) : fitLum(tint, 84, 156);
 
         var accentItems = [];
         pushCandidate(accentItems, palette.vibrant);

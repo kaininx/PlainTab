@@ -132,6 +132,7 @@
     var isRecording = null;
     var isHydratingSettings = false;
     var _keepGalleryOpen = false;
+    var modalOpenFrame = 0;
     var wallpaperBlurSaveTimer = null;
     var wallpaperBlurPreviewToken = 0;
     var activeCustomSelect = null;
@@ -261,19 +262,30 @@
     // ================================================================
     // L2 模态窗口 开/关
     // ================================================================
+    function animateModalOpen() {
+        var token = ++modalOpenFrame;
+        modalOverlay.classList.add('preparing');
+        requestAnimationFrame(function () {
+            if (!isModalOpen || token !== modalOpenFrame) return;
+            modalOverlay.classList.add('active');
+            modalOverlay.classList.remove('preparing');
+        });
+    }
+
     function openModal() {
         if (isModalOpen) return;
         if (isOpen) closeSettings({ skipEmptyLocalPicker: true });
         isModalOpen = true;
         renderTabContent();
-        modalOverlay.classList.add('active');
+        animateModalOpen();
     }
 
     function closeModal(options) {
         if (!isModalOpen) return;
         isModalOpen = false;
         closeCustomSelects();
-        modalOverlay.classList.remove('active');
+        modalOpenFrame++;
+        modalOverlay.classList.remove('active', 'preparing');
         clearWallpaperDraft();
         if (_tabPages.wallpaper) {
             _tabPages.wallpaper.remove();
@@ -378,6 +390,16 @@
         updateShortcutSettings(function (settings) { settings.recommendEnabled = !!value; });
     }
 
+    function loadPalettePlacement() {
+        return loadShortcutSettings().palettePlacement === 'fixed' ? 'fixed' : 'follow';
+    }
+
+    function savePalettePlacement(value) {
+        updateShortcutSettings(function (settings) {
+            settings.palettePlacement = value === 'fixed' ? 'fixed' : 'follow';
+        });
+    }
+
     function buildPageShell(title, subtitle, body) {
         return '<div class="settings-page-shell">' +
             '<div class="settings-page-header">' +
@@ -419,6 +441,7 @@
             modalDescHotkey: 'Open the command palette and quick entries.',
             modalDescHiddenHotkey: 'Open hidden shortcut management directly.',
             modalDescRecommend: 'Keep the high-frequency recommendations area.',
+            modalDescPalettePlacement: 'Open the command palette from the trigger point, or keep the old fixed position.',
             modalDescDataJson: 'Readable JSON is convenient for archives and troubleshooting.',
             modalDescDataEncrypted: 'Password-protected backup, compressed before encryption.',
             modalDescDataImport: 'Import JSON or encrypted PlainTab backup files.',
@@ -1532,8 +1555,14 @@
         var hkNormal = loadPaletteHotkey();
         var hkHidden = loadPaletteHiddenHotkey();
         var checked = loadPaletteRecommend() ? ' checked' : '';
+        var placement = loadPalettePlacement();
+        var placementControl = '<select id="cpPlacement">' +
+            '<option value="follow"' + (placement === 'follow' ? ' selected' : '') + '>' + tr('cpPlacementFollow', '\u8ddf\u968f\u89e6\u53d1\u4f4d\u7f6e') + '</option>' +
+            '<option value="fixed"' + (placement === 'fixed' ? ' selected' : '') + '>' + tr('cpPlacementFixed', '\u56fa\u5b9a\u4f4d\u7f6e') + '</option>' +
+            '</select>';
 
         var body = '<div class="setting-stack">' +
+            settingItem(tr('cpPlacementLabel', '\u547d\u4ee4\u9762\u677f\u4f4d\u7f6e'), modalCopy('modalDescPalettePlacement', '\u4ece\u89e6\u53d1\u70b9\u8ddf\u624b\u6253\u5f00\uff0c\u6216\u4fdd\u6301\u539f\u6765\u7684\u56fa\u5b9a\u4f4d\u7f6e\u3002'), placementControl, 'setting-compact') +
             settingItem(t('cpHotkeyLabel') || '命令面板快捷键', modalCopy('modalDescHotkey', '打开命令面板与快捷入口。'), '<input type="text" class="hotkey-input" id="hkNormal" value="' + hkNormal + '" readonly>') +
             settingItem(t('cpHiddenHotkeyLabel') || '隐藏面板快捷键', modalCopy('modalDescHiddenHotkey', '直接打开隐藏快捷入口管理。'), '<input type="text" class="hotkey-input" id="hkHidden" value="' + hkHidden + '" readonly>') +
             settingItem(t('cpRecommendLabel') || '显示推荐', modalCopy('modalDescRecommend', '保留高频入口的推荐区域。'), '<label class="switch-control"><input type="checkbox" id="cpRecommend"' + checked + '><span></span></label>', 'setting-compact') +
@@ -1546,9 +1575,14 @@
         var hkNormalEl = document.getElementById('hkNormal');
         var hkHiddenEl = document.getElementById('hkHidden');
         var cpRec = document.getElementById('cpRecommend');
+        var cpPlacement = document.getElementById('cpPlacement');
 
         if (hkNormalEl) hkNormalEl.addEventListener('click', function () { startRecording('normal', hkNormalEl); });
         if (hkHiddenEl) hkHiddenEl.addEventListener('click', function () { startRecording('hidden', hkHiddenEl); });
+        if (cpPlacement) cpPlacement.addEventListener('change', function () {
+            savePalettePlacement(cpPlacement.value);
+            if (window.Palette && window.Palette.refresh) window.Palette.refresh();
+        });
         if (cpRec) cpRec.addEventListener('change', function () {
             savePaletteRecommend(cpRec.checked);
         });
