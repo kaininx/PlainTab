@@ -1232,6 +1232,13 @@
                     return restoreFolderPrepareStorage(prepareSnapshot);
                 }
             };
+        }).catch(function (err) {
+            if (!prepareSnapshot) throw err;
+            return restoreFolderPrepareStorage(prepareSnapshot).then(function () {
+                throw err;
+            }, function () {
+                throw err;
+            });
         });
     }
 
@@ -1262,6 +1269,13 @@
                     return restoreApiPrepareStorage(prepareSnapshot);
                 }
             };
+        }).catch(function (err) {
+            if (!prepareSnapshot) throw err;
+            return restoreApiPrepareStorage(prepareSnapshot).then(function () {
+                throw err;
+            }, function () {
+                throw err;
+            });
         });
     }
 
