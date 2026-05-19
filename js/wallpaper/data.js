@@ -40,8 +40,8 @@
     var UPLOAD_VIDEO_ID = 'upload_video';
 
     var BUILTIN_RSS_SOURCES = [
-        { id: 'nasa-earth-observatory', name: 'NASA Earth Observatory', url: 'https://earthobservatory.nasa.gov/feeds/image-of-the-day.rss', builtIn: true },
-        { id: 'ruanyifeng', name: '阮一峰的网络日志', url: 'https://feeds.feedburner.com/ruanyifeng', builtIn: true }
+        { id: 'github-trending', name: 'GitHub Trending', url: 'https://mshibanami.github.io/GitHubTrendingRSS/weekly/all.xml', builtIn: true },
+        { id: 'ruanyifeng', name: 'ruanyifeng\'s Blog', url: 'https://feeds.feedburner.com/ruanyifeng', builtIn: true }
     ];
 
     // ================================================================
