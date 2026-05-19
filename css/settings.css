@@ -122,7 +122,7 @@
     padding: 9px 14px;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 13px;
+    font-size: calc(13px * var(--app-font-scale, 1));
     text-align: center;
     font-family: inherit;
     font-weight: 600;
@@ -146,7 +146,7 @@
 .panel-btn:not(.primary) {
     background: rgba(var(--surface-elevated-rgb), 0.34);
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: calc(12px * var(--app-font-scale, 1));
     margin-top: 8px;
     font-weight: 500;
 }
@@ -978,6 +978,7 @@ input[type="file"] {
 .setting-item input[type="text"],
 .setting-item input[type="password"],
 .setting-item input[type="number"],
+.setting-item input[type="color"],
 .source-drawer input[type="text"],
 .hotkey-input {
     min-height: 34px;
@@ -995,6 +996,7 @@ input[type="file"] {
 .setting-item input[type="text"]:hover,
 .setting-item input[type="password"]:hover,
 .setting-item input[type="number"]:hover,
+.setting-item input[type="color"]:hover,
 .source-drawer input[type="text"]:hover,
 .hotkey-input:hover {
     border-color: var(--control-border-hover);
@@ -1005,6 +1007,7 @@ input[type="file"] {
 .setting-item input[type="text"]:focus-visible,
 .setting-item input[type="password"]:focus-visible,
 .setting-item input[type="number"]:focus-visible,
+.setting-item input[type="color"]:focus-visible,
 .source-drawer input[type="text"]:focus-visible,
 .hotkey-input:focus-visible {
     outline: none;
@@ -1031,6 +1034,31 @@ input[type="file"] {
 
 .setting-item select:hover {
     color: var(--text-primary);
+}
+
+.setting-item input[type="color"] {
+    width: 46px;
+    min-width: 46px;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.setting-item input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.setting-item input[type="color"]::-webkit-color-swatch {
+    border: 0;
+    border-radius: 5px;
+}
+
+.setting-item input[type="color"]::-moz-color-swatch {
+    border: 0;
+    border-radius: 5px;
+}
+
+.accent-color-input[hidden] {
+    display: none;
 }
 
 .setting-item select option {
@@ -1360,6 +1388,21 @@ input[type="file"] {
     box-shadow: none;
 }
 
+.wallpaper-current-source {
+    margin-top: 14px;
+    padding: 9px 12px;
+    border: 1px solid rgba(var(--stroke-rgb), 0.44);
+    border-radius: var(--radius-sm);
+    background: rgba(var(--surface-base-rgb), 0.14);
+    color: var(--text-secondary);
+    font-size: calc(12px * var(--app-font-scale, 1));
+}
+
+.wallpaper-current-source strong {
+    color: rgb(var(--accent-rgb));
+    font-weight: 700;
+}
+
 .source-drawer {
     border-radius: 0;
     overflow: hidden;
@@ -1405,6 +1448,55 @@ input[type="file"] {
     border-color: rgba(var(--stroke-rgb), 0.48);
     border-radius: 0;
     box-shadow: 2px 0 0 rgb(var(--accent-rgb)) inset;
+}
+
+.source-drawer.selected:not(.active) .source-drawer-header {
+    box-shadow: 2px 0 0 rgba(var(--accent-rgb), 0.42) inset;
+}
+
+.source-selector {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 2px solid rgba(var(--stroke-rgb), 0.7);
+    border-radius: 50%;
+    background: rgba(var(--surface-base-rgb), 0.26);
+    color: currentColor;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.source-selector span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transform: scale(0);
+    transition: transform 0.15s ease;
+}
+
+.source-selector:focus-visible {
+    outline: 2px solid rgba(var(--accent-rgb), 0.52);
+    outline-offset: 2px;
+}
+
+.source-selector.bing { --source-rgb: 59, 130, 246; }
+.source-selector.upload { --source-rgb: 34, 197, 94; }
+.source-selector.folder { --source-rgb: 234, 179, 8; }
+.source-selector.rss { --source-rgb: 249, 115, 22; }
+.source-selector.api { --source-rgb: 168, 85, 247; }
+
+.source-selector[aria-checked="true"] {
+    border-color: rgb(var(--source-rgb));
+    background: rgba(var(--source-rgb), 0.14);
+    box-shadow: 0 0 0 3px rgba(var(--source-rgb), 0.12);
+}
+
+.source-selector[aria-checked="true"] span {
+    transform: scale(1);
+    background: rgb(var(--source-rgb));
 }
 
 .source-drawer-dot {
@@ -1627,6 +1719,17 @@ input[type="file"] {
     border-color: var(--control-border-hover);
 }
 
+.source-drawer .config-row button:disabled,
+.source-drawer-body-inner button:disabled,
+.source-drawer .config-row button:disabled:hover,
+.source-drawer-body-inner button:disabled:hover {
+    cursor: not-allowed;
+    opacity: 0.45;
+    color: var(--text-muted);
+    border-color: var(--control-border);
+    background: rgba(var(--surface-base-rgb), 0.18);
+}
+
 /* ========== RSS source configuration ========== */
 .rss-config {
     display: flex;
@@ -1741,7 +1844,13 @@ input[type="file"] {
     opacity: 0.45;
 }
 
-.rss-test-btn:disabled {
+.rss-test-btn:disabled,
+.rss-add-row button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.rss-test-btn.testing:disabled {
     cursor: wait;
     opacity: 0.78;
 }
@@ -2017,8 +2126,25 @@ input[type="file"] {
     display: none;
 }
 
-.api-options .custom-select {
-    min-width: 132px;
+.api-refresh-segments {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    max-width: 420px;
+}
+
+.api-refresh-segments button {
+    min-height: 30px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    white-space: nowrap;
+}
+
+.api-refresh-segments button.active {
+    color: var(--text-primary);
+    border-color: rgba(168, 85, 247, 0.48);
+    background: rgba(168, 85, 247, 0.12);
 }
 
 .api-notice {
@@ -2458,6 +2584,17 @@ input[type="file"] {
         width: 100%;
     }
 
+    .api-refresh-segments {
+        justify-content: stretch;
+        max-width: none;
+        width: 100%;
+    }
+
+    .api-refresh-segments button {
+        width: auto;
+        flex: 1 1 120px;
+    }
+
     .rss-source-row,
     .rss-add-row,
     .api-source-row,
@@ -2519,6 +2656,35 @@ input[type="file"] {
 
 /* ========== 通用辅助类（避免内联样式，兼容 CSP） ========== */
 .input-w-55 { width: 55px; }
+
+.modal-tabs button,
+.setting-label,
+.setting-desc,
+.setting-note,
+.setting-warning,
+.setting-group-title,
+.custom-select-trigger,
+.custom-select-option,
+.settings-actions button,
+.reset-defaults-btn,
+.source-drawer,
+.rss-source-list,
+.api-source-list,
+.data-actions button,
+.permission-card,
+.about-content {
+    font-size: calc(13px * var(--app-font-scale, 1));
+}
+
+.modal-header h2,
+.wallpaper-tab-header h2 {
+    font-size: calc(22px * var(--app-font-scale, 1));
+}
+
+.modal-header p,
+.wallpaper-tab-header p {
+    font-size: calc(13px * var(--app-font-scale, 1));
+}
 .input-w-full { width: 100%; margin-bottom: 8px; }
 .mt-8 { margin-top: 8px; }
 .mt-10 { margin-top: 10px; }

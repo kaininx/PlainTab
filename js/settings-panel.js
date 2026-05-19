@@ -31,15 +31,23 @@
     var DEFAULT_SEARCH_RADIUS = 'capsule';
     var DEFAULT_SEARCH_ALIGN = 'center';
     var DEFAULT_SEARCH_ICON_POSITION = 'right';
+    var DEFAULT_SEARCH_ICON_VISIBILITY = 'always';
+    var DEFAULT_SEARCH_SURFACE = 'glass';
+    var DEFAULT_SEARCH_SHADOW = 'standard';
+    var DEFAULT_SEARCH_ENTER_BEHAVIOR = 'current';
     var DEFAULT_SEARCH_WIDTH = 560;
     var DEFAULT_SEARCH_BG_OPACITY = 0.1;
     var DEFAULT_SEARCH_BLUR = 24;
     var DEFAULT_SEARCH_HISTORY_LIMIT = 5;
+    var DEFAULT_WALLPAPER_VIGNETTE = 'none';
     var DEFAULT_WALLPAPER_FIT = 'cover';
     var DEFAULT_WALLPAPER_POSITION = 'center';
     var DEFAULT_WALLPAPER_BLUR = 0;
     var DEFAULT_WALLPAPER_BLUR_MAX = 15;
     var DEFAULT_UI_RADIUS = 'soft';
+    var DEFAULT_FONT_SCALE = 'standard';
+    var DEFAULT_ACCENT_MODE = 'auto';
+    var DEFAULT_ACCENT_COLOR = '#6366f1';
     var BACKUP_KDF_ITERATIONS = 150000;
     var HTTPS_ALL_ORIGIN = 'https://*/*';
 
@@ -123,9 +131,14 @@
     var searchPosition = DEFAULT_SEARCH_POSITION;
     var searchAlign = DEFAULT_SEARCH_ALIGN;
     var searchIconPosition = DEFAULT_SEARCH_ICON_POSITION;
+    var searchIconVisibility = DEFAULT_SEARCH_ICON_VISIBILITY;
+    var searchSurface = DEFAULT_SEARCH_SURFACE;
+    var searchShadow = DEFAULT_SEARCH_SHADOW;
     var searchWidth = DEFAULT_SEARCH_WIDTH;
     var searchBackgroundOpacity = DEFAULT_SEARCH_BG_OPACITY;
     var searchBlur = DEFAULT_SEARCH_BLUR;
+    var searchPlaceholder = '';
+    var searchEnterBehavior = DEFAULT_SEARCH_ENTER_BEHAVIOR;
     var searchHistoryLimit = DEFAULT_SEARCH_HISTORY_LIMIT;
     var overlayOpacity = DEFAULT_OVERLAY_OPACITY;
     var searchRadius = DEFAULT_SEARCH_RADIUS;
@@ -133,7 +146,12 @@
     var wallpaperFit = DEFAULT_WALLPAPER_FIT;
     var wallpaperPosition = DEFAULT_WALLPAPER_POSITION;
     var wallpaperBlur = DEFAULT_WALLPAPER_BLUR;
+    var wallpaperVignette = DEFAULT_WALLPAPER_VIGNETTE;
     var uiRadius = DEFAULT_UI_RADIUS;
+    var fontScale = DEFAULT_FONT_SCALE;
+    var accentMode = DEFAULT_ACCENT_MODE;
+    var accentColor = DEFAULT_ACCENT_COLOR;
+    var reducedMotion = false;
     var themeEnabled = false;
     var engineIndex = 0;
     var langBtns = null;
@@ -152,6 +170,7 @@
     var wallpaperDraftApiTestResult = null;
     var wallpaperDraftRssTestResult = null;
     var wallpaperDraftFolderMount = null;
+    var wallpaperDraftOpenSource = '';
     var rssNoticeTimer = null;
     var rssNoticeToken = 0;
     var apiNoticeTimer = null;
@@ -166,7 +185,11 @@
         var nextTitle = t('extName');
         if (document.title !== nextTitle) document.title = nextTitle;
         var searchInput = document.getElementById('searchInput');
-        if (searchInput) searchInput.placeholder = t('searchPlaceholder');
+        if (searchInput) {
+            var ui = D.loadUI();
+            var placeholder = ui.search && ui.search.placeholder ? ui.search.placeholder : t('searchPlaceholder');
+            searchInput.placeholder = placeholder;
+        }
         if (engineIcon) engineIcon.setAttribute('title', t('engineTitle'));
         if (engineIcon) engineIcon.setAttribute('aria-label', t('engineTitle'));
         langBtn.setAttribute('title', t('langTitle'));
@@ -374,6 +397,7 @@
         if (activeTab === 'shortcuts' && !_tabEventBound.shortcuts) { bindShortcutsEvents(); _tabEventBound.shortcuts = true; }
         if (activeTab === 'permissions' && !_tabEventBound.permissions) { bindPermissionsEvents(); _tabEventBound.permissions = true; }
         if (activeTab === 'data' && !_tabEventBound.data) { bindDataEvents(); _tabEventBound.data = true; }
+        if (activeTab === 'restore' && !_tabEventBound.restore) { bindRestoreEvents(); _tabEventBound.restore = true; }
         restoreTabScroll(activeTab);
     }
 
@@ -387,6 +411,7 @@
             shortcuts: buildShortcutsHTML,
             permissions: buildPermissionsHTML,
             data: buildDataHTML,
+            restore: buildRestoreHTML,
             about: buildAboutHTML
         };
         var builder = builders[tabName] || builders.appearance;
@@ -514,6 +539,70 @@
             body +
             '</div>' +
             '</div>';
+    }
+
+    function setControlValue(id, value) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = !!value;
+        else el.value = value;
+    }
+
+    function syncSearchControls() {
+        setControlValue('modalSearchMode', searchMode);
+        setControlValue('modalSearchHistoryLimit', searchHistoryLimit);
+        setControlValue('modalSearchPos', searchPosition);
+        setControlValue('modalSearchIconPosition', searchIconPosition);
+        setControlValue('modalSearchIconVisibility', searchIconVisibility);
+        setControlValue('modalSearchSurface', searchSurface);
+        setControlValue('modalSearchShadow', searchShadow);
+        setControlValue('modalSearchRadius', searchRadius);
+        setControlValue('modalSearchPlaceholder', searchPlaceholder);
+        setControlValue('modalSearchEnterBehavior', searchEnterBehavior);
+        setControlValue('modalSearchWidthRange', searchWidth);
+        setControlValue('modalSearchWidthNum', searchWidth);
+        setControlValue('modalSearchBgRange', searchBackgroundOpacity);
+        setControlValue('modalSearchBgNum', searchBackgroundOpacity);
+        setControlValue('modalSearchBlurRange', searchBlur);
+        setControlValue('modalSearchBlurNum', searchBlur);
+        setControlValue('modalEngineSel', currentEngine);
+        syncCustomSelects(modalContent);
+    }
+
+    function syncAppearanceControls() {
+        setControlValue('modalOpacityRange', currentOpacity);
+        setControlValue('modalOpacityNum', currentOpacity);
+        setControlValue('modalPanelOpacityRange', panelOpacity);
+        setControlValue('modalPanelOpacityNum', panelOpacity);
+        setControlValue('modalThemeEnabled', themeEnabled);
+        setControlValue('modalUiRadius', uiRadius);
+        setControlValue('modalFontScale', fontScale);
+        setControlValue('modalAccentMode', accentMode);
+        setControlValue('modalAccentColor', accentColor);
+        var color = document.getElementById('modalAccentColor');
+        if (color) color.hidden = accentMode !== 'custom';
+        setControlValue('modalReducedMotion', reducedMotion);
+        syncCustomSelects(modalContent);
+    }
+
+    function syncWallpaperControls() {
+        setControlValue('modalWallpaperFit', wallpaperFit);
+        setControlValue('modalWallpaperPosition', wallpaperPosition);
+        setControlValue('modalWallpaperBlurRange', wallpaperBlur);
+        setControlValue('modalWallpaperBlurNum', wallpaperBlur);
+        setControlValue('modalWallpaperVignette', wallpaperVignette);
+        setControlValue('modalOverlayRange', overlayOpacity);
+        setControlValue('modalOverlayNum', overlayOpacity);
+        syncCustomSelects(modalContent);
+    }
+
+    function syncShortcutsControls() {
+        setControlValue('hkNormal', loadPaletteHotkey());
+        setControlValue('hkHidden', loadPaletteHiddenHotkey());
+        setControlValue('cpPlacement', loadPalettePlacement());
+        setControlValue('cpSkin', loadPaletteSkin());
+        setControlValue('cpRecommend', loadPaletteRecommend());
+        syncCustomSelects(modalContent);
     }
 
     function modalCopy(key) {
@@ -707,6 +796,7 @@
         wallpaperDraftApiTestResult = null;
         wallpaperDraftRssTestResult = null;
         wallpaperDraftFolderMount = null;
+        wallpaperDraftOpenSource = normalizeDraftSource(wallpaperDraft.activeSource);
         return wallpaperDraft;
     }
 
@@ -716,6 +806,7 @@
         wallpaperDraftApiTestResult = null;
         wallpaperDraftRssTestResult = null;
         wallpaperDraftFolderMount = null;
+        wallpaperDraftOpenSource = '';
     }
 
     function currentWallpaperDraft() {
@@ -728,8 +819,157 @@
         return D.compatMode ? D.compatMode(source) : source;
     }
 
+    function draftOpenSource() {
+        var source = normalizeDraftSource(wallpaperDraftOpenSource || draftActiveSource());
+        return source === 'local' ? 'upload' : source;
+    }
+
     function wallpaperDraftChanged() {
         return !!wallpaperDraft && JSON.stringify(wallpaperDraft) !== wallpaperDraftOriginal;
+    }
+
+    function originalWallpaperDraft() {
+        if (!wallpaperDraftOriginal) return null;
+        try { return JSON.parse(wallpaperDraftOriginal); }
+        catch (e) { return null; }
+    }
+
+    function sourceListRemovalOnly(current, original) {
+        current = current || [];
+        original = original || [];
+        if (current.length >= original.length) return false;
+        return current.every(function (source) {
+            return original.some(function (item) {
+                return item && source && item.id === source.id && JSON.stringify(item) === JSON.stringify(source);
+            });
+        });
+    }
+
+    function sourceListUnchanged(current, original) {
+        return JSON.stringify(current || []) === JSON.stringify(original || []);
+    }
+
+    function sourceListHasId(sources, id) {
+        if (!id) return false;
+        return (sources || []).some(function (source) { return source && source.id === id; });
+    }
+
+    function sourceById(sources, id) {
+        return (sources || []).filter(function (source) { return source && source.id === id; })[0] || null;
+    }
+
+    function activeRssSourceId(config) {
+        config = config || {};
+        if (sourceListHasId(config.sources, config.activeSourceId)) return config.activeSourceId;
+        return config.sources && config.sources[0] ? config.sources[0].id : '';
+    }
+
+    function activeApiSourceIdentity(config) {
+        config = config || {};
+        var apiType = config.apiType === 'json' ? 'json' : 'image';
+        var sources = apiType === 'json' ? config.jsonSources : config.imageSources;
+        var activeId = apiType === 'json' ? config.activeJsonSourceId : config.activeImageSourceId;
+        if (!sourceListHasId(sources, activeId) && sources && sources[0]) activeId = sources[0].id;
+        return { apiType: apiType, sourceId: activeId || '' };
+    }
+
+    function draftDeletedActiveRssSource(base) {
+        var draft = currentWallpaperDraft();
+        base = base || originalWallpaperDraft();
+        if (!base || normalizeDraftSource(base.activeSource) !== 'rss') return false;
+        var baseConfig = base.providers && base.providers.rss && base.providers.rss.config;
+        var draftConfig = draft.providers && draft.providers.rss && draft.providers.rss.config;
+        if (!baseConfig || !draftConfig) return false;
+        var activeId = activeRssSourceId(baseConfig);
+        return !!activeId && !sourceListHasId(draftConfig.sources, activeId);
+    }
+
+    function draftDeletedActiveApiSource(base) {
+        var draft = currentWallpaperDraft();
+        base = base || originalWallpaperDraft();
+        if (!base || normalizeDraftSource(base.activeSource) !== 'api') return false;
+        var baseConfig = base.providers && base.providers.api && base.providers.api.config;
+        var draftConfig = draft.providers && draft.providers.api && draft.providers.api.config;
+        if (!baseConfig || !draftConfig) return false;
+        var active = activeApiSourceIdentity(baseConfig);
+        var draftSources = active.apiType === 'json' ? draftConfig.jsonSources : draftConfig.imageSources;
+        return !!active.sourceId && !sourceListHasId(draftSources, active.sourceId);
+    }
+
+    function draftDeletedActiveProviderSource(base) {
+        return draftDeletedActiveRssSource(base) || draftDeletedActiveApiSource(base);
+    }
+
+    function rssSelectedSourceNeedsTest() {
+        var original = originalWallpaperDraft();
+        var draft = currentWallpaperDraft();
+        if (!original || normalizeDraftSource(original.activeSource) !== 'rss') return true;
+        if (draftDeletedActiveRssSource(original)) return false;
+        var originalConfig = original.providers && original.providers.rss && original.providers.rss.config;
+        var draftConfig = draft.providers && draft.providers.rss && draft.providers.rss.config;
+        if (!originalConfig || !draftConfig) return true;
+        var originalActiveId = activeRssSourceId(originalConfig);
+        var draftActiveId = activeRssSourceId(draftConfig);
+        if (!draftActiveId || draftActiveId !== originalActiveId) return true;
+        return JSON.stringify(sourceById(draftConfig.sources, draftActiveId)) !== JSON.stringify(sourceById(originalConfig.sources, originalActiveId));
+    }
+
+    function apiSelectedSourceNeedsTest() {
+        var original = originalWallpaperDraft();
+        var draft = currentWallpaperDraft();
+        if (!original || normalizeDraftSource(original.activeSource) !== 'api') return true;
+        if (draftDeletedActiveApiSource(original)) return false;
+        var originalConfig = original.providers && original.providers.api && original.providers.api.config;
+        var draftConfig = draft.providers && draft.providers.api && draft.providers.api.config;
+        if (!originalConfig || !draftConfig) return true;
+        var originalActive = activeApiSourceIdentity(originalConfig);
+        var draftActive = activeApiSourceIdentity(draftConfig);
+        if (!draftActive.sourceId || draftActive.apiType !== originalActive.apiType || draftActive.sourceId !== originalActive.sourceId) return true;
+        var draftSources = draftActive.apiType === 'json' ? draftConfig.jsonSources : draftConfig.imageSources;
+        var originalSources = originalActive.apiType === 'json' ? originalConfig.jsonSources : originalConfig.imageSources;
+        return JSON.stringify(sourceById(draftSources, draftActive.sourceId)) !== JSON.stringify(sourceById(originalSources, originalActive.sourceId));
+    }
+
+    function rssSourceRemovalOnly() {
+        var original = originalWallpaperDraft();
+        if (!original || !wallpaperDraft) return false;
+        var currentRestModel = clonePlain(wallpaperDraft);
+        var originalRestModel = clonePlain(original);
+        var currentConfig = currentRestModel.providers && currentRestModel.providers.rss && currentRestModel.providers.rss.config;
+        var originalConfig = originalRestModel.providers && originalRestModel.providers.rss && originalRestModel.providers.rss.config;
+        if (!currentConfig || !originalConfig) return false;
+        var currentSources = currentConfig.sources;
+        var originalSources = originalConfig.sources;
+        delete currentConfig.sources;
+        delete originalConfig.sources;
+        delete currentConfig.activeSourceId;
+        delete originalConfig.activeSourceId;
+        return JSON.stringify(currentRestModel) === JSON.stringify(originalRestModel) &&
+            sourceListRemovalOnly(currentSources, originalSources);
+    }
+
+    function apiSourceRemovalOnly() {
+        var original = originalWallpaperDraft();
+        if (!original || !wallpaperDraft) return false;
+        var currentRestModel = clonePlain(wallpaperDraft);
+        var originalRestModel = clonePlain(original);
+        var currentConfig = currentRestModel.providers && currentRestModel.providers.api && currentRestModel.providers.api.config;
+        var originalConfig = originalRestModel.providers && originalRestModel.providers.api && originalRestModel.providers.api.config;
+        if (!currentConfig || !originalConfig) return false;
+        var currentImageSources = currentConfig.imageSources;
+        var originalImageSources = originalConfig.imageSources;
+        var currentJsonSources = currentConfig.jsonSources;
+        var originalJsonSources = originalConfig.jsonSources;
+        ['imageSources', 'jsonSources', 'activeImageSourceId', 'activeJsonSourceId'].forEach(function (key) {
+            delete currentConfig[key];
+            delete originalConfig[key];
+        });
+        if (JSON.stringify(currentRestModel) !== JSON.stringify(originalRestModel)) return false;
+        var imageRemoved = sourceListRemovalOnly(currentImageSources, originalImageSources);
+        var jsonRemoved = sourceListRemovalOnly(currentJsonSources, originalJsonSources);
+        return (imageRemoved || sourceListUnchanged(currentImageSources, originalImageSources)) &&
+            (jsonRemoved || sourceListUnchanged(currentJsonSources, originalJsonSources)) &&
+            (imageRemoved || jsonRemoved);
     }
 
     function selectedDraftRssSource() {
@@ -753,15 +993,21 @@
             return { valid: true, reason: '' };
         }
         if (source === 'rss') {
+            if (draftDeletedActiveRssSource()) return { valid: true, reason: '' };
             var rss = selectedDraftRssSource();
             if (!rss) return { valid: false, reason: tr('rssNeedsSource') };
+            if (rssSourceRemovalOnly()) return { valid: true, reason: '' };
+            if (!rssSelectedSourceNeedsTest()) return { valid: true, reason: '' };
             var rssHash = D.rssFieldHash(rss);
             if (!D.isTestPassed(rss, rssHash)) return { valid: false, reason: tr('rssNeedsTest') };
             return { valid: true, reason: '' };
         }
         if (source === 'api') {
+            if (draftDeletedActiveApiSource()) return { valid: true, reason: '' };
             var api = selectedDraftApiSource();
             if (!api) return { valid: false, reason: tr('apiNeedsSource') };
+            if (apiSourceRemovalOnly()) return { valid: true, reason: '' };
+            if (!apiSelectedSourceNeedsTest()) return { valid: true, reason: '' };
             var apiType = draft.providers.api.config.apiType;
             var apiHash = D.apiFieldHash(api, apiType);
             if (!D.isTestPassed(api, apiHash)) return { valid: false, reason: tr('apiNeedsTest') };
@@ -810,8 +1056,20 @@
         var draft = currentWallpaperDraft();
         var previousSource = normalizeDraftSource(saved.activeSource);
         var nextSource = normalizeDraftSource(draft.activeSource);
+        var activeProviderSourceDeleted = draftDeletedActiveProviderSource(saved);
+        var sourceRemovalWithoutRuntimeChange = !activeProviderSourceDeleted && (rssSourceRemovalOnly() || apiSourceRemovalOnly());
         var applyBtn = document.getElementById('wallpaperApplyBtn');
         if (applyBtn) applyBtn.disabled = true;
+
+        if (activeProviderSourceDeleted) {
+            if (!confirm(tr('wallpaperActiveSourceDeletedConfirm'))) {
+                if (applyBtn) applyBtn.disabled = false;
+                refreshWallpaperApplyFooter();
+                return;
+            }
+            draft.activeSource = 'bing';
+            nextSource = 'bing';
+        }
 
         function reloadAfterApply() {
             currentMode = D.compatMode ? D.compatMode(nextSource) : nextSource;
@@ -915,8 +1173,20 @@
             return reloadAfterApply();
         }
 
+        if (sourceRemovalWithoutRuntimeChange) {
+            draft.activeSource = saved.activeSource;
+            syncDraftRuntimeStateFromSaved();
+            D.saveWallpaper(draft);
+            openWallpaperDraft();
+            invalidateWallpaperTab();
+            if (applyBtn) applyBtn.disabled = false;
+            return;
+        }
+
         var applyPromise;
-        if (sourceNeedsDiscardPrompt(previousSource, nextSource)) {
+        if (activeProviderSourceDeleted && previousSource !== 'bing') {
+            applyPromise = D.clearWallpaperSourceCache(previousSource).then(finishApply);
+        } else if (sourceNeedsDiscardPrompt(previousSource, nextSource)) {
             if (!confirm(tr('wallpaperDiscardCacheConfirm'))) {
                 if (applyBtn) applyBtn.disabled = false;
                 refreshWallpaperApplyFooter();
@@ -953,10 +1223,12 @@
             var checked = source.id === config.activeSourceId ? ' checked' : '';
             var selectedClass = checked ? ' selected' : '';
             var passed = D.isTestPassed(source, D.rssFieldHash(source));
+            var validUrl = F.isHttpsUrl(source.url);
+            var testDisabled = validUrl ? '' : ' disabled title="' + escapeHtml(tr('rssInvalidUrl')) + '"';
             return '<div class="rss-source-row' + selectedClass + '" data-rss-source="' + escapeHtml(source.id) + '">' +
                 '<span class="source-status-dot ' + (passed ? 'passed' : 'failed') + '"></span>' +
                 '<label class="rss-source-main"><input type="radio" name="rssSource" value="' + escapeHtml(source.id) + '"' + checked + '><span><strong>' + escapeHtml(source.name) + '</strong><small>' + escapeHtml(source.url) + '</small></span></label>' +
-                '<button class="rss-test-btn" type="button" data-action="test-rss">' + tr('rssTest') + '</button>' +
+                '<button class="rss-test-btn" type="button" data-action="test-rss"' + testDisabled + '>' + tr('rssTest') + '</button>' +
                 '<button class="rss-delete-btn" type="button" data-action="delete-rss" aria-label="' + tr('deleteImage') + '">×</button>' +
                 '</div>';
         }).join('');
@@ -964,7 +1236,7 @@
             '<div class="rss-source-list">' + rows + '</div>' +
             '<div class="rss-source-hint">' + escapeHtml(tr('rssNeedsTest')) + '</div>' +
             '<div class="rss-notice" id="rssNotice" hidden></div>' +
-            '<div class="rss-add-row"><input id="rssNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="rssUrlInput" type="url" placeholder="https://example.com/feed.xml"><button id="rssAddBtn" type="button">' + tr('rssAdd') + '</button></div>' +
+            '<div class="rss-add-row"><input id="rssNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="rssUrlInput" type="url" placeholder="https://example.com/feed.xml"><button id="rssAddBtn" type="button" disabled>' + tr('rssAdd') + '</button></div>' +
             '<div class="rss-options">' +
             settingItem(rssDisplayText('displayMode'), '', '<select id="rssDisplayMode"><option value="cycle"' + selected('cycle', config.displayMode || 'cycle') + '>' + rssDisplayText('cycle') + '</option><option value="latest"' + selected('latest', config.displayMode) + '>' + rssDisplayText('latest') + '</option></select>', 'setting-compact') +
             settingItem(tr('rssRefreshInterval'), '', '<select id="rssRefreshInterval"><option value="0"' + selected(0, config.refreshIntervalMs) + '>' + tr('rssRefreshOff') + '</option><option value="86400000"' + selected(86400000, config.refreshIntervalMs) + '>' + tr('rssRefreshOneDay') + '</option><option value="259200000"' + selected(259200000, config.refreshIntervalMs) + '>' + tr('rssRefreshThreeDays') + '</option><option value="604800000"' + selected(604800000, config.refreshIntervalMs) + '>' + tr('rssRefreshSevenDays') + '</option></select>', 'setting-compact') +
@@ -981,10 +1253,12 @@
         var hash = D.apiFieldHash(source, apiType);
         var passed = D.isTestPassed(source, hash);
         var checked = source.id === activeId ? ' checked' : '';
+        var validUrl = F.isHttpsUrl(source.url);
+        var testDisabled = validUrl ? '' : ' disabled title="' + escapeHtml(tr('apiInvalidUrl')) + '"';
         return '<div class="api-source-row' + (checked ? ' selected' : '') + '" data-api-type="' + apiType + '" data-api-source="' + escapeHtml(source.id) + '">' +
             '<span class="source-status-dot ' + (passed ? 'passed' : 'failed') + '"></span>' +
             '<label class="api-source-main"><input type="radio" name="apiSource" value="' + escapeHtml(source.id) + '"' + checked + '><span><strong>' + escapeHtml(source.name) + '</strong><small>' + escapeHtml(source.url) + '</small></span></label>' +
-            '<button type="button" data-action="test-api">' + tr('apiTest') + '</button>' +
+            '<button type="button" data-action="test-api"' + testDisabled + '>' + tr('apiTest') + '</button>' +
             '<button type="button" data-action="delete-api" aria-label="' + tr('deleteImage') + '">×</button>' +
             '</div>';
     }
@@ -995,14 +1269,24 @@
         var sources = apiType === 'json' ? config.jsonSources : config.imageSources;
         var activeId = apiType === 'json' ? config.activeJsonSourceId : config.activeImageSourceId;
         var rows = sources.map(function (source) { return apiSourceRowHTML(source, apiType, activeId); }).join('');
-        function selected(value, current) { return String(value) === String(current) ? ' selected' : ''; }
+        function segment(value, label) {
+            var active = String(value) === String(config.refreshIntervalMs);
+            return '<button type="button" data-api-refresh-interval="' + value + '" class="' + (active ? 'active' : '') + '">' + label + '</button>';
+        }
+        var refreshControl = '<div class="api-refresh-segments" role="group" aria-label="' + tr('rssRefreshInterval') + '">' +
+            segment(0, tr('rssRefreshOff')) +
+            segment(-1, tr('apiRefreshEveryTab')) +
+            segment(86400000, tr('rssRefreshOneDay')) +
+            segment(259200000, tr('rssRefreshThreeDays')) +
+            segment(604800000, tr('rssRefreshSevenDays')) +
+            '</div>';
         return '<div class="api-config" data-api-type="' + apiType + '">' +
             '<div class="api-type-tabs"><button type="button" data-api-type-tab="image" class="' + (apiType === 'image' ? 'active' : '') + '"><span></span>' + tr('apiTypeImage') + '</button><button type="button" data-api-type-tab="json" class="' + (apiType === 'json' ? 'active' : '') + '"><span></span>' + tr('apiTypeJson') + '</button></div>' +
             '<div class="api-source-list">' + rows + '</div>' +
             '<div class="api-notice" id="apiNotice" hidden></div>' +
-            '<div class="api-add-row"><input id="apiNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="apiUrlInput" type="url" placeholder="https://example.com/wallpaper">' + (apiType === 'json' ? '<input id="apiJsonPathInput" type="text" placeholder="data.image.url">' : '') + '<button id="apiAddBtn" type="button">' + tr('rssAdd') + '</button></div>' +
+            '<div class="api-add-row"><input id="apiNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="apiUrlInput" type="url" placeholder="https://example.com/wallpaper">' + (apiType === 'json' ? '<input id="apiJsonPathInput" type="text" placeholder="data.image.url">' : '') + '<button id="apiAddBtn" type="button" disabled>' + tr('rssAdd') + '</button></div>' +
             '<div class="api-options">' +
-            settingItem(tr('rssRefreshInterval'), '', '<select id="apiRefreshInterval"><option value="0"' + selected(0, config.refreshIntervalMs) + '>' + tr('rssRefreshOff') + '</option><option value="-1"' + selected(-1, config.refreshIntervalMs) + '>' + tr('apiRefreshEveryTab') + '</option><option value="86400000"' + selected(86400000, config.refreshIntervalMs) + '>' + tr('rssRefreshOneDay') + '</option><option value="259200000"' + selected(259200000, config.refreshIntervalMs) + '>' + tr('rssRefreshThreeDays') + '</option><option value="604800000"' + selected(604800000, config.refreshIntervalMs) + '>' + tr('rssRefreshSevenDays') + '</option></select>', 'setting-compact') +
+            settingItem(tr('rssRefreshInterval'), '', refreshControl, 'setting-compact') +
             '</div>' +
             '</div>';
     }
@@ -1033,10 +1317,32 @@
             '<option value="left"' + (searchIconPosition === 'left' ? ' selected' : '') + '>' + tr('iconLeft') + '</option>' +
             '<option value="right"' + (searchIconPosition === 'right' ? ' selected' : '') + '>' + tr('iconRight') + '</option>' +
             '</select>';
+        var searchIconVisibilityControl = '<select id="modalSearchIconVisibility">' +
+            '<option value="always"' + (searchIconVisibility === 'always' ? ' selected' : '') + '>' + tr('iconVisibilityAlways') + '</option>' +
+            '<option value="hidden"' + (searchIconVisibility === 'hidden' ? ' selected' : '') + '>' + tr('iconVisibilityHidden') + '</option>' +
+            '</select>';
+        var searchSurfaceControl = '<select id="modalSearchSurface">' +
+            '<option value="light"' + (searchSurface === 'light' ? ' selected' : '') + '>' + tr('surfaceLight') + '</option>' +
+            '<option value="glass"' + (searchSurface === 'glass' ? ' selected' : '') + '>' + tr('surfaceGlass') + '</option>' +
+            '<option value="theme"' + (searchSurface === 'theme' ? ' selected' : '') + '>' + tr('surfaceTheme') + '</option>' +
+            '<option value="solid"' + (searchSurface === 'solid' ? ' selected' : '') + '>' + tr('surfaceSolid') + '</option>' +
+            '<option value="outline"' + (searchSurface === 'outline' ? ' selected' : '') + '>' + tr('surfaceOutline') + '</option>' +
+            '<option value="clean"' + (searchSurface === 'clean' ? ' selected' : '') + '>' + tr('surfaceClean') + '</option>' +
+            '</select>';
+        var searchShadowControl = '<select id="modalSearchShadow">' +
+            '<option value="none"' + (searchShadow === 'none' ? ' selected' : '') + '>' + tr('shadowNone') + '</option>' +
+            '<option value="soft"' + (searchShadow === 'soft' ? ' selected' : '') + '>' + tr('shadowSoft') + '</option>' +
+            '<option value="standard"' + (searchShadow === 'standard' ? ' selected' : '') + '>' + tr('shadowStandard') + '</option>' +
+            '</select>';
         var radiusControl = '<select id="modalSearchRadius">' +
             '<option value="capsule"' + (searchRadius === 'capsule' ? ' selected' : '') + '>' + tr('radiusCapsule') + '</option>' +
             '<option value="rounded"' + (searchRadius === 'rounded' ? ' selected' : '') + '>' + tr('radiusRounded') + '</option>' +
             '<option value="sharp"' + (searchRadius === 'sharp' ? ' selected' : '') + '>' + tr('radiusSharp') + '</option>' +
+            '</select>';
+        var placeholderControl = '<input type="text" id="modalSearchPlaceholder" value="' + escapeHtml(searchPlaceholder) + '" placeholder="' + tr('searchPlaceholder') + '">';
+        var enterBehaviorControl = '<select id="modalSearchEnterBehavior">' +
+            '<option value="current"' + (searchEnterBehavior === 'current' ? ' selected' : '') + '>' + tr('enterCurrentTab') + '</option>' +
+            '<option value="newtab"' + (searchEnterBehavior === 'newtab' ? ' selected' : '') + '>' + tr('enterNewTab') + '</option>' +
             '</select>';
         var searchWidthControl = '<input type="range" id="modalSearchWidthRange" min="360" max="760" step="10" value="' + searchWidth + '">' +
             '<input type="number" id="modalSearchWidthNum" class="input-w-55" min="360" max="760" step="10" value="' + searchWidth + '">';
@@ -1060,18 +1366,136 @@
             settingGroup(tr('settingsGroupSearchLayout'),
             settingItem(tr('searchPosition'), modalCopy('modalDescSearchPosition'), searchPosControl) +
             settingItem(tr('searchWidth'), modalCopy('modalDescSearchWidth'), searchWidthControl) +
-            settingItem(tr('searchIconPosition'), modalCopy('modalDescSearchIconPosition'), searchIconPositionControl)) +
+            settingItem(tr('searchIconPosition'), modalCopy('modalDescSearchIconPosition'), searchIconPositionControl) +
+            settingItem(tr('searchIconVisibility'), modalCopy('modalDescSearchIconVisibility'), searchIconVisibilityControl)) +
             settingGroup(tr('settingsGroupSearchSurface'),
+            settingItem(tr('searchSurface'), modalCopy('modalDescSearchSurface'), searchSurfaceControl) +
+            settingItem(tr('searchShadow'), modalCopy('modalDescSearchShadow'), searchShadowControl) +
             settingItem(tr('searchRadius'), modalCopy('modalDescSearchRadius'), radiusControl) +
             settingItem(tr('searchBackground'), modalCopy('modalDescSearchBackground'), searchBgControl) +
             settingItem(tr('searchBlur'), modalCopy('modalDescSearchBlur'), searchBlurControl)) +
+            settingGroup(tr('settingsGroupSearchBehavior'),
+            settingItem(tr('searchPlaceholderCustom'), modalCopy('modalDescSearchPlaceholder'), placeholderControl) +
+            settingItem(tr('searchEnterBehavior'), modalCopy('modalDescSearchEnterBehavior'), enterBehaviorControl)) +
             settingGroup(tr('settingsGroupSearchEngine'),
-            settingItem(tr('engineLabel'), engineDesc, engineControl, IS_EXTENSION ? 'setting-disabled' : ''));
+            settingItem(tr('engineLabel'), engineDesc, engineControl, IS_EXTENSION ? 'setting-disabled' : '')) +
+            '<div class="settings-actions"><button class="reset-defaults-btn" id="searchResetBtn" type="button">' + tr('resetSearchDefaults') + '</button></div>';
 
         return buildPageShell(tr('tabSearch'), modalCopy('modalSubtitleSearch'), body);
     }
 
     function buildAppearanceHTML() {
+        var opacityControl = '<input type="range" id="modalOpacityRange" min="0" max="1" step="0.01" value="' + currentOpacity + '">' +
+            '<input type="number" id="modalOpacityNum" class="input-w-55" min="0" max="1" step="0.01" value="' + currentOpacity + '">';
+        var themeControl = '<label class="switch-control"><input type="checkbox" id="modalThemeEnabled"' + (themeEnabled ? ' checked' : '') + '><span></span></label>';
+        var panelOpacityControl = '<input type="range" id="modalPanelOpacityRange" min="0.3" max="1" step="0.01" value="' + panelOpacity + '">' +
+            '<input type="number" id="modalPanelOpacityNum" class="input-w-55" min="0.3" max="1" step="0.01" value="' + panelOpacity + '">';
+        var uiRadiusControl = '<select id="modalUiRadius">' +
+            '<option value="compact"' + (uiRadius === 'compact' ? ' selected' : '') + '>' + tr('radiusCompact') + '</option>' +
+            '<option value="soft"' + (uiRadius === 'soft' ? ' selected' : '') + '>' + tr('radiusSoft') + '</option>' +
+            '<option value="round"' + (uiRadius === 'round' ? ' selected' : '') + '>' + tr('radiusRound') + '</option>' +
+            '</select>';
+        var fontScaleControl = '<select id="modalFontScale">' +
+            '<option value="compact"' + (fontScale === 'compact' ? ' selected' : '') + '>' + tr('fontCompact') + '</option>' +
+            '<option value="standard"' + (fontScale === 'standard' ? ' selected' : '') + '>' + tr('fontStandard') + '</option>' +
+            '<option value="large"' + (fontScale === 'large' ? ' selected' : '') + '>' + tr('fontLarge') + '</option>' +
+            '</select>';
+        var accentControl = '<select id="modalAccentMode">' +
+            '<option value="auto"' + (accentMode === 'auto' ? ' selected' : '') + '>' + tr('accentAuto') + '</option>' +
+            '<option value="custom"' + (accentMode === 'custom' ? ' selected' : '') + '>' + tr('accentCustom') + '</option>' +
+            '</select><input type="color" id="modalAccentColor" class="accent-color-input" value="' + escapeHtml(accentColor) + '"' + (accentMode === 'custom' ? '' : ' hidden') + '>';
+        var reducedMotionControl = '<label class="switch-control"><input type="checkbox" id="modalReducedMotion"' + (reducedMotion ? ' checked' : '') + '><span></span></label>';
+
+        var body =
+            settingGroup(tr('settingsGroupTheme'),
+            settingItem(tr('themeEnableLabel'), modalCopy('modalDescTheme'), themeControl, 'setting-compact') +
+            settingItem(tr('accentColorLabel'), modalCopy('modalDescAccentColor'), accentControl)) +
+            settingGroup(tr('settingsGroupSurface'),
+            settingItem(tr('opacityLabel'), modalCopy('modalDescIconOpacity'), opacityControl) +
+            settingItem(tr('panelOpacityLabel'), modalCopy('modalDescPanelOpacity'), panelOpacityControl) +
+            settingItem(tr('uiRadiusLabel'), modalCopy('modalDescUiRadius'), uiRadiusControl) +
+            settingItem(tr('fontScaleLabel'), modalCopy('modalDescFontScale'), fontScaleControl) +
+            settingItem(tr('reducedMotionLabel'), modalCopy('modalDescReducedMotion'), reducedMotionControl, 'setting-compact')) +
+            '<div class="settings-actions"><button class="reset-defaults-btn" id="appearanceResetBtn" type="button">' + tr('resetAppearanceDefaults') + '</button></div>';
+
+        return buildPageShell(tr('tabAppearance'), modalCopy('modalSubtitleAppearance'), body);
+    }
+
+    function bindSearchEvents() {
+        var selMode = document.getElementById('modalSearchMode');
+        var selHistoryLimit = document.getElementById('modalSearchHistoryLimit');
+        var selPos = document.getElementById('modalSearchPos');
+        var selIconPosition = document.getElementById('modalSearchIconPosition');
+        var selIconVisibility = document.getElementById('modalSearchIconVisibility');
+        var selSurface = document.getElementById('modalSearchSurface');
+        var selShadow = document.getElementById('modalSearchShadow');
+        var selRadius = document.getElementById('modalSearchRadius');
+        var placeholderInput = document.getElementById('modalSearchPlaceholder');
+        var enterBehaviorSel = document.getElementById('modalSearchEnterBehavior');
+        var searchWidthRange = document.getElementById('modalSearchWidthRange');
+        var searchWidthNum = document.getElementById('modalSearchWidthNum');
+        var searchBgRange = document.getElementById('modalSearchBgRange');
+        var searchBgNum = document.getElementById('modalSearchBgNum');
+        var searchBlurRange = document.getElementById('modalSearchBlurRange');
+        var searchBlurNum = document.getElementById('modalSearchBlurNum');
+        var engineSel = document.getElementById('modalEngineSel');
+        var resetBtn = document.getElementById('searchResetBtn');
+
+        if (selMode) selMode.addEventListener('change', function () { applySearchMode(this.value); });
+        if (selHistoryLimit) selHistoryLimit.addEventListener('change', function () { applySearchHistoryLimit(this.value); });
+        if (selPos) selPos.addEventListener('change', function () { applySearchPosition(this.value); });
+        if (selIconPosition) selIconPosition.addEventListener('change', function () { applySearchIconPosition(this.value); });
+        if (selIconVisibility) selIconVisibility.addEventListener('change', function () { applySearchIconVisibility(this.value); });
+        if (selSurface) selSurface.addEventListener('change', function () { applySearchSurface(this.value); });
+        if (selShadow) selShadow.addEventListener('change', function () { applySearchShadow(this.value); });
+        if (selRadius) selRadius.addEventListener('change', function () { applySearchRadius(this.value); });
+        if (placeholderInput) placeholderInput.addEventListener('change', function () { applySearchPlaceholder(this.value); this.value = searchPlaceholder; });
+        if (enterBehaviorSel) enterBehaviorSel.addEventListener('change', function () { applySearchEnterBehavior(this.value); });
+        if (searchWidthRange) searchWidthRange.addEventListener('input', function () { applySearchWidth(this.value); if (searchWidthNum) searchWidthNum.value = this.value; });
+        if (searchWidthNum) searchWidthNum.addEventListener('change', function () { applySearchWidth(this.value); if (searchWidthRange) searchWidthRange.value = searchWidth; this.value = searchWidth; });
+        if (searchBgRange) searchBgRange.addEventListener('input', function () { applySearchBackgroundOpacity(this.value); if (searchBgNum) searchBgNum.value = searchBackgroundOpacity; });
+        if (searchBgNum) searchBgNum.addEventListener('change', function () { applySearchBackgroundOpacity(this.value); if (searchBgRange) searchBgRange.value = searchBackgroundOpacity; this.value = searchBackgroundOpacity; });
+        if (searchBlurRange) searchBlurRange.addEventListener('input', function () { applySearchBlur(this.value); if (searchBlurNum) searchBlurNum.value = searchBlur; });
+        if (searchBlurNum) searchBlurNum.addEventListener('change', function () { applySearchBlur(this.value); if (searchBlurRange) searchBlurRange.value = searchBlur; this.value = searchBlur; });
+        if (engineSel) engineSel.addEventListener('change', function () { applyEngine(this.value); });
+        if (resetBtn) resetBtn.addEventListener('click', function () {
+            if (!confirm(tr('resetSearchConfirm'))) return;
+            resetSearchDefaults();
+        });
+        syncCustomSelects(modalContent);
+    }
+
+    function bindAppearanceEvents() {
+        var opacityRange = document.getElementById('modalOpacityRange');
+        var opacityNum = document.getElementById('modalOpacityNum');
+        var themeCheck = document.getElementById('modalThemeEnabled');
+        var panelOpacityRange = document.getElementById('modalPanelOpacityRange');
+        var panelOpacityNum = document.getElementById('modalPanelOpacityNum');
+        var uiRadiusSel = document.getElementById('modalUiRadius');
+        var fontScaleSel = document.getElementById('modalFontScale');
+        var accentModeSel = document.getElementById('modalAccentMode');
+        var accentColorInput = document.getElementById('modalAccentColor');
+        var reducedMotionCheck = document.getElementById('modalReducedMotion');
+        var resetBtn = document.getElementById('appearanceResetBtn');
+
+        if (opacityRange) opacityRange.addEventListener('input', function () { applyOpacity(this.value); if (opacityNum) opacityNum.value = this.value; });
+        if (opacityNum) opacityNum.addEventListener('change', function () { applyOpacity(this.value); if (opacityRange) opacityRange.value = this.value; });
+        if (themeCheck) themeCheck.addEventListener('change', function () { applyThemeMode(this.checked); });
+        if (panelOpacityRange) panelOpacityRange.addEventListener('input', function () { applyPanelOpacity(this.value); if (panelOpacityNum) panelOpacityNum.value = this.value; });
+        if (panelOpacityNum) panelOpacityNum.addEventListener('change', function () { applyPanelOpacity(this.value); if (panelOpacityRange) panelOpacityRange.value = this.value; });
+        if (uiRadiusSel) uiRadiusSel.addEventListener('change', function () { applyUiRadius(this.value); });
+        if (fontScaleSel) fontScaleSel.addEventListener('change', function () { applyFontScale(this.value); });
+        if (accentModeSel) accentModeSel.addEventListener('change', function () { applyAccentMode(this.value); });
+        if (accentColorInput) accentColorInput.addEventListener('input', function () { applyAccentColor(this.value); });
+        if (reducedMotionCheck) reducedMotionCheck.addEventListener('change', function () { applyReducedMotion(this.checked); });
+        if (resetBtn) resetBtn.addEventListener('click', function () {
+            if (!confirm(tr('resetAppearanceConfirm'))) return;
+            resetAppearanceDefaults();
+        });
+        syncCustomSelects(modalContent);
+    }
+
+    function buildWallpaperDisplayHTML() {
         var wallpaperFitControl = '<select id="modalWallpaperFit">' +
             '<option value="cover"' + (wallpaperFit === 'cover' ? ' selected' : '') + '>' + tr('fitCover') + '</option>' +
             '<option value="contain"' + (wallpaperFit === 'contain' ? ' selected' : '') + '>' + tr('fitContain') + '</option>' +
@@ -1086,95 +1510,20 @@
             '</select>';
         var wallpaperBlurControl = '<input type="range" id="modalWallpaperBlurRange" min="0" max="15" step="1" value="' + wallpaperBlur + '">' +
             '<input type="number" id="modalWallpaperBlurNum" class="input-w-55" min="0" max="15" step="1" value="' + wallpaperBlur + '">';
+        var wallpaperVignetteControl = '<select id="modalWallpaperVignette">' +
+            '<option value="none"' + (wallpaperVignette === 'none' ? ' selected' : '') + '>' + tr('vignetteNone') + '</option>' +
+            '<option value="soft"' + (wallpaperVignette === 'soft' ? ' selected' : '') + '>' + tr('vignetteSoft') + '</option>' +
+            '<option value="medium"' + (wallpaperVignette === 'medium' ? ' selected' : '') + '>' + tr('vignetteMedium') + '</option>' +
+            '</select>';
         var overlayControl = '<input type="range" id="modalOverlayRange" min="0" max="0.6" step="0.01" value="' + overlayOpacity + '">' +
             '<input type="number" id="modalOverlayNum" class="input-w-55" min="0" max="0.6" step="0.01" value="' + overlayOpacity + '">';
-        var opacityControl = '<input type="range" id="modalOpacityRange" min="0" max="1" step="0.01" value="' + currentOpacity + '">' +
-            '<input type="number" id="modalOpacityNum" class="input-w-55" min="0" max="1" step="0.01" value="' + currentOpacity + '">';
-        var themeControl = '<label class="switch-control"><input type="checkbox" id="modalThemeEnabled"' + (themeEnabled ? ' checked' : '') + '><span></span></label>';
-        var panelOpacityControl = '<input type="range" id="modalPanelOpacityRange" min="0.3" max="1" step="0.01" value="' + panelOpacity + '">' +
-            '<input type="number" id="modalPanelOpacityNum" class="input-w-55" min="0.3" max="1" step="0.01" value="' + panelOpacity + '">';
-        var uiRadiusControl = '<select id="modalUiRadius">' +
-            '<option value="compact"' + (uiRadius === 'compact' ? ' selected' : '') + '>' + tr('radiusCompact') + '</option>' +
-            '<option value="soft"' + (uiRadius === 'soft' ? ' selected' : '') + '>' + tr('radiusSoft') + '</option>' +
-            '<option value="round"' + (uiRadius === 'round' ? ' selected' : '') + '>' + tr('radiusRound') + '</option>' +
-            '</select>';
 
-        var body =
-            settingGroup(tr('settingsGroupTheme'),
-            settingItem(tr('themeEnableLabel'), modalCopy('modalDescTheme'), themeControl, 'setting-compact')) +
-            settingGroup(tr('settingsGroupWallpaper'),
+        return settingGroup(tr('settingsGroupWallpaperDisplay'),
             settingItem(tr('wallpaperFit'), modalCopy('modalDescWallpaperFit'), wallpaperFitControl) +
             settingItem(tr('wallpaperPosition'), modalCopy('modalDescWallpaperPosition'), wallpaperPositionControl) +
             settingItem(tr('wallpaperBlur'), modalCopy('modalDescWallpaperBlur'), wallpaperBlurControl) +
-            settingItem(tr('overlayLabel'), modalCopy('modalDescOverlay'), overlayControl)) +
-            settingGroup(tr('settingsGroupSurface'),
-            settingItem(tr('opacityLabel'), modalCopy('modalDescIconOpacity'), opacityControl) +
-            settingItem(tr('panelOpacityLabel'), modalCopy('modalDescPanelOpacity'), panelOpacityControl) +
-            settingItem(tr('uiRadiusLabel'), modalCopy('modalDescUiRadius'), uiRadiusControl)) +
-            '<div class="settings-actions"><button class="reset-defaults-btn" id="modalResetBtn">' + tr('resetAdv') + '</button></div>';
-
-        return buildPageShell(tr('tabAppearance'), modalCopy('modalSubtitleAppearance'), body);
-    }
-
-    function bindSearchEvents() {
-        var selMode = document.getElementById('modalSearchMode');
-        var selHistoryLimit = document.getElementById('modalSearchHistoryLimit');
-        var selPos = document.getElementById('modalSearchPos');
-        var selIconPosition = document.getElementById('modalSearchIconPosition');
-        var selRadius = document.getElementById('modalSearchRadius');
-        var searchWidthRange = document.getElementById('modalSearchWidthRange');
-        var searchWidthNum = document.getElementById('modalSearchWidthNum');
-        var searchBgRange = document.getElementById('modalSearchBgRange');
-        var searchBgNum = document.getElementById('modalSearchBgNum');
-        var searchBlurRange = document.getElementById('modalSearchBlurRange');
-        var searchBlurNum = document.getElementById('modalSearchBlurNum');
-        var engineSel = document.getElementById('modalEngineSel');
-
-        if (selMode) selMode.addEventListener('change', function () { applySearchMode(this.value); });
-        if (selHistoryLimit) selHistoryLimit.addEventListener('change', function () { applySearchHistoryLimit(this.value); });
-        if (selPos) selPos.addEventListener('change', function () { applySearchPosition(this.value); });
-        if (selIconPosition) selIconPosition.addEventListener('change', function () { applySearchIconPosition(this.value); });
-        if (selRadius) selRadius.addEventListener('change', function () { applySearchRadius(this.value); });
-        if (searchWidthRange) searchWidthRange.addEventListener('input', function () { applySearchWidth(this.value); if (searchWidthNum) searchWidthNum.value = this.value; });
-        if (searchWidthNum) searchWidthNum.addEventListener('change', function () { applySearchWidth(this.value); if (searchWidthRange) searchWidthRange.value = searchWidth; this.value = searchWidth; });
-        if (searchBgRange) searchBgRange.addEventListener('input', function () { applySearchBackgroundOpacity(this.value); if (searchBgNum) searchBgNum.value = searchBackgroundOpacity; });
-        if (searchBgNum) searchBgNum.addEventListener('change', function () { applySearchBackgroundOpacity(this.value); if (searchBgRange) searchBgRange.value = searchBackgroundOpacity; this.value = searchBackgroundOpacity; });
-        if (searchBlurRange) searchBlurRange.addEventListener('input', function () { applySearchBlur(this.value); if (searchBlurNum) searchBlurNum.value = searchBlur; });
-        if (searchBlurNum) searchBlurNum.addEventListener('change', function () { applySearchBlur(this.value); if (searchBlurRange) searchBlurRange.value = searchBlur; this.value = searchBlur; });
-        if (engineSel) engineSel.addEventListener('change', function () { applyEngine(this.value); });
-        syncCustomSelects(modalContent);
-    }
-
-    function bindAppearanceEvents() {
-        var wallpaperFitSel = document.getElementById('modalWallpaperFit');
-        var wallpaperPositionSel = document.getElementById('modalWallpaperPosition');
-        var wallpaperBlurRange = document.getElementById('modalWallpaperBlurRange');
-        var wallpaperBlurNum = document.getElementById('modalWallpaperBlurNum');
-        var overlayRange = document.getElementById('modalOverlayRange');
-        var overlayNum = document.getElementById('modalOverlayNum');
-        var opacityRange = document.getElementById('modalOpacityRange');
-        var opacityNum = document.getElementById('modalOpacityNum');
-        var themeCheck = document.getElementById('modalThemeEnabled');
-        var panelOpacityRange = document.getElementById('modalPanelOpacityRange');
-        var panelOpacityNum = document.getElementById('modalPanelOpacityNum');
-        var uiRadiusSel = document.getElementById('modalUiRadius');
-        var resetBtn = document.getElementById('modalResetBtn');
-
-        if (wallpaperFitSel) wallpaperFitSel.addEventListener('change', function () { applyWallpaperFit(this.value); });
-        if (wallpaperPositionSel) wallpaperPositionSel.addEventListener('change', function () { applyWallpaperPosition(this.value); });
-        if (wallpaperBlurRange) wallpaperBlurRange.addEventListener('input', function () { applyWallpaperBlur(this.value, { preview: true }); this.value = wallpaperBlur; if (wallpaperBlurNum) wallpaperBlurNum.value = wallpaperBlur; });
-        if (wallpaperBlurRange) wallpaperBlurRange.addEventListener('change', function () { applyWallpaperBlur(this.value); if (wallpaperBlurNum) wallpaperBlurNum.value = wallpaperBlur; this.value = wallpaperBlur; });
-        if (wallpaperBlurNum) wallpaperBlurNum.addEventListener('change', function () { applyWallpaperBlur(this.value); if (wallpaperBlurRange) wallpaperBlurRange.value = wallpaperBlur; this.value = wallpaperBlur; });
-        if (overlayRange) overlayRange.addEventListener('input', function () { applyOverlayOpacity(this.value); if (overlayNum) overlayNum.value = this.value; });
-        if (overlayNum) overlayNum.addEventListener('change', function () { applyOverlayOpacity(this.value); if (overlayRange) overlayRange.value = this.value; });
-        if (opacityRange) opacityRange.addEventListener('input', function () { applyOpacity(this.value); if (opacityNum) opacityNum.value = this.value; });
-        if (opacityNum) opacityNum.addEventListener('change', function () { applyOpacity(this.value); if (opacityRange) opacityRange.value = this.value; });
-        if (themeCheck) themeCheck.addEventListener('change', function () { applyThemeMode(this.checked); });
-        if (panelOpacityRange) panelOpacityRange.addEventListener('input', function () { applyPanelOpacity(this.value); if (panelOpacityNum) panelOpacityNum.value = this.value; });
-        if (panelOpacityNum) panelOpacityNum.addEventListener('change', function () { applyPanelOpacity(this.value); if (panelOpacityRange) panelOpacityRange.value = this.value; });
-        if (uiRadiusSel) uiRadiusSel.addEventListener('change', function () { applyUiRadius(this.value); });
-        if (resetBtn) resetBtn.addEventListener('click', resetAppearanceDefaults);
-        syncCustomSelects(modalContent);
+            settingItem(tr('wallpaperVignette'), modalCopy('modalDescWallpaperVignette'), wallpaperVignetteControl) +
+            settingItem(tr('overlayLabel'), modalCopy('modalDescOverlay'), overlayControl));
     }
 
     function buildWallpaperHTML() {
@@ -1189,6 +1538,7 @@
 
         var draftSource = draftActiveSource();
         var activeSource = draftSource === 'local' ? 'upload' : draftSource;
+        var openSource = draftOpenSource();
         var configs = {
             bing:   '<p>' + tr('bingConfigHint') + '</p>',
             upload: '<p>' + tr('uploadConfigHint') + '</p>',
@@ -1196,13 +1546,17 @@
             rss:    buildRssConfigHTML(),
             api:    buildApiConfigHTML()
         };
+        var selectedSourceLabel = getSourceLabel(activeSource);
+        var selectedSourceHint = escapeHtml(tr('wallpaperCurrentSource')).replace('{source}', '<strong>' + escapeHtml(selectedSourceLabel) + '</strong>');
 
         var drawers = sources.map(function (s) {
-            var activeClass = s.id === activeSource ? ' active' : '';
-            return '<div class="source-drawer' + activeClass + '" data-source="' + s.id + '">' +
+            var expandedClass = s.id === openSource ? ' active' : '';
+            var selectedClass = s.id === activeSource ? ' selected' : '';
+            return '<div class="source-drawer' + expandedClass + selectedClass + '" data-source="' + s.id + '">' +
                 '<div class="source-drawer-header">' +
+                '<button class="source-selector ' + s.id + '" type="button" role="radio" aria-checked="' + (s.id === activeSource ? 'true' : 'false') + '" data-source-option="' + s.id + '" aria-label="' + escapeHtml(s.name) + '"><span></span></button>' +
                 '<span class="source-drawer-dot ' + s.id + '"></span>' +
-                '<div class="source-drawer-info"><div class="source-drawer-name">' + s.name + '</div><div class="source-drawer-desc">' + s.desc + '</div></div>' +
+                '<div class="source-drawer-info"><div class="source-drawer-name">' + escapeHtml(s.name) + '</div><div class="source-drawer-desc">' + escapeHtml(s.desc) + '</div></div>' +
                 '<svg class="source-drawer-chevron" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
                 '</div>' +
                 '<div class="source-drawer-body"><div class="source-drawer-body-inner">' + configs[s.id] + '</div></div>' +
@@ -1211,12 +1565,29 @@
 
         return '<div class="wallpaper-tab-shell">' +
             '<div class="wallpaper-tab-header"><h2>' + tr('tabWallpaper') + '</h2><p>' + modalCopy('modalSubtitleWallpaper') + '</p></div>' +
-            '<div class="wallpaper-tab-body"><div class="source-accordion">' + drawers + '</div><div class="wallpaper-reset-row"><button class="danger-action" id="wallpaperResetBtn" type="button">' + tr('wallpaperResetDefaults') + '</button></div></div>' +
+            '<div class="wallpaper-tab-body">' + buildWallpaperDisplayHTML() + '<div class="wallpaper-current-source">' + selectedSourceHint + '</div><div class="source-accordion">' + drawers + '</div><div class="wallpaper-reset-row"><button class="danger-action" id="wallpaperResetBtn" type="button">' + tr('wallpaperResetDefaults') + '</button></div></div>' +
             wallpaperApplyFooterHTML() +
             '</div>';
     }
 
     function bindWallpaperEvents() {
+        var wallpaperFitSel = document.getElementById('modalWallpaperFit');
+        var wallpaperPositionSel = document.getElementById('modalWallpaperPosition');
+        var wallpaperBlurRange = document.getElementById('modalWallpaperBlurRange');
+        var wallpaperBlurNum = document.getElementById('modalWallpaperBlurNum');
+        var wallpaperVignetteSel = document.getElementById('modalWallpaperVignette');
+        var overlayRange = document.getElementById('modalOverlayRange');
+        var overlayNum = document.getElementById('modalOverlayNum');
+
+        if (wallpaperFitSel) wallpaperFitSel.addEventListener('change', function () { applyWallpaperFit(this.value); });
+        if (wallpaperPositionSel) wallpaperPositionSel.addEventListener('change', function () { applyWallpaperPosition(this.value); });
+        if (wallpaperBlurRange) wallpaperBlurRange.addEventListener('input', function () { applyWallpaperBlur(this.value, { preview: true }); this.value = wallpaperBlur; if (wallpaperBlurNum) wallpaperBlurNum.value = wallpaperBlur; });
+        if (wallpaperBlurRange) wallpaperBlurRange.addEventListener('change', function () { applyWallpaperBlur(this.value); if (wallpaperBlurNum) wallpaperBlurNum.value = wallpaperBlur; this.value = wallpaperBlur; });
+        if (wallpaperBlurNum) wallpaperBlurNum.addEventListener('change', function () { applyWallpaperBlur(this.value); if (wallpaperBlurRange) wallpaperBlurRange.value = wallpaperBlur; this.value = wallpaperBlur; });
+        if (wallpaperVignetteSel) wallpaperVignetteSel.addEventListener('change', function () { applyWallpaperVignette(this.value); });
+        if (overlayRange) overlayRange.addEventListener('input', function () { applyOverlayOpacity(this.value); if (overlayNum) overlayNum.value = this.value; });
+        if (overlayNum) overlayNum.addEventListener('change', function () { applyOverlayOpacity(this.value); if (overlayRange) overlayRange.value = this.value; });
+
         function setDrawerOpen(drawer, open) {
             var body = drawer.querySelector('.source-drawer-body');
             var inner = drawer.querySelector('.source-drawer-body-inner');
@@ -1241,18 +1612,28 @@
             if (body && inner) body.style.maxHeight = inner.scrollHeight + 'px';
         });
 
+        modalContent.querySelectorAll('.source-selector').forEach(function (button) {
+            button.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var source = normalizeDraftSource(button.dataset.sourceOption);
+                var draft = currentWallpaperDraft();
+                draft.activeSource = source === 'local' ? 'upload' : source;
+                wallpaperDraftOpenSource = draft.activeSource;
+                refreshWallpaperDraftTab();
+            });
+        });
+
         modalContent.querySelectorAll('.source-drawer-header').forEach(function (header) {
             header.addEventListener('click', function (e) {
                 if (e.target.closest('button, input, label')) return;
                 var drawer = header.parentElement;
                 var clickedSource = drawer.dataset.source;
-                var draft = currentWallpaperDraft();
-                var wasActive = drawer.classList.contains('active');
-                if (!wasActive) draft.activeSource = clickedSource === 'upload' ? 'upload' : clickedSource;
+                var wasActive = drawer && drawer.classList.contains('active');
+                wallpaperDraftOpenSource = wasActive ? '' : clickedSource;
                 modalContent.querySelectorAll('.source-drawer').forEach(function (d) {
-                    setDrawerOpen(d, !wasActive && d.dataset.source === clickedSource);
+                    var open = !wasActive && d.dataset.source === clickedSource;
+                    setDrawerOpen(d, open);
                 });
-                if (!wasActive) refreshWallpaperApplyFooter();
             });
         });
         bindFolderConfigEvents();
@@ -1263,12 +1644,7 @@
         var reset = modalContent.querySelector('#wallpaperResetBtn');
         if (reset) reset.addEventListener('click', function () {
             if (!confirm(tr('wallpaperResetConfirm'))) return;
-            D.resetWallpaperDefaults().then(function () {
-                currentMode = 'bing';
-                invalidateWallpaperTab();
-                refreshGallery();
-                if (window.reloadWallpaper) window.reloadWallpaper();
-            });
+            resetWallpaperDefaults();
         });
     }
 
@@ -1569,7 +1945,7 @@
                     currentName: ''
                 });
                 showFolderNotice(tr('folderReady') + (mount.pathLabel || tr('sourceFolder')), 'success');
-                invalidateWallpaperTab();
+                refreshWallpaperDraftTab();
             }).catch(function (err) {
                 if (err && err.name === 'AbortError') {
                     showFolderNotice('', 'info');
@@ -1618,6 +1994,11 @@
         renderTabContent();
     }
 
+    function refreshWallpaperDraftTab() {
+        invalidateWallpaperTab();
+        refreshWallpaperApplyFooter();
+    }
+
     function bindRssConfigEvents() {
         var root = modalContent.querySelector('.rss-config');
         if (!root) return;
@@ -1638,8 +2019,10 @@
         if (urlInput) {
             urlInput.addEventListener('input', function () {
                 clearRssValidation();
+                syncRssAddButtonState(root);
             });
         }
+        syncRssAddButtonState(root);
 
         root.querySelectorAll('input[name="rssSource"]').forEach(function (radio) {
             radio.addEventListener('change', function () {
@@ -1679,6 +2062,13 @@
         root.addEventListener('click', onRssConfigClick);
     }
 
+    function syncRssAddButtonState(root) {
+        var urlInput = root && root.querySelector('#rssUrlInput');
+        var addBtn = root && root.querySelector('#rssAddBtn');
+        if (!urlInput || !addBtn) return;
+        addBtn.disabled = !F.isHttpsUrl(urlInput.value.trim());
+    }
+
     function onRssConfigClick(e) {
         var target = e.target;
         var config = currentWallpaperDraft().providers.rss.config;
@@ -1696,7 +2086,7 @@
                 test: { status: 'untested', fieldHash: '', testedAt: 0, imageUrl: '', error: '' }
             });
             config.activeSourceId = id;
-            invalidateWallpaperTab();
+            refreshWallpaperDraftTab();
             return;
         }
         var row = target.closest('.rss-source-row');
@@ -1704,17 +2094,16 @@
         var source = config.sources.filter(function (item) { return item.id === row.dataset.rssSource; })[0];
         if (!source) return;
         if (target.dataset.action === 'delete-rss') {
-            if (config.sources.length <= 1) {
-                setRssStatus(tr('rssNeedsSource'));
-                showRssNotice(tr('rssNeedsSource'), 'error');
-                return;
-            }
             config.sources = config.sources.filter(function (item) { return item.id !== source.id; });
-            if (!config.sources.some(function (item) { return item.id === config.activeSourceId; })) config.activeSourceId = config.sources[0].id;
-            invalidateWallpaperTab();
+            if (!config.sources.some(function (item) { return item.id === config.activeSourceId; })) config.activeSourceId = config.sources[0] ? config.sources[0].id : '';
+            refreshWallpaperDraftTab();
             return;
         }
         if (target.dataset.action === 'test-rss') {
+            if (!F.isHttpsUrl(source.url)) {
+                showRssValidation(httpsOnlyMessage('rssInvalidUrl', source.url));
+                return;
+            }
             var testButton = target;
             setRssTestButtonState(testButton, true);
             setRssStatus(tr('rssTesting'));
@@ -1762,10 +2151,20 @@
         if (urlInput) {
             urlInput.addEventListener('input', function () {
                 clearApiValidation();
+                syncApiAddButtonState(root);
             });
         }
+        syncApiAddButtonState(root);
         root.addEventListener('click', onApiConfigClick);
         root.addEventListener('change', onApiConfigChange);
+    }
+
+    function syncApiAddButtonState(root) {
+        var urlInput = root && root.querySelector('#apiUrlInput');
+        var addBtn = root && root.querySelector('#apiAddBtn');
+        if (!urlInput || !addBtn) return;
+        var valid = F.isHttpsUrl(urlInput.value.trim());
+        addBtn.disabled = !valid;
     }
 
     function onApiConfigChange(e) {
@@ -1779,7 +2178,7 @@
             if (config.apiType === 'json') config.activeJsonSourceId = e.target.value;
             else config.activeImageSourceId = e.target.value;
             wallpaperDraftApiTestResult = null;
-            invalidateWallpaperTab();
+            refreshWallpaperDraftTab();
         }
     }
 
@@ -1787,11 +2186,21 @@
         var target = e.target;
         var config = currentWallpaperDraft().providers.api.config;
         var apiType = config.apiType === 'json' ? 'json' : 'image';
+        var root = target.closest('.api-config');
         var typeTab = target.closest('[data-api-type-tab]');
         if (typeTab) {
             config.apiType = typeTab.dataset.apiTypeTab === 'json' ? 'json' : 'image';
             wallpaperDraftApiTestResult = null;
-            invalidateWallpaperTab();
+            refreshWallpaperDraftTab();
+            return;
+        }
+        var refreshBtn = target.closest('[data-api-refresh-interval]');
+        if (refreshBtn && root) {
+            config.refreshIntervalMs = parseInt(refreshBtn.dataset.apiRefreshInterval, 10);
+            root.querySelectorAll('[data-api-refresh-interval]').forEach(function (button) {
+                button.classList.toggle('active', button === refreshBtn);
+            });
+            refreshWallpaperApplyFooter();
             return;
         }
         if (target.id === 'apiAddBtn') {
@@ -1813,7 +2222,7 @@
             if (apiType === 'json') config.activeJsonSourceId = id;
             else config.activeImageSourceId = id;
             wallpaperDraftApiTestResult = null;
-            invalidateWallpaperTab();
+            refreshWallpaperDraftTab();
             return;
         }
         var row = target.closest('.api-source-row');
@@ -1826,7 +2235,7 @@
             if (row.dataset.apiType === 'json') config.activeJsonSourceId = listForRow[0] ? listForRow[0].id : '';
             else config.activeImageSourceId = listForRow[0] ? listForRow[0].id : '';
             wallpaperDraftApiTestResult = null;
-            invalidateWallpaperTab();
+            refreshWallpaperDraftTab();
             return;
         }
         if (target.dataset.action === 'test-api') {
@@ -1938,7 +2347,8 @@
             settingItem(tr('cpHotkeyLabel'), modalCopy('modalDescHotkey'), '<input type="text" class="hotkey-input" id="hkNormal" value="' + hkNormal + '" readonly>') +
             settingItem(tr('cpHiddenHotkeyLabel'), modalCopy('modalDescHiddenHotkey'), '<input type="text" class="hotkey-input" id="hkHidden" value="' + hkHidden + '" readonly>')) +
             settingGroup(tr('cpGroupContent'),
-            settingItem(tr('cpRecommendLabel'), modalCopy('modalDescRecommend'), '<label class="switch-control"><input type="checkbox" id="cpRecommend"' + checked + '><span></span></label>', 'setting-compact'));
+            settingItem(tr('cpRecommendLabel'), modalCopy('modalDescRecommend'), '<label class="switch-control"><input type="checkbox" id="cpRecommend"' + checked + '><span></span></label>', 'setting-compact')) +
+            '<div class="settings-actions"><button class="reset-defaults-btn" id="shortcutsResetBtn" type="button">' + tr('resetShortcutsDefaults') + '</button></div>';
 
         return buildPageShell(tr('tabShortcuts'), modalCopy('modalSubtitleShortcuts'), body);
     }
@@ -1949,6 +2359,7 @@
         var cpRec = document.getElementById('cpRecommend');
         var cpPlacement = document.getElementById('cpPlacement');
         var cpSkin = document.getElementById('cpSkin');
+        var resetBtn = document.getElementById('shortcutsResetBtn');
 
         if (hkNormalEl) hkNormalEl.addEventListener('click', function () { startRecording('normal', hkNormalEl); });
         if (hkHiddenEl) hkHiddenEl.addEventListener('click', function () { startRecording('hidden', hkHiddenEl); });
@@ -1962,6 +2373,10 @@
         });
         if (cpRec) cpRec.addEventListener('change', function () {
             savePaletteRecommend(cpRec.checked);
+        });
+        if (resetBtn) resetBtn.addEventListener('click', function () {
+            if (!confirm(tr('resetShortcutsConfirm'))) return;
+            resetShortcutsDefaults();
         });
     }
 
@@ -1978,6 +2393,52 @@
             settingItem(tr('dataImportPass'), modalCopy('modalDescDataImportPass'), importPassControl, 'setting-compact')) +
             '<div class="data-status" id="dataStatus" hidden></div>';
         return buildPageShell(tr('tabData'), modalCopy('modalSubtitleData'), body);
+    }
+
+    function buildRestoreHTML() {
+        var searchControl = '<button class="reset-defaults-btn" id="restoreSearchBtn" type="button">' + tr('resetSearchDefaults') + '</button>';
+        var appearanceControl = '<button class="reset-defaults-btn" id="restoreAppearanceBtn" type="button">' + tr('resetAppearanceDefaults') + '</button>';
+        var wallpaperControl = '<button class="danger-action" id="restoreWallpaperBtn" type="button">' + tr('wallpaperResetDefaults') + '</button>';
+        var shortcutsControl = '<button class="reset-defaults-btn" id="restoreShortcutsBtn" type="button">' + tr('resetShortcutsDefaults') + '</button>';
+        var allControl = '<button class="danger-action" id="restoreAllBtn" type="button">' + tr('resetAllDefaults') + '</button>';
+        var body =
+            settingGroup(tr('settingsGroupRestoreScoped'),
+            settingItem(tr('tabAppearance'), modalCopy('modalDescResetAppearance'), appearanceControl, 'setting-compact') +
+            settingItem(tr('tabSearch'), modalCopy('modalDescResetSearch'), searchControl, 'setting-compact') +
+            settingItem(tr('tabWallpaper'), modalCopy('modalDescResetWallpaper'), wallpaperControl, 'setting-compact') +
+            settingItem(tr('tabShortcuts'), modalCopy('modalDescResetShortcuts'), shortcutsControl, 'setting-compact')) +
+            settingGroup(tr('settingsGroupRestoreGlobal'),
+            settingItem(tr('resetAllDefaults'), modalCopy('modalDescResetAll'), allControl, 'setting-compact'));
+        return buildPageShell(tr('tabRestore'), modalCopy('modalSubtitleRestore'), body);
+    }
+
+    function bindRestoreEvents() {
+        var searchBtn = document.getElementById('restoreSearchBtn');
+        var appearanceBtn = document.getElementById('restoreAppearanceBtn');
+        var wallpaperBtn = document.getElementById('restoreWallpaperBtn');
+        var shortcutsBtn = document.getElementById('restoreShortcutsBtn');
+        var allBtn = document.getElementById('restoreAllBtn');
+
+        if (appearanceBtn) appearanceBtn.addEventListener('click', function () {
+            if (!confirm(tr('resetAppearanceConfirm'))) return;
+            resetAppearanceDefaults();
+        });
+        if (searchBtn) searchBtn.addEventListener('click', function () {
+            if (!confirm(tr('resetSearchConfirm'))) return;
+            resetSearchDefaults();
+        });
+        if (wallpaperBtn) wallpaperBtn.addEventListener('click', function () {
+            if (!confirm(tr('wallpaperResetConfirm'))) return;
+            resetWallpaperDefaults();
+        });
+        if (shortcutsBtn) shortcutsBtn.addEventListener('click', function () {
+            if (!confirm(tr('resetShortcutsConfirm'))) return;
+            resetShortcutsDefaults();
+        });
+        if (allBtn) allBtn.addEventListener('click', function () {
+            if (!confirm(tr('resetAllConfirm'))) return;
+            resetAllDefaults();
+        });
     }
 
     function buildPermissionsHTML() {
@@ -2341,6 +2802,23 @@
         return allowed.indexOf(value) !== -1 ? value : fallback;
     }
 
+    function normalizeHexColor(value, fallback) {
+        var raw = String(value || '').trim();
+        var match = raw.match(/^#?([0-9a-f]{6})$/i);
+        return match ? '#' + match[1].toLowerCase() : fallback;
+    }
+
+    function hexToRgb(value) {
+        var normalized = normalizeHexColor(value, '');
+        if (!normalized) return null;
+        var hex = normalized.slice(1);
+        return [
+            parseInt(hex.slice(0, 2), 16),
+            parseInt(hex.slice(2, 4), 16),
+            parseInt(hex.slice(4, 6), 16)
+        ].join(', ');
+    }
+
     function searchPositionParts(value, fallbackAlign) {
         var allowed = {
             'edge-top': ['edge-top', 'center'],
@@ -2409,6 +2887,36 @@
         saveAllSettings();
     }
 
+    function applySearchIconVisibility(value) {
+        searchIconVisibility = validValue(value, ['always', 'hidden'], DEFAULT_SEARCH_ICON_VISIBILITY);
+        searchBar.setAttribute('data-icon-visibility', searchIconVisibility);
+        saveAllSettings();
+    }
+
+    function applySearchSurface(value) {
+        searchSurface = validValue(value, ['glass', 'solid', 'outline', 'clean', 'theme', 'light'], DEFAULT_SEARCH_SURFACE);
+        searchBar.setAttribute('data-surface', searchSurface);
+        saveAllSettings();
+    }
+
+    function applySearchShadow(value) {
+        searchShadow = validValue(value, ['none', 'soft', 'standard'], DEFAULT_SEARCH_SHADOW);
+        searchBar.setAttribute('data-shadow', searchShadow);
+        saveAllSettings();
+    }
+
+    function applySearchPlaceholder(value) {
+        searchPlaceholder = String(value || '').trim().slice(0, 80);
+        var input = document.getElementById('searchInput');
+        if (input) input.placeholder = searchPlaceholder || t('searchPlaceholder');
+        saveAllSettings();
+    }
+
+    function applySearchEnterBehavior(value) {
+        searchEnterBehavior = validValue(value, ['current', 'newtab'], DEFAULT_SEARCH_ENTER_BEHAVIOR);
+        saveAllSettings();
+    }
+
     function applySearchWidth(value) {
         searchWidth = clampInteger(value, 360, 760, DEFAULT_SEARCH_WIDTH);
         document.documentElement.style.setProperty('--search-width', searchWidth + 'px');
@@ -2419,6 +2927,8 @@
         searchBackgroundOpacity = clampNumber(value, 0.04, 0.32, DEFAULT_SEARCH_BG_OPACITY);
         searchBackgroundOpacity = parseFloat(searchBackgroundOpacity.toFixed(2));
         document.documentElement.style.setProperty('--search-bg-opacity', searchBackgroundOpacity);
+        document.documentElement.style.setProperty('--search-solid-bg-opacity', (0.48 + searchBackgroundOpacity).toFixed(2));
+        document.documentElement.style.setProperty('--search-outline-bg-opacity', (searchBackgroundOpacity * 0.45).toFixed(2));
         saveAllSettings();
     }
 
@@ -2511,6 +3021,27 @@
         saveAllSettings();
     }
 
+    function applyWallpaperVignette(value) {
+        wallpaperVignette = validValue(value, ['none', 'soft', 'medium'], DEFAULT_WALLPAPER_VIGNETTE);
+        var old = document.getElementById('wallpaperVignette');
+        if (wallpaperVignette === 'none') {
+            if (old) old.remove();
+            saveAllSettings();
+            return;
+        }
+        var opacity = wallpaperVignette === 'medium' ? 0.36 : 0.22;
+        var vignetteEl = old;
+        if (!vignetteEl) {
+            vignetteEl = document.createElement('div');
+            vignetteEl.id = 'wallpaperVignette';
+            vignetteEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2;transition:opacity var(--transition);';
+            document.body.appendChild(vignetteEl);
+        }
+        vignetteEl.style.opacity = opacity;
+        vignetteEl.style.background = 'radial-gradient(circle at center, rgba(0,0,0,0) 42%, rgba(0,0,0,0.55) 100%)';
+        saveAllSettings();
+    }
+
     function applyOpacity(val) {
         currentOpacity = clampNumber(val, 0, 1, DEFAULT_OPACITY);
         currentOpacity = parseFloat(currentOpacity.toFixed(2));
@@ -2551,6 +3082,49 @@
         root.setProperty('--radius-sm', preset.sm);
         root.setProperty('--radius-md', preset.md);
         root.setProperty('--radius-lg', preset.lg);
+        saveAllSettings();
+    }
+
+    function applyFontScale(value) {
+        fontScale = validValue(value, ['compact', 'standard', 'large'], DEFAULT_FONT_SCALE);
+        var fontSizeMap = { compact: '15px', standard: '16px', large: '17px' };
+        var fontScaleMap = { compact: '0.94', standard: '1', large: '1.08' };
+        document.documentElement.style.setProperty('--app-font-size', fontSizeMap[fontScale]);
+        document.documentElement.style.setProperty('--app-font-scale', fontScaleMap[fontScale]);
+        document.documentElement.setAttribute('data-font-scale', fontScale);
+        saveAllSettings();
+    }
+
+    function applyAccentPreference() {
+        if (accentMode !== 'custom') return;
+        var rgb = hexToRgb(accentColor);
+        if (!rgb) return;
+        var root = document.documentElement.style;
+        root.setProperty('--accent-rgb', rgb);
+        root.setProperty('--accent-contrast-rgb', '255, 255, 255');
+    }
+
+    function applyAccentMode(value) {
+        accentMode = validValue(value, ['auto', 'custom'], DEFAULT_ACCENT_MODE);
+        var colorInput = document.getElementById('modalAccentColor');
+        if (colorInput) colorInput.hidden = accentMode !== 'custom';
+        if (accentMode === 'custom') {
+            applyAccentPreference();
+        } else {
+            applyThemeMode(themeEnabled);
+        }
+        saveAllSettings();
+    }
+
+    function applyAccentColor(value) {
+        accentColor = normalizeHexColor(value, DEFAULT_ACCENT_COLOR);
+        if (accentMode === 'custom') applyAccentPreference();
+        saveAllSettings();
+    }
+
+    function applyReducedMotion(value) {
+        reducedMotion = value === true;
+        document.documentElement.setAttribute('data-reduced-motion', reducedMotion ? 'true' : 'false');
         saveAllSettings();
     }
 
@@ -2610,6 +3184,7 @@
             root.setProperty('--glass-tint', 'linear-gradient(180deg, rgba(var(--tint-rgb), 0.20), rgba(var(--surface-elevated-rgb), 0.08))');
             root.setProperty('--glass-border', '1px solid rgba(var(--stroke-rgb), 0.72)');
         }
+        applyAccentPreference();
         saveAllSettings();
     }
 
@@ -2626,19 +3201,29 @@
         ui.search.position = searchPosition;
         ui.search.align = searchAlign;
         ui.search.iconPosition = searchIconPosition;
+        ui.search.iconVisibility = searchIconVisibility;
+        ui.search.surface = searchSurface;
+        ui.search.shadow = searchShadow;
         ui.search.radius = searchRadius;
         ui.search.width = searchWidth;
         ui.search.backgroundOpacity = searchBackgroundOpacity;
         ui.search.blur = searchBlur;
+        ui.search.placeholder = searchPlaceholder;
+        ui.search.enterBehavior = searchEnterBehavior;
         ui.search.historyLimit = searchHistoryLimit;
         ui.wallpaper.overlayOpacity = overlayOpacity;
         ui.wallpaper.themeEnabled = themeEnabled;
         ui.wallpaper.fit = wallpaperFit;
         ui.wallpaper.position = wallpaperPosition;
         ui.wallpaper.blur = wallpaperBlur;
+        ui.wallpaper.vignette = wallpaperVignette;
         ui.icon.opacity = currentOpacity;
         ui.panel.opacity = panelOpacity;
         ui.appearance.radius = uiRadius;
+        ui.appearance.fontScale = fontScale;
+        ui.appearance.accentMode = accentMode;
+        ui.appearance.accentColor = accentColor;
+        ui.appearance.reducedMotion = reducedMotion;
         D.saveUI(ui);
     }
 
@@ -2655,10 +3240,15 @@
         searchPosition = searchPositionParts(searchPosition, searchAlign).value;
         searchAlign = searchPositionParts(searchPosition, searchAlign).align;
         searchIconPosition = search.iconPosition || DEFAULT_SEARCH_ICON_POSITION;
+        searchIconVisibility = search.iconVisibility || DEFAULT_SEARCH_ICON_VISIBILITY;
+        searchSurface = search.surface || DEFAULT_SEARCH_SURFACE;
+        searchShadow = search.shadow || DEFAULT_SEARCH_SHADOW;
         searchRadius = search.radius || DEFAULT_SEARCH_RADIUS;
         searchWidth = search.width !== undefined ? search.width : DEFAULT_SEARCH_WIDTH;
         searchBackgroundOpacity = search.backgroundOpacity !== undefined ? search.backgroundOpacity : DEFAULT_SEARCH_BG_OPACITY;
         searchBlur = search.blur !== undefined ? search.blur : DEFAULT_SEARCH_BLUR;
+        searchPlaceholder = search.placeholder || '';
+        searchEnterBehavior = search.enterBehavior || DEFAULT_SEARCH_ENTER_BEHAVIOR;
         searchHistoryLimit = D.normalizeSearchHistoryLimit ? D.normalizeSearchHistoryLimit(search.historyLimit) : DEFAULT_SEARCH_HISTORY_LIMIT;
         currentOpacity = icon.opacity !== undefined ? parseFloat(icon.opacity) : DEFAULT_OPACITY;
         overlayOpacity = wallpaper.overlayOpacity !== undefined ? parseFloat(wallpaper.overlayOpacity) : DEFAULT_OVERLAY_OPACITY;
@@ -2666,7 +3256,12 @@
         wallpaperFit = wallpaper.fit || DEFAULT_WALLPAPER_FIT;
         wallpaperPosition = wallpaper.position || DEFAULT_WALLPAPER_POSITION;
         wallpaperBlur = wallpaper.blur !== undefined ? wallpaper.blur : DEFAULT_WALLPAPER_BLUR;
+        wallpaperVignette = wallpaper.vignette || DEFAULT_WALLPAPER_VIGNETTE;
         uiRadius = appearance.radius || DEFAULT_UI_RADIUS;
+        fontScale = appearance.fontScale || DEFAULT_FONT_SCALE;
+        accentMode = appearance.accentMode || DEFAULT_ACCENT_MODE;
+        accentColor = normalizeHexColor(appearance.accentColor, DEFAULT_ACCENT_COLOR);
+        reducedMotion = appearance.reducedMotion === true;
         themeEnabled = wallpaper.themeEnabled === true;
         currentEngine = search.engine || DEFAULT_ENGINE;
 
@@ -2675,71 +3270,113 @@
             applySearchMode(searchMode);
             applySearchPosition(searchPosition);
             applySearchIconPosition(searchIconPosition);
+            applySearchIconVisibility(searchIconVisibility);
+            applySearchSurface(searchSurface);
+            applySearchShadow(searchShadow);
             applySearchWidth(searchWidth);
             applySearchBackgroundOpacity(searchBackgroundOpacity);
             applySearchBlur(searchBlur);
+            applySearchPlaceholder(searchPlaceholder);
+            applySearchEnterBehavior(searchEnterBehavior);
             applySearchHistoryLimit(searchHistoryLimit);
             applySearchRadius(searchRadius);
             applyOpacity(currentOpacity);
             applyWallpaperFit(wallpaperFit);
             applyWallpaperPosition(wallpaperPosition);
             applyWallpaperBlur(wallpaperBlur);
+            applyWallpaperVignette(wallpaperVignette);
             applyOverlayOpacity(overlayOpacity);
             applyPanelOpacity(panelOpacity);
             applyUiRadius(uiRadius);
+            applyFontScale(fontScale);
             applyThemeMode(themeEnabled);
+            applyAccentMode(accentMode);
+            applyAccentColor(accentColor);
+            applyReducedMotion(reducedMotion);
             if (!IS_EXTENSION) applyEngine(currentEngine);
         } finally {
             isHydratingSettings = false;
         }
     }
 
-    function resetAppearanceDefaults() {
+    function resetSearchDefaults() {
         applySearchMode(DEFAULT_SEARCH_MODE);
         applySearchPosition(DEFAULT_SEARCH_POSITION);
         applySearchIconPosition(DEFAULT_SEARCH_ICON_POSITION);
+        applySearchIconVisibility(DEFAULT_SEARCH_ICON_VISIBILITY);
+        applySearchSurface(DEFAULT_SEARCH_SURFACE);
+        applySearchShadow(DEFAULT_SEARCH_SHADOW);
         applySearchWidth(DEFAULT_SEARCH_WIDTH);
         applySearchBackgroundOpacity(DEFAULT_SEARCH_BG_OPACITY);
         applySearchBlur(DEFAULT_SEARCH_BLUR);
+        applySearchPlaceholder('');
+        applySearchEnterBehavior(DEFAULT_SEARCH_ENTER_BEHAVIOR);
         applySearchHistoryLimit(DEFAULT_SEARCH_HISTORY_LIMIT);
         applySearchRadius(DEFAULT_SEARCH_RADIUS);
+        if (!IS_EXTENSION) applyEngine(DEFAULT_ENGINE);
+        saveAllSettings();
+        if (D.clearSearchHistory) D.clearSearchHistory();
+        syncSearchControls();
+    }
+
+    function resetAppearanceDefaults() {
         applyOpacity(DEFAULT_OPACITY);
+        applyPanelOpacity(DEFAULT_PANEL_OPACITY);
+        applyUiRadius(DEFAULT_UI_RADIUS);
+        applyFontScale(DEFAULT_FONT_SCALE);
+        applyAccentMode(DEFAULT_ACCENT_MODE);
+        applyAccentColor(DEFAULT_ACCENT_COLOR);
+        applyReducedMotion(false);
+        applyThemeMode(false);
+        saveAllSettings();
+        syncAppearanceControls();
+    }
+
+    function resetWallpaperDefaults() {
         applyWallpaperFit(DEFAULT_WALLPAPER_FIT);
         applyWallpaperPosition(DEFAULT_WALLPAPER_POSITION);
         applyWallpaperBlur(DEFAULT_WALLPAPER_BLUR);
+        applyWallpaperVignette(DEFAULT_WALLPAPER_VIGNETTE);
         applyOverlayOpacity(DEFAULT_OVERLAY_OPACITY);
-        applyPanelOpacity(DEFAULT_PANEL_OPACITY);
-        applyUiRadius(DEFAULT_UI_RADIUS);
-        applyThemeMode(false);
-        if (!IS_EXTENSION) applyEngine(DEFAULT_ENGINE);
         saveAllSettings();
-        // Update modal form values
-        var el;
-        el = document.getElementById('modalSearchMode'); if (el) el.value = DEFAULT_SEARCH_MODE;
-        el = document.getElementById('modalSearchPos'); if (el) el.value = DEFAULT_SEARCH_POSITION;
-        el = document.getElementById('modalSearchIconPosition'); if (el) el.value = DEFAULT_SEARCH_ICON_POSITION;
-        el = document.getElementById('modalSearchRadius'); if (el) el.value = DEFAULT_SEARCH_RADIUS;
-        el = document.getElementById('modalSearchWidthRange'); if (el) el.value = DEFAULT_SEARCH_WIDTH;
-        el = document.getElementById('modalSearchWidthNum'); if (el) el.value = DEFAULT_SEARCH_WIDTH;
-        el = document.getElementById('modalSearchBgRange'); if (el) el.value = DEFAULT_SEARCH_BG_OPACITY;
-        el = document.getElementById('modalSearchBgNum'); if (el) el.value = DEFAULT_SEARCH_BG_OPACITY;
-        el = document.getElementById('modalSearchBlurRange'); if (el) el.value = DEFAULT_SEARCH_BLUR;
-        el = document.getElementById('modalSearchBlurNum'); if (el) el.value = DEFAULT_SEARCH_BLUR;
-        el = document.getElementById('modalSearchHistoryLimit'); if (el) el.value = DEFAULT_SEARCH_HISTORY_LIMIT;
-        el = document.getElementById('modalWallpaperFit'); if (el) el.value = DEFAULT_WALLPAPER_FIT;
-        el = document.getElementById('modalWallpaperPosition'); if (el) el.value = DEFAULT_WALLPAPER_POSITION;
-        el = document.getElementById('modalWallpaperBlurRange'); if (el) el.value = DEFAULT_WALLPAPER_BLUR;
-        el = document.getElementById('modalWallpaperBlurNum'); if (el) el.value = DEFAULT_WALLPAPER_BLUR;
-        el = document.getElementById('modalOpacityRange'); if (el) el.value = DEFAULT_OPACITY;
-        el = document.getElementById('modalOpacityNum'); if (el) el.value = DEFAULT_OPACITY;
-        el = document.getElementById('modalOverlayRange'); if (el) el.value = DEFAULT_OVERLAY_OPACITY;
-        el = document.getElementById('modalOverlayNum'); if (el) el.value = DEFAULT_OVERLAY_OPACITY;
-        el = document.getElementById('modalPanelOpacityRange'); if (el) el.value = DEFAULT_PANEL_OPACITY;
-        el = document.getElementById('modalPanelOpacityNum'); if (el) el.value = DEFAULT_PANEL_OPACITY;
-        el = document.getElementById('modalUiRadius'); if (el) el.value = DEFAULT_UI_RADIUS;
-        el = document.getElementById('modalEngineSel'); if (el) el.value = DEFAULT_ENGINE;
-        el = document.getElementById('modalThemeEnabled'); if (el) el.checked = false;
-        syncCustomSelects(modalContent);
+        syncWallpaperControls();
+        return D.resetWallpaperDefaults().then(function () {
+            currentMode = 'bing';
+            clearWallpaperDraft();
+            invalidateWallpaperTab();
+            refreshGallery();
+            if (window.reloadWallpaper) window.reloadWallpaper();
+        });
+    }
+
+    function resetShortcutsDefaults() {
+        cancelRecording();
+        if (D.resetShortcutSettings) {
+            D.resetShortcutSettings();
+        } else {
+            var model = D.loadShortcutsModel();
+            model.settings = {
+                primaryHotkey: 'ctrl+k',
+                hiddenHotkey: 'ctrl+shift+k',
+                recommendEnabled: true,
+                viewMode: 'list',
+                commandsCollapsed: true,
+                palettePlacement: 'follow',
+                palettePosition: null,
+                paletteSkin: 'default',
+                builtinGithubAdded: true
+            };
+            D.saveShortcutsModel(model);
+        }
+        syncShortcutsControls();
+        if (window.Palette && window.Palette.refresh) window.Palette.refresh();
+    }
+
+    function resetAllDefaults() {
+        resetSearchDefaults();
+        resetAppearanceDefaults();
+        resetShortcutsDefaults();
+        return resetWallpaperDefaults();
     }
 
     // ================================================================
@@ -3804,6 +4441,7 @@
         closeModal: closeModal,
         updateLangUI: updateLangUI,
         getSearchMode: function () { return searchMode; },
+        getSearchEnterBehavior: function () { return searchEnterBehavior; },
         getOpacity: function () { return currentOpacity; },
         getEngine: function () { return currentEngine; },
         getCurrentMode: function () { return currentMode; },

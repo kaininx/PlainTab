@@ -79,6 +79,7 @@
     var paletteLoadPromise = null;
     var folderRescannedThisSession = false;
     var folderPermissionNoticeDismissed = false;
+    var apiEveryOpenRefreshKeys = {};
     var wallpaperDownloadNoticeEl = null;
     var wallpaperDownloadNoticeTimer = null;
     var ONBOARDING_SEEN_KEY = 'ptab_onboarding_seen_v1';
@@ -251,6 +252,15 @@
         if (interval === 0) return false;
         if (interval === -1) return true;
         return !state.lastSuccessAt || Date.now() - state.lastSuccessAt >= interval;
+    }
+
+    function apiEveryOpenRefreshKey(config, source) {
+        return [
+            config.apiType === 'json' ? 'json' : 'image',
+            source && source.id || '',
+            source && source.url || '',
+            source && source.jsonPath || ''
+        ].join('\n');
     }
 
     function cleanupOldRssBlobs(activeOrder) {
@@ -976,9 +986,15 @@
     function refreshApiInBackground(force) {
         var config = D.loadApiConfig();
         var state = D.loadWallpaper().providers.api.state || {};
-        if (!force && !isApiRefreshDue(config, state)) return Promise.resolve(false);
+        var interval = parseInt(config.refreshIntervalMs, 10);
+        if (interval !== -1 && !force && !isApiRefreshDue(config, state)) return Promise.resolve(false);
         var source = activeApiSource();
         if (!source) return Promise.resolve(false);
+        if (interval === -1) {
+            var key = apiEveryOpenRefreshKey(config, source);
+            if (apiEveryOpenRefreshKeys[key]) return Promise.resolve(false);
+            apiEveryOpenRefreshKeys[key] = true;
+        }
         showWallpaperDownloadNotice('api', 'loading');
         return F.refreshApiSource(source, config.apiType).then(function () {
             showWallpaperDownloadNotice('api', 'done');
@@ -1215,11 +1231,13 @@
         if (!term) return;
         if (D && D.addSearchHistory) D.addSearchHistory(term);
         hideSearchHistory();
+        var enterBehavior = SP && SP.getSearchEnterBehavior ? SP.getSearchEnterBehavior() : 'current';
+        var target = enterBehavior === 'newtab' ? '_blank' : '_self';
         if (IS_EXTENSION && typeof chrome !== 'undefined' && chrome.search && typeof chrome.search.query === 'function') {
             try {
                 var result = chrome.search.query({
                     text: term,
-                    disposition: 'CURRENT_TAB'
+                    disposition: enterBehavior === 'newtab' ? 'NEW_TAB' : 'CURRENT_TAB'
                 });
                 if (result && typeof result.catch === 'function') {
                     result.catch(function (e) {
@@ -1232,7 +1250,7 @@
                 return;
             }
         }
-        window.open((SEARCH_URLS[SP.getEngine()] || SEARCH_URLS.google) + encodeURIComponent(term), '_self');
+        window.open((SEARCH_URLS[SP.getEngine()] || SEARCH_URLS.google) + encodeURIComponent(term), target);
     };
 
     // ================================================================
@@ -1353,6 +1371,21 @@
         }).catch(function (e) {
             warn('Palette', e.message || 'failed to load command palette');
         });
+    }
+
+    function settingsSurfaceActive() {
+        return !!(SP && (
+            (SP.isOpen && SP.isOpen()) ||
+            (SP.isModalOpen && SP.isModalOpen()) ||
+            (SP.isLangPanelOpen && SP.isLangPanelOpen())
+        ));
+    }
+
+    function shouldBlockPaletteMouseShortcut(e) {
+        if (window.Palette && window.Palette.isOpen) return true;
+        if (settingsSurfaceActive()) return true;
+        return !!(e.target && e.target.closest &&
+            e.target.closest('button, input, textarea, select, [contenteditable="true"], .settings-panel, .language-panel, .modal-overlay, .cmd-palette-overlay, .onboarding-hint'));
     }
 
     function schedulePanelWarmup() {
@@ -1515,15 +1548,16 @@
         // --- 鼠标快捷方式 ---
 
         document.addEventListener('dblclick', function (e) {
-            if (window.Palette && window.Palette.isOpen) return;
-            if (e.target.closest('button, input, select, .settings-panel, .language-panel, .onboarding-hint')) return;
+            if (shouldBlockPaletteMouseShortcut(e)) return;
             openPalette(false, pointerAnchorFromEvent(e));
         });
 
         document.addEventListener('auxclick', function (e) {
             if (e.button !== 1) return;
-            if (window.Palette && window.Palette.isOpen) return;
-            if (e.target.closest('button, input, select, .settings-panel, .language-panel, .onboarding-hint')) return;
+            if (shouldBlockPaletteMouseShortcut(e)) {
+                if (settingsSurfaceActive()) e.preventDefault();
+                return;
+            }
             e.preventDefault();
             openPalette(true, pointerAnchorFromEvent(e));
         });

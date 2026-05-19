@@ -2518,3 +2518,8 @@
         display: none;
     }
 }
+.cmd-palette-overlay,
+.cmd-palette-overlay input,
+.cmd-palette-overlay button {
+    font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}

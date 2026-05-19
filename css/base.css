@@ -84,7 +84,31 @@ body {
     height: 100vh;
     background: linear-gradient(180deg, var(--fallback-start) 0%, var(--fallback-mid) 50%, var(--fallback-end) 100%);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-size: var(--app-font-size, 16px);
     overflow: hidden;
+}
+
+.wp-mode-chip,
+.settings-btn-text,
+.version-text,
+.lang-title,
+.lang-option,
+.onboarding-body,
+.onboarding-action {
+    font-size: calc(13px * var(--app-font-scale, 1)) !important;
+}
+
+.onboarding-title {
+    font-size: calc(20px * var(--app-font-scale, 1)) !important;
+}
+
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
 }
 
 /* ========== 右上角按钮 ========== */

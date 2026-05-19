@@ -214,10 +214,15 @@
             position: 'center',
             align: 'center',
             iconPosition: 'right',
+            iconVisibility: 'always',
+            surface: 'glass',
+            shadow: 'standard',
             radius: 'capsule',
             width: 560,
             backgroundOpacity: 0.1,
             blur: 24,
+            placeholder: '',
+            enterBehavior: 'current',
             historyLimit: 5,
             historyItems: []
         },
@@ -226,10 +231,15 @@
             themeEnabled: false,
             fit: 'cover',
             position: 'center',
-            blur: 0
+            blur: 0,
+            vignette: 'none'
         },
         appearance: {
-            radius: 'soft'
+            radius: 'soft',
+            fontScale: 'standard',
+            accentMode: 'auto',
+            accentColor: '#6366f1',
+            reducedMotion: false
         },
         icon: {
             opacity: 0.45
@@ -420,21 +430,21 @@
 
     function normalizeRssConfig(config) {
         var defaults = defaultRssConfig();
+        var hasExplicitSources = !!(config && Object.prototype.hasOwnProperty.call(config, 'sources'));
         var merged = mergeDefaults(config || {}, defaults);
         var seen = {};
         var builtinById = {};
         var legacyBuiltinIds = { 'nasa-apod': true, 'bing-rsshub': true };
         defaults.sources.forEach(function (source) { builtinById[source.id] = source; });
-        var normalizedSources = (merged.sources || []).map(normalizeRssSource).filter(function (source) {
+        var inputSources = hasExplicitSources ? (config.sources || []) : (merged.sources || []);
+        var normalizedSources = inputSources.map(normalizeRssSource).filter(function (source) {
             if (!source.id || !source.url || seen[source.id]) return false;
             seen[source.id] = true;
             return true;
         }).filter(function (source) {
             return !source.builtIn || !!builtinById[source.id];
         });
-        var builtins = defaults.sources.map(function (builtin) {
-            return normalizedSources.filter(function (source) { return source.id === builtin.id; })[0] || normalizeRssSource(builtin);
-        });
+        var builtins = normalizedSources.filter(function (source) { return source.builtIn; });
         var customSources = normalizedSources.filter(function (source) { return !source.builtIn; });
         var activeCustom = customSources.filter(function (source) { return source.id === merged.activeSourceId; });
         var remainingCustom = customSources.filter(function (source) { return source.id !== merged.activeSourceId; });
@@ -442,10 +452,10 @@
         if (!merged.sources.some(function (source) { return source.id === merged.activeSourceId; }) && activeCustom.length) {
             merged.sources[merged.sources.length - 1] = activeCustom[0];
         }
-        if (!merged.sources.length) merged.sources = defaults.sources.map(normalizeRssSource);
+        if (!merged.sources.length && !hasExplicitSources) merged.sources = defaults.sources.map(normalizeRssSource);
         if (legacyBuiltinIds[merged.activeSourceId]) merged.activeSourceId = defaults.activeSourceId;
         if (!merged.sources.some(function (source) { return source.id === merged.activeSourceId; })) {
-            merged.activeSourceId = merged.sources[0].id;
+            merged.activeSourceId = merged.sources[0] ? merged.sources[0].id : '';
         }
         var allowedIntervals = [0, 86400000, 259200000, 604800000];
         if (allowedIntervals.indexOf(merged.refreshIntervalMs) === -1) merged.refreshIntervalMs = defaults.refreshIntervalMs;
@@ -704,6 +714,11 @@
         return writeJSON(KEYS.UI, _uiCache);
     }
 
+    function defaultUISection(section) {
+        if (!section || !DEFAULT_UI[section]) return clone(DEFAULT_UI);
+        return clone(DEFAULT_UI[section]);
+    }
+
     function normalizeSearchHistoryLimit(value) {
         var n = parseInt(value, 10);
         return n === 10 ? 10 : (n === 0 ? 0 : 5);
@@ -803,6 +818,16 @@
     function saveShortcutsModel(model) {
         _shortcutsCache = mergeDefaults(model, DEFAULT_SHORTCUTS);
         return writeJSON(KEYS.SHORTCUTS, _shortcutsCache);
+    }
+
+    function defaultShortcutSettings() {
+        return clone(DEFAULT_SHORTCUTS.settings);
+    }
+
+    function resetShortcutSettings() {
+        var model = loadShortcutsModel();
+        model.settings = defaultShortcutSettings();
+        return saveShortcutsModel(model);
     }
 
     function loadOrder() {
@@ -1237,6 +1262,7 @@
         resetWallpaperDefaults: resetWallpaperDefaults,
         loadUI: loadUI,
         saveUI: saveUI,
+        defaultUISection: defaultUISection,
         normalizeSearchHistoryLimit: normalizeSearchHistoryLimit,
         loadSearchHistoryLimit: loadSearchHistoryLimit,
         loadSearchHistory: loadSearchHistory,
@@ -1245,6 +1271,8 @@
         clearSearchHistory: clearSearchHistory,
         loadShortcutsModel: loadShortcutsModel,
         saveShortcutsModel: saveShortcutsModel,
+        defaultShortcutSettings: defaultShortcutSettings,
+        resetShortcutSettings: resetShortcutSettings,
         loadLocale: loadLocale,
         saveLocale: saveLocale,
         exportUserData: exportUserData,
