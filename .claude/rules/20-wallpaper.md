@@ -17,7 +17,7 @@
 当前来源：
 
 - `bing`：Bing 每日壁纸。
-- `upload`：用户上传的本地图片，作为 Blob 保存。
+- `upload`：用户上传的本地图片和唯一视频壁纸，作为 Blob 保存。图片和视频是互斥媒体模式，视频不进入图片轮播队列。
 - `folder`：File System Access API 文件夹来源，保存 handle、索引和轻量缓存状态。
 - `rss`：RSS 图片源，带图片提取、RSS Blob 缓存，以及可选摘要/链接浮层。
 - `api`：图片直链 API 或 JSON API，通过 JSON path 提取图片地址。
@@ -59,6 +59,7 @@
 ## 上传和文件夹
 
 - 上传图片保存在 `ptab_wallpaper_blob_upload_*`；顺序保存在 `cache.order`。
+- 上传视频固定保存在 `upload_video` / `ptab_wallpaper_blob_upload_video`，并由 `providers.upload.config.activeMedia` 与图片画廊互斥切换。
 - 删除上传图时，必须先移除 order/meta/thumb/blur-thumb 引用，再删除 Blob。
 - 文件夹模式在 IndexedDB 保存目录 handle 和文件索引。缺失权限、空目录、文件被移除、轻量缓存过期时，都不能让壁纸空白。
 - 文件夹扫描和缩略图准备应离开启动热路径，通常使用 `requestIdleCallback`。

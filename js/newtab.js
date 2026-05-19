@@ -329,6 +329,9 @@
     function isCurrentOriginalId(id) {
         var source = D.compatMode(D.getActiveSource());
         if (source === 'bing' || source === 'api') return id === source;
+        if (source === 'local' && D.loadUploadConfig && D.loadUploadConfig().activeMedia === 'video') {
+            return id === (D.uploadVideoId ? D.uploadVideoId() : 'upload_video');
+        }
         var order = D.loadOrder();
         if (!order.length) return false;
         var currentIndex = (D.getActiveIndex() - 1 + order.length) % order.length;
@@ -861,7 +864,36 @@
         });
     }
 
-    function tryLoadLocalWallpaper(order) {
+    function tryLoadUploadVideo() {
+        var uploadState = D.loadUploadState ? D.loadUploadState() : {};
+        var id = uploadState.videoId || (D.uploadVideoId ? D.uploadVideoId() : 'upload_video');
+        if (!uploadState.videoId) return Promise.resolve(false);
+        if (!S.applyVideoAndSavePreview) return Promise.resolve(false);
+
+        hideRssOverlay();
+        SP.setCurrentMode('local');
+
+        return D.idbGet(D.imgKey(id)).then(function (record) {
+            if (!record || !record.blob) { warn('Local', 'video missing, skipping'); return false; }
+            var blob = record.blob;
+            if ((!blob.type || blob.type === '') && record.mime) {
+                try { blob = new Blob([blob], { type: record.mime }); } catch (e) { }
+            }
+            var url = URL.createObjectURL(blob);
+            var thumb = D.loadThumbs()[id] || null;
+            log('Local', 'video wallpaper' + (record.name ? '  ·  ' + record.name : ''));
+            return S.applyVideoAndSavePreview(url, id, thumb).then(function () {
+                cacheBingInBackground();
+                return true;
+            }, function (err) {
+                try { URL.revokeObjectURL(url); } catch (e) { }
+                warn('Local', 'video failed: ' + (err && err.message ? err.message : err));
+                return false;
+            });
+        }).catch(function () { return false; });
+    }
+
+    function tryLoadLocalImages(order) {
         if (!order || !order.length) return Promise.resolve(false);
 
         hideRssOverlay();
@@ -926,6 +958,20 @@
                 cacheBingInBackground();
                 return true;
             });
+        });
+    }
+
+    function tryLoadLocalWallpaper(order) {
+        var uploadConfig = D.loadUploadConfig ? D.loadUploadConfig() : { activeMedia: 'image' };
+        if (uploadConfig.activeMedia === 'video') {
+            return tryLoadUploadVideo().then(function (loaded) {
+                if (loaded) return true;
+                return tryLoadLocalImages(order);
+            });
+        }
+        return tryLoadLocalImages(order).then(function (loaded) {
+            if (loaded) return true;
+            return tryLoadUploadVideo();
         });
     }
 

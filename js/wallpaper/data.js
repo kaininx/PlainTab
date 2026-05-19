@@ -37,6 +37,8 @@
         FOLDER_LIGHT_PREFIX: 'ptab_wallpaper_folder_light_'
     };
 
+    var UPLOAD_VIDEO_ID = 'upload_video';
+
     var BUILTIN_RSS_SOURCES = [
         { id: 'nasa-earth-observatory', name: 'NASA Earth Observatory', url: 'https://earthobservatory.nasa.gov/feeds/image-of-the-day.rss', builtIn: true },
         { id: 'ruanyifeng', name: '阮一峰的网络日志', url: 'https://feeds.feedburner.com/ruanyifeng', builtIn: true }
@@ -155,8 +157,8 @@
                 state: { src: '', date: '', provider: '' }
             },
             upload: {
-                config: { rotation: 'sequential' },
-                state: {}
+                config: { rotation: 'sequential', activeMedia: 'image', galleryView: 'image' },
+                state: { videoId: '' }
             },
             folder: {
                 config: { pathLabel: '', strategy: 'shuffle' },
@@ -337,6 +339,14 @@
 
     function legacyUploadId(id) {
         return id && id.indexOf('upload_') === 0 ? id.slice(7) : id;
+    }
+
+    function uploadVideoId() {
+        return UPLOAD_VIDEO_ID;
+    }
+
+    function normalizeUploadMedia(value) {
+        return value === 'video' ? 'video' : 'image';
     }
 
     function folderId(name) {
@@ -595,10 +605,28 @@
         });
     }
 
+    function normalizeUploadConfig(config) {
+        var defaults = clone(DEFAULT_WALLPAPER.providers.upload.config);
+        var merged = mergeDefaults(config || {}, defaults);
+        merged.rotation = merged.rotation === 'random' || merged.rotation === 'shuffle' ? merged.rotation : defaults.rotation;
+        merged.activeMedia = normalizeUploadMedia(merged.activeMedia);
+        merged.galleryView = normalizeUploadMedia(merged.galleryView);
+        return merged;
+    }
+
+    function normalizeUploadState(state) {
+        var defaults = clone(DEFAULT_WALLPAPER.providers.upload.state);
+        var merged = mergeDefaults(state || {}, defaults);
+        merged.videoId = merged.videoId === UPLOAD_VIDEO_ID ? UPLOAD_VIDEO_ID : '';
+        return merged;
+    }
+
     function loadWallpaper() {
         if (_wallpaperCache !== null) return _wallpaperCache;
         _wallpaperCache = mergeDefaults(readJSON(KEYS.WALLPAPER, DEFAULT_WALLPAPER), DEFAULT_WALLPAPER);
         _wallpaperCache.activeSource = normalizeSource(_wallpaperCache.activeSource);
+        _wallpaperCache.providers.upload.config = normalizeUploadConfig(_wallpaperCache.providers.upload.config);
+        _wallpaperCache.providers.upload.state = normalizeUploadState(_wallpaperCache.providers.upload.state);
         _wallpaperCache.providers.folder.config = normalizeFolderConfig(_wallpaperCache.providers.folder.config);
         _wallpaperCache.providers.folder.state = normalizeFolderState(_wallpaperCache.providers.folder.state);
         _wallpaperCache.providers.rss.config = normalizeRssConfig(_wallpaperCache.providers.rss.config);
@@ -609,6 +637,8 @@
     function saveWallpaper(model) {
         _wallpaperCache = mergeDefaults(model, DEFAULT_WALLPAPER);
         _wallpaperCache.activeSource = normalizeSource(_wallpaperCache.activeSource);
+        _wallpaperCache.providers.upload.config = normalizeUploadConfig(_wallpaperCache.providers.upload.config);
+        _wallpaperCache.providers.upload.state = normalizeUploadState(_wallpaperCache.providers.upload.state);
         _wallpaperCache.providers.folder.config = normalizeFolderConfig(_wallpaperCache.providers.folder.config);
         _wallpaperCache.providers.folder.state = normalizeFolderState(_wallpaperCache.providers.folder.state);
         _wallpaperCache.providers.rss.config = normalizeRssConfig(_wallpaperCache.providers.rss.config);
@@ -835,13 +865,14 @@
     function loadOrder() {
         var order = loadWallpaper().cache.order || [];
         return order.filter(function (id) {
-            return id !== 'bing' && id !== 'api' && !isRssId(id) && String(id || '').indexOf('folder:') !== 0;
+            return isUploadImageId(id);
         });
     }
     function saveOrder(order) {
         updateWallpaper(function (model) {
-            model.activeSource = order && order.length ? 'upload' : 'bing';
-            model.cache.order = (order || []).map(uploadId);
+            var videoId = model.providers.upload && model.providers.upload.state ? model.providers.upload.state.videoId : '';
+            model.activeSource = (order && order.length) || videoId ? 'upload' : 'bing';
+            model.cache.order = (order || []).map(uploadId).filter(isUploadImageId);
             if (!model.cache.order.length) model.cache.order = ['bing'];
             model.cache.index = Math.min(model.cache.index || 0, Math.max(model.cache.order.length - 1, 0));
         });
@@ -914,8 +945,64 @@
         return !!(id && id !== 'bing' && id !== 'api' && !isRssId(id) && String(id).indexOf('folder:') !== 0);
     }
 
+    function isUploadVideoId(id) {
+        return id === UPLOAD_VIDEO_ID;
+    }
+
+    function isUploadImageId(id) {
+        return isUploadId(id) && !isUploadVideoId(id);
+    }
+
     function isFolderId(id) {
         return !!(id && String(id).indexOf('folder:') === 0);
+    }
+
+    function loadUploadConfig() {
+        return loadWallpaper().providers.upload.config;
+    }
+
+    function saveUploadConfig(config) {
+        updateWallpaper(function (model) {
+            model.providers.upload.config = normalizeUploadConfig(config);
+        });
+    }
+
+    function loadUploadState() {
+        return loadWallpaper().providers.upload.state;
+    }
+
+    function saveUploadState(state) {
+        updateWallpaper(function (model) {
+            model.providers.upload.state = normalizeUploadState(state);
+        });
+    }
+
+    function setUploadActiveMedia(media) {
+        media = normalizeUploadMedia(media);
+        updateWallpaper(function (model) {
+            model.activeSource = 'upload';
+            model.providers.upload.config.activeMedia = media;
+            model.providers.upload.config.galleryView = media;
+        });
+    }
+
+    function setUploadGalleryView(media) {
+        media = normalizeUploadMedia(media);
+        updateWallpaper(function (model) {
+            model.providers.upload.config.galleryView = media;
+        });
+    }
+
+    function setUploadVideoId(id) {
+        updateWallpaper(function (model) {
+            model.providers.upload.state.videoId = id === UPLOAD_VIDEO_ID ? UPLOAD_VIDEO_ID : '';
+            if (model.providers.upload.state.videoId) model.activeSource = 'upload';
+            if (!model.providers.upload.state.videoId &&
+                !(model.cache.order || []).some(isUploadImageId) &&
+                normalizeSource(model.activeSource) === 'upload') {
+                model.activeSource = 'bing';
+            }
+        });
     }
 
     function hasSourceCache(source) {
@@ -925,7 +1012,14 @@
         var thumbs = loadThumbs();
         var blurThumbs = loadBlurThumbs();
         var meta = model.cache.meta || {};
-        if (source === 'upload') return order.some(isUploadId) || Object.keys(thumbs).some(isUploadId) || Object.keys(blurThumbs).some(isUploadId) || Object.keys(meta).some(isUploadId);
+        if (source === 'upload') {
+            var uploadState = model.providers.upload.state || {};
+            return order.some(isUploadId) ||
+                !!uploadState.videoId ||
+                Object.keys(thumbs).some(isUploadId) ||
+                Object.keys(blurThumbs).some(isUploadId) ||
+                Object.keys(meta).some(isUploadId);
+        }
         if (source === 'folder') {
             var folderState = model.providers.folder.state || {};
             return order.some(isFolderId) ||
@@ -982,6 +1076,8 @@
             });
             deleteMatching(isUploadId);
             model.cache.order = order.filter(function (id) { return !isUploadId(id); });
+            model.providers.upload.config = clone(DEFAULT_WALLPAPER.providers.upload.config);
+            model.providers.upload.state = clone(DEFAULT_WALLPAPER.providers.upload.state);
             idbDeletePromise = idbDeleteMatching(function (key) {
                 return String(key).indexOf(DB.UPLOAD_PREFIX) === 0;
             });
@@ -1201,6 +1297,7 @@
 
         // 本地图片
         imgKey: imgKey,
+        uploadVideoId: uploadVideoId,
         folderId: folderId,
         folderNameFromId: folderNameFromId,
         folderLightKey: folderLightKey,
@@ -1219,6 +1316,13 @@
         loadMeta: loadMeta,
         saveMeta: saveMeta,
         legacyUploadId: legacyUploadId,
+        loadUploadConfig: loadUploadConfig,
+        saveUploadConfig: saveUploadConfig,
+        loadUploadState: loadUploadState,
+        saveUploadState: saveUploadState,
+        setUploadActiveMedia: setUploadActiveMedia,
+        setUploadGalleryView: setUploadGalleryView,
+        setUploadVideoId: setUploadVideoId,
         getActiveSource: getActiveSource,
         setActiveSource: setActiveSource,
         compatMode: compatMode,
@@ -1256,6 +1360,8 @@
         deleteFolderLightCache: deleteFolderLightCache,
         isRssId: isRssId,
         isUploadId: isUploadId,
+        isUploadImageId: isUploadImageId,
+        isUploadVideoId: isUploadVideoId,
         isFolderId: isFolderId,
         hasSourceCache: hasSourceCache,
         clearWallpaperSourceCache: clearWallpaperSourceCache,

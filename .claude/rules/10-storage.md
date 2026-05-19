@@ -43,7 +43,7 @@ PlainTab 3.2.0 不承诺兼容更早的实验性布局。除非任务明确要�
 
 - `activeSource`：`bing`、`upload`、`folder`、`rss` 或 `api`
 - `providers.bing.config/state`
-- `providers.upload.config/state`
+- `providers.upload.config/state`：上传图片队列配置，以及互斥的 `activeMedia` / `galleryView`；上传视频固定记录在 `state.videoId`
 - `providers.folder.config/state`
 - `providers.rss.config/state`
 - `providers.api.config/state`
@@ -68,6 +68,7 @@ PlainTab 3.2.0 不承诺兼容更早的实验性布局。除非任务明确要�
 
 - 使用 `loadWallpaper()` / `saveWallpaper()` 归一化壁纸模型。
 - `local` 是 `upload` 的兼容别名；通过 `normalizeSource()` / `compatMode()` 处理。
+- `upload` 下图片和视频是互斥媒体模式。图片顺序只保存在 `cache.order`；唯一视频使用固定 ID `upload_video`，不进入图片轮播队列。
 - RSS source 最多 5 个。显式空 source 列表应保持为空；默认内置源只在恢复默认时回来，不要在普通归一化里偷偷补回。
 - 内置 RSS 源允许用户删除。`resetWallpaperDefaults()` 会恢复它们。
 - API 分为 image 和 JSON 两套 source 列表，每套最多 5 个，并有各自 active id。

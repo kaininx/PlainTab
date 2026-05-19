@@ -165,6 +165,7 @@
     var activeCustomSelect = null;
     var fullInitialized = false;
     var useBootstrapShell = false;
+    var uploadGalleryWheelAt = 0;
     var wallpaperDraft = null;
     var wallpaperDraftOriginal = '';
     var wallpaperDraftApiTestResult = null;
@@ -177,6 +178,9 @@
     var apiNoticeToken = 0;
     var FOLDER_GALLERY_LIMIT = 12;
     var FOLDER_THUMB_LOOKAHEAD = 12;
+    var UPLOAD_IMAGE_LIMIT = 12;
+    var UPLOAD_VIDEO_MAX_BYTES = 80 * 1024 * 1024;
+    var UPLOAD_VIDEO_MAX_SECONDS = 60;
 
     // ================================================================
     // 语言面板
@@ -196,8 +200,7 @@
         langBtn.setAttribute('aria-label', t('langTitle'));
         settingsBtn.setAttribute('title', t('settingsTitle'));
         settingsBtn.setAttribute('aria-label', t('settingsTitle'));
-        if (uploadBtn) uploadBtn.setAttribute('title', t('addImage'));
-        if (uploadBtn) uploadBtn.setAttribute('aria-label', t('addImage'));
+        refreshUploadControls();
         refreshGallery();
         document.querySelectorAll('[data-i18n]').forEach(function (el) {
             var key = el.getAttribute('data-i18n');
@@ -260,7 +263,35 @@
     }
 
     function hasLocalUploadWallpapers() {
-        return D && D.loadOrder && D.loadOrder().length > 0;
+        return D && D.loadOrder && (D.loadOrder().length > 0 || hasUploadVideo());
+    }
+
+    function uploadVideoId() {
+        return D && D.uploadVideoId ? D.uploadVideoId() : 'upload_video';
+    }
+
+    function uploadConfig() {
+        return D && D.loadUploadConfig ? D.loadUploadConfig() : { activeMedia: 'image', galleryView: 'image' };
+    }
+
+    function uploadGalleryView() {
+        return uploadConfig().galleryView === 'video' ? 'video' : 'image';
+    }
+
+    function hasUploadVideo() {
+        var state = D && D.loadUploadState ? D.loadUploadState() : {};
+        return state.videoId === uploadVideoId();
+    }
+
+    function prepareUploadInput() {
+        if (!fileInput) return;
+        if (uploadGalleryView() === 'video') {
+            fileInput.accept = 'video/mp4';
+            fileInput.multiple = false;
+            return;
+        }
+        fileInput.accept = 'image/*';
+        fileInput.multiple = true;
     }
 
     function shouldPromptEmptyLocalUpload() {
@@ -274,6 +305,7 @@
         if (options && options.skipEmptyLocalPicker) return;
         if (!fileInput || !shouldPromptEmptyLocalUpload()) return;
         _keepGalleryOpen = false;
+        prepareUploadInput();
         fileInput.click();
     }
 
@@ -311,6 +343,7 @@
 
     function pickUpload() {
         _keepGalleryOpen = false;
+        prepareUploadInput();
         if (fileInput) fileInput.click();
     }
 
@@ -1541,7 +1574,12 @@
         var openSource = draftOpenSource();
         var configs = {
             bing:   '<p>' + tr('bingConfigHint') + '</p>',
-            upload: '<p>' + tr('uploadConfigHint') + '</p>',
+            upload: '<ul class="source-hint-list">' +
+                '<li>' + tr('uploadConfigHintAdd') + '</li>' +
+                '<li>' + tr('uploadConfigHintImages') + '</li>' +
+                '<li>' + tr('uploadConfigHintVideo') + '</li>' +
+                '<li>' + tr('uploadConfigHintWheel') + '</li>' +
+                '</ul>',
             folder: buildFolderConfigHTML(),
             rss:    buildRssConfigHTML(),
             api:    buildApiConfigHTML()
@@ -3557,6 +3595,7 @@
     function currentWallpaperId() {
         var source = D.compatMode ? D.compatMode(D.getActiveSource()) : currentMode;
         if (source === 'bing' || source === 'api') return source;
+        if (source === 'local' && uploadConfig().activeMedia === 'video' && hasUploadVideo()) return uploadVideoId();
         var order = isRssWallpaperMode() ? activeRssOrder() : D.loadOrder();
         if (!order.length) return null;
         if (isRssWallpaperMode() && D.loadRssConfig && D.loadRssConfig().displayMode === 'latest') return order[0];
@@ -3602,6 +3641,7 @@
     }
 
     function showCurrentWallpaperBlur(id, blur, token) {
+        if (D.isUploadVideoId && D.isUploadVideoId(id)) return;
         if (D.blurThumbFor && S.showPreparedPreview) {
             var cached = D.blurThumbFor(id, blur);
             if (cached) {
@@ -3648,6 +3688,12 @@
     }
 
     function showCurrentWallpaperOriginal(id, token) {
+        if (D.isUploadVideoId && D.isUploadVideoId(id)) {
+            if (S.currentOriginalUrl && S.currentOriginalId === id && S.showPreparedVideoUrl) {
+                S.showPreparedVideoUrl(S.currentOriginalUrl, id);
+            }
+            return;
+        }
         if (S.currentOriginalUrl && S.currentOriginalId === id && S.showPreparedUrl) {
             S.showPreparedUrl(S.currentOriginalUrl, id);
             if (isLocalWallpaperMode()) saveNextPreviewFromOrder(D.loadOrder(), D.loadThumbs());
@@ -3843,36 +3889,47 @@
 
     function refreshUploadGallery() {
         var order = D.loadOrder();
-        if (!order.length) {
-            renderGallery([], { source: 'upload', canAdd: true });
-            return;
-        }
         var thumbs = D.loadThumbs();
         var meta = D.loadMeta();
+        var videoId = uploadVideoId();
+        var videoExists = hasUploadVideo();
 
-        var allCached = order.every(function (id) { return meta[id] && thumbs[id]; });
+        if (!order.length && !videoExists) {
+            renderUploadGallery(order, [], thumbs, null);
+            return;
+        }
+
+        var allCached = order.every(function (id) { return meta[id] && thumbs[id]; }) &&
+            (!videoExists || (meta[videoId] && thumbs[videoId]));
         if (allCached) {
-            renderUploadGallery(order, order.map(function (id) { return meta[id]; }), thumbs);
+            renderUploadGallery(order, order.map(function (id) { return meta[id]; }), thumbs, meta[videoId] || null);
             return;
         }
 
         var reads = order.map(function (id) { return D.idbGet(D.imgKey(id)); });
-        Promise.all(reads).then(function (images) {
+        if (videoExists) reads.push(D.idbGet(D.imgKey(videoId)));
+        Promise.all(reads).then(function (records) {
             if (!isOpen) return;
+            var images = records.slice(0, order.length);
+            var videoRecord = videoExists ? records[records.length - 1] : null;
             var m = D.loadMeta();
             var changed = false;
             images.forEach(function (img, i) {
                 if (img && !m[order[i]]) {
-                    m[order[i]] = { name: img.name || '', size: img.size || 0 };
+                    m[order[i]] = { name: img.name || '', size: img.size || 0, mediaType: 'image' };
                     changed = true;
                 }
             });
+            if (videoRecord && !m[videoId]) {
+                m[videoId] = { name: videoRecord.name || '', size: videoRecord.size || 0, mediaType: 'video' };
+                changed = true;
+            }
             if (changed) D.saveMeta(m);
-            renderUploadGallery(order, images, thumbs);
+            renderUploadGallery(order, images, thumbs, videoRecord || m[videoId] || null);
         }).catch(function (err) {
             console.error('PlainTab: IDB read failed in refreshUploadGallery, falling back to localStorage', err);
             if (!isOpen) return;
-            renderUploadGallery(order, order.map(function (id) { return meta[id] || { name: '', size: 0 }; }), thumbs);
+            renderUploadGallery(order, order.map(function (id) { return meta[id] || { name: '', size: 0 }; }), thumbs, meta[videoId] || null);
         });
     }
 
@@ -3891,7 +3948,7 @@
     }
 
     function buildUploadItems(order, images, thumbs) {
-        return order.slice(0, 12).map(function (id, i) {
+        return order.slice(0, UPLOAD_IMAGE_LIMIT).map(function (id, i) {
             var imgMeta = images[i];
             var bg = thumbs[id];
             if (!bg && imgMeta && imgMeta.blob && imgMeta.blob.size > 0) {
@@ -3904,10 +3961,36 @@
                 source: 'upload',
                 title: imgMeta && imgMeta.name ? imgMeta.name : id,
                 bg: bg || '',
+                mediaType: 'image',
                 deletable: true,
                 draggable: true
             };
         });
+    }
+
+    function buildUploadVideoItems(videoMeta, thumbs) {
+        var id = uploadVideoId();
+        if (!hasUploadVideo()) {
+            return [{
+                id: 'upload_video_empty',
+                source: 'upload-video',
+                title: tr('uploadVideoEmpty'),
+                bg: '',
+                fallback: 'MP4',
+                mediaType: 'video-empty',
+                deletable: false,
+                draggable: false
+            }];
+        }
+        return [{
+            id: id,
+            source: 'upload-video',
+            title: videoMeta && videoMeta.name ? videoMeta.name : tr('uploadGalleryVideo'),
+            bg: thumbs[id] || '',
+            mediaType: 'video',
+            deletable: true,
+            draggable: false
+        }];
     }
 
     function buildGalleryGrid(items, options) {
@@ -3922,6 +4005,7 @@
             card.setAttribute('data-id', item.id);
             card.setAttribute('data-source', item.source || options.source || '');
             card.setAttribute('draggable', 'false');
+            if (item.mediaType) card.setAttribute('data-media-type', item.mediaType);
             if (item.title) card.title = item.title;
 
             if (item.bg) {
@@ -3930,18 +4014,20 @@
                 card.classList.add('is-empty');
                 var fallback = document.createElement('span');
                 fallback.className = 'wallpaper-thumb-fallback';
-                fallback.textContent = (item.title || item.id || '?').charAt(0).toUpperCase();
+                fallback.textContent = item.fallback || (item.title || item.id || '?').charAt(0).toUpperCase();
                 card.appendChild(fallback);
             }
 
             if (item.deletable) {
                 var delBtn = document.createElement('button');
                 delBtn.className = 'wallpaper-thumb-del';
-                delBtn.title = t('deleteImage') + (item.title ? ': ' + item.title : '');
+                delBtn.title = (item.mediaType === 'video' ? t('deleteVideo') : t('deleteImage')) + (item.title ? ': ' + item.title : '');
                 delBtn.setAttribute('data-id', item.id);
+                delBtn.setAttribute('data-media-type', item.mediaType || 'image');
                 delBtn.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    deleteLocalImage(this.dataset.id);
+                    if (this.dataset.mediaType === 'video') deleteUploadVideo();
+                    else deleteLocalImage(this.dataset.id);
                 });
                 card.appendChild(delBtn);
             }
@@ -4150,17 +4236,199 @@
         if (uploadBtn) uploadBtn.style.display = options.canAdd ? '' : 'none';
     }
 
-    function renderUploadGallery(order, images, thumbs) {
-        renderGallery(buildUploadItems(order, images, thumbs), {
-            source: 'upload',
-            canAdd: order.length < 12,
-            draggable: order.length > 1
+    function refreshUploadControls(view, orderLength) {
+        if (!uploadBtn) return;
+        view = view || uploadGalleryView();
+        if (typeof orderLength !== 'number') orderLength = D && D.loadOrder ? D.loadOrder().length : 0;
+        var isVideo = view === 'video';
+        uploadBtn.style.display = isVideo || orderLength < UPLOAD_IMAGE_LIMIT ? '' : 'none';
+        uploadBtn.setAttribute('title', isVideo ? t('addVideo') : t('addImage'));
+        uploadBtn.setAttribute('aria-label', isVideo ? t('addVideo') : t('addImage'));
+    }
+
+    function updateUploadSwitchState(shell, view) {
+        if (!shell) return;
+        shell.setAttribute('data-view', view);
+        Array.prototype.forEach.call(shell.querySelectorAll('[data-upload-gallery-view]'), function (btn) {
+            var active = btn.getAttribute('data-upload-gallery-view') === view;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-pressed', active ? 'true' : 'false');
         });
+    }
+
+    function switchUploadGalleryView(view) {
+        view = view === 'video' ? 'video' : 'image';
+        if (D.setUploadGalleryView) D.setUploadGalleryView(view);
+        var shell = document.querySelector('.upload-gallery-shell');
+        updateUploadSwitchState(shell, view);
+        refreshUploadControls(view);
+        prepareUploadInput();
+
+        var canActivate = view === 'video' ? hasUploadVideo() : D.loadOrder().length > 0;
+        if (!canActivate) return;
+
+        if (D.setUploadActiveMedia) D.setUploadActiveMedia(view);
+        currentMode = 'local';
+        if (view === 'image') {
+            saveNextPreviewFromOrder(D.loadOrder(), D.loadThumbs());
+            scheduleNextBlurPreviewFromOrder(D.loadOrder());
+        } else {
+            var videoThumb = D.loadThumbs()[uploadVideoId()] || D.loadPreview();
+            if (videoThumb) D.savePreview(videoThumb);
+        }
+        if (window.reloadWallpaper) window.reloadWallpaper();
+    }
+
+    function onUploadGalleryWheel(e) {
+        var dy = e.deltaY || 0;
+        if (Math.abs(dy) < 8) return;
+        var now = Date.now();
+        if (now - uploadGalleryWheelAt < 260) {
+            e.preventDefault();
+            return;
+        }
+        uploadGalleryWheelAt = now;
+        e.preventDefault();
+        switchUploadGalleryView(dy > 0 ? 'video' : 'image');
+    }
+
+    function buildUploadGallerySwitch(view) {
+        var rail = document.createElement('div');
+        rail.className = 'upload-gallery-switch';
+        rail.setAttribute('role', 'group');
+        rail.setAttribute('aria-label', tr('uploadGallerySwitch'));
+
+        [
+            { view: 'image', label: tr('uploadGalleryImages') },
+            { view: 'video', label: tr('uploadGalleryVideo') }
+        ].forEach(function (item) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'upload-gallery-switch-btn';
+            btn.setAttribute('data-upload-gallery-view', item.view);
+            btn.setAttribute('title', item.label);
+            btn.setAttribute('aria-label', item.label);
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                switchUploadGalleryView(item.view);
+            });
+            rail.appendChild(btn);
+        });
+
+        return rail;
+    }
+
+    function renderUploadGallery(order, images, thumbs, videoMeta) {
+        revokeGalleryUrls();
+        var gallery = ensureGalleryContainer();
+        var view = uploadGalleryView();
+
+        var shell = document.createElement('div');
+        shell.className = 'upload-gallery-shell';
+        shell.setAttribute('data-view', view);
+        shell.addEventListener('wheel', onUploadGalleryWheel, { passive: false });
+
+        var viewport = document.createElement('div');
+        viewport.className = 'upload-gallery-viewport';
+
+        var panes = document.createElement('div');
+        panes.className = 'upload-gallery-panes';
+
+        var imagePane = document.createElement('div');
+        imagePane.className = 'upload-gallery-pane upload-gallery-pane-image';
+        var imageGrid = buildGalleryGrid(buildUploadItems(order, images, thumbs), { source: 'upload' });
+        imagePane.appendChild(imageGrid);
+
+        var videoPane = document.createElement('div');
+        videoPane.className = 'upload-gallery-pane upload-gallery-pane-video';
+        videoPane.appendChild(buildGalleryGrid(buildUploadVideoItems(videoMeta, thumbs), { source: 'upload-video' }));
+
+        panes.appendChild(imagePane);
+        panes.appendChild(videoPane);
+        viewport.appendChild(panes);
+        shell.appendChild(viewport);
+        shell.appendChild(buildUploadGallerySwitch(view));
+        gallery.appendChild(shell);
+
+        updateUploadSwitchState(shell, view);
+        if (order.length > 1) setupGalleryDrag(imageGrid);
+        refreshUploadControls(view, order.length);
     }
 
     // ================================================================
     // 数据操作：上传 / 删除 / 重置
     // ================================================================
+    function isImageFile(file) {
+        var type = file && file.type || '';
+        var name = String(file && file.name || '').toLowerCase();
+        return type.indexOf('image/') === 0 || /\.(jpe?g|png|webp|avif|gif|bmp)$/.test(name);
+    }
+
+    function isVideoFile(file) {
+        var type = file && file.type || '';
+        var name = String(file && file.name || '').toLowerCase();
+        return type === 'video/mp4' || (!type && /\.mp4$/.test(name)) || /\.mp4$/.test(name);
+    }
+
+    function validateVideoFile(file) {
+        if (!file || !isVideoFile(file)) return Promise.reject(new Error(tr('uploadVideoUnsupported')));
+        if (file.size > UPLOAD_VIDEO_MAX_BYTES) return Promise.reject(new Error(tr('uploadVideoTooLarge')));
+        var probe = document.createElement('video');
+        if (probe.canPlayType && !probe.canPlayType('video/mp4')) {
+            return Promise.reject(new Error(tr('uploadVideoUnsupported')));
+        }
+
+        return new Promise(function (resolve, reject) {
+            var url = URL.createObjectURL(file);
+            var video = document.createElement('video');
+            var done = false;
+            video.preload = 'metadata';
+            video.muted = true;
+
+            function cleanup(err, info) {
+                if (done) return;
+                done = true;
+                video.removeEventListener('loadedmetadata', onLoaded);
+                video.removeEventListener('error', onError);
+                try { video.pause(); } catch (e) { }
+                video.removeAttribute('src');
+                try { video.load(); } catch (e) { }
+                URL.revokeObjectURL(url);
+                if (err) reject(err);
+                else resolve(info);
+            }
+
+            function onLoaded() {
+                var duration = video.duration || 0;
+                if (!duration || !isFinite(duration)) {
+                    cleanup(new Error(tr('uploadVideoUnsupported')));
+                    return;
+                }
+                if (duration > UPLOAD_VIDEO_MAX_SECONDS) {
+                    cleanup(new Error(tr('uploadVideoTooLong')));
+                    return;
+                }
+                cleanup(null, {
+                    duration: duration,
+                    width: video.videoWidth || 0,
+                    height: video.videoHeight || 0
+                });
+            }
+
+            function onError() {
+                cleanup(new Error(tr('uploadVideoUnsupported')));
+            }
+
+            video.addEventListener('loadedmetadata', onLoaded);
+            video.addEventListener('error', onError);
+            video.src = url;
+            video.load();
+            setTimeout(function () {
+                if (!done) cleanup(new Error(tr('uploadVideoUnsupported')));
+            }, 5000);
+        });
+    }
+
     function saveLocalImage(file, show) {
         var id = 'upload_' + F.generateId();
         var blobUrl = URL.createObjectURL(file);
@@ -4193,7 +4461,7 @@
         return start.then(function (thumb) {
             if (!thumb) { warn('Local', 'thumbnail failed for ' + file.name); return false; }
 
-            return D.idbPut(D.imgKey(id), { blob: file, mime: file.type || '', name: file.name || '' }).then(function () {
+            return D.idbPut(D.imgKey(id), { blob: file, mime: file.type || '', name: file.name || '', mediaType: 'image' }).then(function () {
                 var order = D.loadOrder();
                 var thumbs = D.loadThumbs();
                 order.push(id);
@@ -4202,12 +4470,63 @@
                 D.saveThumbs(thumbs);
 
                 var meta = D.loadMeta();
-                meta[id] = { name: file.name || '', size: file.size || 0 };
+                meta[id] = { name: file.name || '', size: file.size || 0, mediaType: 'image' };
                 D.saveMeta(meta);
 
                 return { id: id, shown: show };
             });
         }).catch(function (e) { warn('Local', 'save failed: ' + e.message); return null; });
+    }
+
+    function saveUploadVideo(file, show) {
+        var id = uploadVideoId();
+        return validateVideoFile(file).then(function (info) {
+            return (S.videoThumbnail ? S.videoThumbnail(file) : Promise.resolve(null)).then(function (thumb) {
+                if (!thumb) throw new Error(tr('uploadVideoPreviewFailed'));
+                return D.idbPut(D.imgKey(id), {
+                    blob: file,
+                    mime: file.type || 'video/mp4',
+                    name: file.name || '',
+                    size: file.size || 0,
+                    mediaType: 'video',
+                    duration: info.duration || 0,
+                    width: info.width || 0,
+                    height: info.height || 0
+                }).then(function () {
+                    var thumbs = D.loadThumbs();
+                    thumbs[id] = thumb;
+                    D.saveThumbs(thumbs);
+                    if (D.deleteBlurThumb) D.deleteBlurThumb(id);
+
+                    var meta = D.loadMeta();
+                    meta[id] = {
+                        name: file.name || '',
+                        size: file.size || 0,
+                        mediaType: 'video',
+                        duration: info.duration || 0,
+                        width: info.width || 0,
+                        height: info.height || 0
+                    };
+                    D.saveMeta(meta);
+                    if (D.setUploadVideoId) D.setUploadVideoId(id);
+                    if (D.setUploadActiveMedia) D.setUploadActiveMedia('video');
+                    D.savePreview(thumb);
+
+                    if (!show || !S.applyVideoAndSavePreview) return { id: id, shown: false, replaced: hasUploadVideo() };
+                    var videoUrl = URL.createObjectURL(file);
+                    return S.applyVideoAndSavePreview(videoUrl, id, thumb).then(function () {
+                        return { id: id, shown: true };
+                    }, function (err) {
+                        try { URL.revokeObjectURL(videoUrl); } catch (e) { }
+                        throw err;
+                    });
+                });
+            });
+        }).catch(function (e) {
+            warn('Local', 'video save failed: ' + (e && e.message ? e.message : e));
+            alert(e && e.message ? e.message : tr('uploadVideoUnsupported'));
+            return null;
+        });
     }
 
     function deleteLocalImage(id) {
@@ -4228,12 +4547,19 @@
 
         if (newOrder.length === 0) {
             D.saveActiveIndex(0);
-            D.savePreview(null);
-            D.setActiveSource('bing');
-            currentMode = 'bing';
+            if (hasUploadVideo()) {
+                if (D.setUploadActiveMedia) D.setUploadActiveMedia('video');
+                var videoThumb = D.loadThumbs()[uploadVideoId()] || null;
+                D.savePreview(videoThumb);
+                currentMode = 'local';
+            } else {
+                D.savePreview(null);
+                D.setActiveSource('bing');
+                currentMode = 'bing';
+            }
             updateModeChip();
-            removeGallery();
             return D.idbDelete(D.imgKey(id)).then(function () {
+                refreshGallery();
                 if (window.reloadWallpaper) window.reloadWallpaper();
             }).catch(function () {});
         }
@@ -4245,6 +4571,38 @@
         return D.idbDelete(D.imgKey(id)).then(function () {
             refreshGallery();
         }).catch(function (e) { warn('Local', 'delete blob failed: ' + (e && e.message)); });
+    }
+
+    function deleteUploadVideo() {
+        var id = uploadVideoId();
+        var thumbs = D.loadThumbs();
+        delete thumbs[id];
+        D.saveThumbs(thumbs);
+        if (D.deleteBlurThumb) D.deleteBlurThumb(id);
+
+        var meta = D.loadMeta();
+        delete meta[id];
+        D.saveMeta(meta);
+        if (D.setUploadVideoId) D.setUploadVideoId('');
+
+        var order = D.loadOrder();
+        if (uploadConfig().activeMedia === 'video') {
+            if (order.length) {
+                if (D.setUploadActiveMedia) D.setUploadActiveMedia('image');
+                saveNextPreviewFromOrder(order, thumbs);
+                currentMode = 'local';
+            } else {
+                D.savePreview(null);
+                D.setActiveSource('bing');
+                currentMode = 'bing';
+            }
+        }
+
+        return D.idbDelete(D.imgKey(id)).then(function () {
+            refreshGallery();
+            updateModeChip();
+            if (window.reloadWallpaper) window.reloadWallpaper();
+        }).catch(function (e) { warn('Local', 'delete video failed: ' + (e && e.message)); });
     }
 
     // ================================================================
@@ -4322,13 +4680,26 @@
         // 文件选择
         fileInput.addEventListener('change', function () {
             var all = Array.from(fileInput.files || []);
-            var files = all.filter(function (f) { return f.type && f.type.match(/^image\//); });
+            var view = uploadGalleryView();
             fileInput.value = '';
 
+            if (view === 'video') {
+                var video = all.filter(isVideoFile)[0];
+                if (!video) return;
+                return saveUploadVideo(video, true).then(function (result) {
+                    if (!result) return;
+                    currentMode = 'local';
+                    if (D.setUploadGalleryView) D.setUploadGalleryView('video');
+                    log('Local', 'saved video wallpaper: ' + (video.name || 'video'));
+                    if (_keepGalleryOpen) refreshGallery(); else closeSettings();
+                });
+            }
+
+            var files = all.filter(isImageFile);
             if (!files.length) return;
 
             var order = D.loadOrder();
-            var slots = Math.max(0, 12 - order.length);
+            var slots = Math.max(0, UPLOAD_IMAGE_LIMIT - order.length);
             if (!slots) return;
 
             var reads = order.map(function (id) { return D.idbGet(D.imgKey(id)); });
@@ -4354,6 +4725,7 @@
                 var saved = 0;
                 var displayedUploadId = null;
                 var chain = Promise.resolve();
+                if (D.setUploadActiveMedia) D.setUploadActiveMedia('image');
                 deduped.forEach(function (file) {
                     chain = chain.then(function () {
                         var show = saved === 0;
@@ -4367,6 +4739,7 @@
                 });
                 return chain.then(function () {
                     log('Local', 'saved ' + saved + ' of ' + files.length + ' selected (' + (files.length - deduped.length) + ' duplicates skipped)');
+                    if (D.setUploadGalleryView) D.setUploadGalleryView('image');
                     if (_keepGalleryOpen) refreshGallery(); else closeSettings();
                 });
             });
