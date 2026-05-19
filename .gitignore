@@ -1,0 +1,11 @@
+.gitignore
+# .claude/
+venv/
+__pycache__/
+.superpowers/
+.worktrees/
+.playwright-mcp/
+wasm/*.wasm
+wasm/*.js
+ISSUES.md
+*local*
