@@ -79,6 +79,8 @@
     var paletteLoadPromise = null;
     var folderRescannedThisSession = false;
     var folderPermissionNoticeDismissed = false;
+    var wallpaperDownloadNoticeEl = null;
+    var wallpaperDownloadNoticeTimer = null;
 
     // ================================================================
     // 壁纸 — 主加载流程（编排层）
@@ -174,6 +176,50 @@
         rssInfoEl.hidden = false;
     }
 
+    function downloadNoticeCopy(kind, phase, progress) {
+        var lang = SP && SP.getCurrentLang ? SP.getCurrentLang() : 'en';
+        var zh = /^zh/i.test(lang || '');
+        var sourceName = kind === 'api' ? t('sourceApi') : t('sourceRss');
+        if (!sourceName || sourceName === 'sourceApi' || sourceName === 'sourceRss') sourceName = kind === 'api' ? 'API' : 'RSS';
+        if (phase === 'done' && progress && progress.total) {
+            return zh ?
+                sourceName + ' 图片已更新 ' + progress.cached + '/' + progress.total :
+                sourceName + ' images updated ' + progress.cached + '/' + progress.total;
+        }
+        if (phase === 'done') return zh ? sourceName + ' 图片已更新' : sourceName + ' images updated';
+        if (phase === 'error') return zh ? sourceName + ' 图片下载失败' : sourceName + ' image download failed';
+        if (progress && progress.total) {
+            return zh ?
+                sourceName + ' 正在下载图片 ' + progress.current + '/' + progress.total :
+                sourceName + ' downloading images ' + progress.current + '/' + progress.total;
+        }
+        return zh ? sourceName + ' 正在下载图片' : sourceName + ' downloading images';
+    }
+
+    function showWallpaperDownloadNotice(kind, phase, progress) {
+        if (!wallpaperDownloadNoticeEl) {
+            wallpaperDownloadNoticeEl = document.createElement('div');
+            wallpaperDownloadNoticeEl.className = 'wallpaper-download-notice';
+            wallpaperDownloadNoticeEl.setAttribute('role', 'status');
+            wallpaperDownloadNoticeEl.setAttribute('aria-live', 'polite');
+            wallpaperDownloadNoticeEl.innerHTML = '<div class="wallpaper-download-spinner"></div><div class="wallpaper-download-copy"></div>';
+            document.body.appendChild(wallpaperDownloadNoticeEl);
+        }
+
+        clearTimeout(wallpaperDownloadNoticeTimer);
+        wallpaperDownloadNoticeTimer = null;
+        wallpaperDownloadNoticeEl.classList.toggle('done', phase === 'done');
+        wallpaperDownloadNoticeEl.classList.toggle('error', phase === 'error');
+        wallpaperDownloadNoticeEl.querySelector('.wallpaper-download-copy').textContent = downloadNoticeCopy(kind, phase, progress);
+        wallpaperDownloadNoticeEl.hidden = false;
+
+        if (phase === 'done' || phase === 'error') {
+            wallpaperDownloadNoticeTimer = setTimeout(function () {
+                if (wallpaperDownloadNoticeEl) wallpaperDownloadNoticeEl.hidden = true;
+            }, phase === 'done' ? 1600 : 2600);
+        }
+    }
+
     function activeRssSource() {
         var config = D.loadRssConfig();
         return config.sources.filter(function (source) { return source.id === config.activeSourceId; })[0] || config.sources[0] || null;
@@ -235,7 +281,12 @@
         state.lastError = '';
         D.updateWallpaper(function (next) { next.providers.rss.state = state; });
 
-        return F.refreshRssSource(source).then(function (result) {
+        showWallpaperDownloadNotice('rss', 'loading');
+        return F.refreshRssSource(source, {
+            onProgress: function (progress) {
+                showWallpaperDownloadNotice('rss', 'loading', progress);
+            }
+        }).then(function (result) {
             D.updateWallpaper(function (next) {
                 next.activeSource = 'rss';
                 next.cache.order = result.order;
@@ -248,12 +299,17 @@
             var first = result.order[0];
             if (result.thumbs[first]) D.savePreview(result.thumbs[first]);
             cleanupOldRssBlobs(result.order);
+            showWallpaperDownloadNotice('rss', 'done', {
+                cached: result.cached || result.order.length,
+                total: result.total || result.order.length
+            });
             return true;
         }).catch(function (err) {
             D.updateWallpaper(function (next) {
                 next.providers.rss.state.lastError = err && err.message ? err.message : String(err || 'RSS refresh failed');
             });
             warn('RSS', 'refresh failed: ' + (err && err.message ? err.message : err));
+            showWallpaperDownloadNotice('rss', 'error');
             return false;
         });
     }
@@ -921,10 +977,13 @@
         if (!force && !isApiRefreshDue(config, state)) return Promise.resolve(false);
         var source = activeApiSource();
         if (!source) return Promise.resolve(false);
+        showWallpaperDownloadNotice('api', 'loading');
         return F.refreshApiSource(source, config.apiType).then(function () {
+            showWallpaperDownloadNotice('api', 'done');
             return true;
         }).catch(function (err) {
             warn('API', 'refresh failed: ' + (err && err.message ? err.message : err));
+            showWallpaperDownloadNotice('api', 'error');
             return false;
         });
     }

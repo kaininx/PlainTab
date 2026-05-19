@@ -942,6 +942,7 @@
         }).join('');
         return '<div class="rss-config">' +
             '<div class="rss-source-list">' + rows + '</div>' +
+            '<div class="rss-source-hint">' + escapeHtml(tr('rssNeedsTest')) + '</div>' +
             '<div class="rss-notice" id="rssNotice" hidden></div>' +
             '<div class="rss-add-row"><input id="rssNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="rssUrlInput" type="url" placeholder="https://example.com/feed.xml"><button id="rssAddBtn" type="button">' + tr('rssAdd') + '</button></div>' +
             '<div class="rss-options">' +

@@ -1,7 +1,7 @@
 :root {
-    --fallback-start: #0b0d12;
-    --fallback-mid: #10131a;
-    --fallback-end: #161a22;
+    --fallback-start: #1a1a2e;
+    --fallback-mid: #16213e;
+    --fallback-end: #0f3460;
     color-scheme: dark;
     --icon-opacity: 0.45;
     --panel-opacity: 0.88;

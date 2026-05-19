@@ -37,6 +37,11 @@
         FOLDER_LIGHT_PREFIX: 'ptab_wallpaper_folder_light_'
     };
 
+    var BUILTIN_RSS_SOURCES = [
+        { id: 'nasa-earth-observatory', name: 'NASA Earth Observatory', url: 'https://earthobservatory.nasa.gov/feeds/image-of-the-day.rss', builtIn: true },
+        { id: 'ruanyifeng', name: '阮一峰的网络日志', url: 'https://feeds.feedburner.com/ruanyifeng', builtIn: true }
+    ];
+
     // ================================================================
     // IndexedDB 存储层
     // ================================================================
@@ -172,11 +177,8 @@
             },
             rss: {
                 config: {
-                    sources: [
-                        { id: 'nasa-apod', name: 'NASA APOD', url: 'https://apod.nasa.gov/apod.rss', builtIn: true },
-                        { id: 'bing-rsshub', name: 'Bing', url: 'https://rsshub.app/bing', builtIn: true }
-                    ],
-                    activeSourceId: 'nasa-apod',
+                    sources: clone(BUILTIN_RSS_SOURCES),
+                    activeSourceId: 'nasa-earth-observatory',
                     refreshIntervalMs: 86400000,
                     displayMode: 'cycle',
                     showSummary: true,
@@ -420,12 +422,28 @@
         var defaults = defaultRssConfig();
         var merged = mergeDefaults(config || {}, defaults);
         var seen = {};
-        merged.sources = (merged.sources || []).map(normalizeRssSource).filter(function (source) {
+        var builtinById = {};
+        var legacyBuiltinIds = { 'nasa-apod': true, 'bing-rsshub': true };
+        defaults.sources.forEach(function (source) { builtinById[source.id] = source; });
+        var normalizedSources = (merged.sources || []).map(normalizeRssSource).filter(function (source) {
             if (!source.id || !source.url || seen[source.id]) return false;
             seen[source.id] = true;
             return true;
-        }).slice(0, 5);
+        }).filter(function (source) {
+            return !source.builtIn || !!builtinById[source.id];
+        });
+        var builtins = defaults.sources.map(function (builtin) {
+            return normalizedSources.filter(function (source) { return source.id === builtin.id; })[0] || normalizeRssSource(builtin);
+        });
+        var customSources = normalizedSources.filter(function (source) { return !source.builtIn; });
+        var activeCustom = customSources.filter(function (source) { return source.id === merged.activeSourceId; });
+        var remainingCustom = customSources.filter(function (source) { return source.id !== merged.activeSourceId; });
+        merged.sources = builtins.concat(activeCustom).concat(remainingCustom).slice(0, 5);
+        if (!merged.sources.some(function (source) { return source.id === merged.activeSourceId; }) && activeCustom.length) {
+            merged.sources[merged.sources.length - 1] = activeCustom[0];
+        }
         if (!merged.sources.length) merged.sources = defaults.sources.map(normalizeRssSource);
+        if (legacyBuiltinIds[merged.activeSourceId]) merged.activeSourceId = defaults.activeSourceId;
         if (!merged.sources.some(function (source) { return source.id === merged.activeSourceId; })) {
             merged.activeSourceId = merged.sources[0].id;
         }

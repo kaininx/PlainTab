@@ -8,6 +8,8 @@
     background-size: var(--wallpaper-fit, cover);
     background-position: var(--wallpaper-position, center);
     background-repeat: no-repeat;
+    background-color: var(--fallback-end);
+    background-image: linear-gradient(180deg, var(--fallback-start) 0%, var(--fallback-mid) 50%, var(--fallback-end) 100%);
     z-index: 0;
     contain: layout style paint;
     will-change: transform;
@@ -17,6 +19,8 @@
 .wallpaper-layer-front {
     z-index: 1;
     opacity: 0;
+    background-color: transparent;
+    background-image: none;
     transition: opacity 0.5s ease;
     pointer-events: none;
     contain: layout style paint;
@@ -140,6 +144,68 @@
     transform: translateY(0);
 }
 
+.wallpaper-download-notice {
+    position: fixed;
+    right: 24px;
+    bottom: 80px;
+    z-index: 45;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    max-width: min(300px, calc(100vw - 48px));
+    min-height: 38px;
+    padding: 9px 13px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    background: rgba(10, 15, 24, 0.66);
+    color: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    pointer-events: none;
+}
+
+.wallpaper-download-notice[hidden] {
+    display: none;
+}
+
+.wallpaper-download-spinner {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.26);
+    border-top-color: rgba(255, 255, 255, 0.88);
+    animation: wallpaper-download-spin 0.85s linear infinite;
+    flex-shrink: 0;
+}
+
+.wallpaper-download-copy {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.wallpaper-download-notice.done .wallpaper-download-spinner,
+.wallpaper-download-notice.error .wallpaper-download-spinner {
+    animation: none;
+    border-color: transparent;
+    background: rgba(34, 197, 94, 0.88);
+}
+
+.wallpaper-download-notice.error .wallpaper-download-spinner {
+    background: rgba(239, 68, 68, 0.88);
+}
+
+@keyframes wallpaper-download-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @media (max-width: 640px) {
     .rss-wallpaper-info {
         left: 16px;
@@ -168,6 +234,12 @@
 
     .rss-info-popover {
         width: min(320px, calc(100vw - 32px));
+    }
+
+    .wallpaper-download-notice {
+        right: 16px;
+        bottom: 78px;
+        max-width: min(300px, calc(100vw - 32px));
     }
 }
 

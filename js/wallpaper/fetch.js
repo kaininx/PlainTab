@@ -12,6 +12,7 @@
     var S = window.WallpaperShow;
     function log() { window.log.apply(window, arguments); }
     function warn() { window.warn.apply(window, arguments); }
+    var RSS_IMAGE_TIMEOUT_MS = 30000;
 
     // ================================================================
     // Bing 端点
@@ -287,17 +288,62 @@
         try { return new URL(url, baseUrl).href; } catch (e) { return ''; }
     }
 
-    function stripHtml(html) {
-        var template = document.createElement('template');
-        template.innerHTML = html || '';
-        return (template.content.textContent || '').replace(/\s+/g, ' ').trim();
+    function parseHtmlFragment(html) {
+        var sanitized = String(html || '').replace(/\sstyle\s*=\s*("([^"]*)"|'([^']*)'|[^\s>]+)/gi, '');
+        return new DOMParser().parseFromString(sanitized, 'text/html');
     }
 
-    function imageFromHtml(html, baseUrl) {
-        var template = document.createElement('template');
-        template.innerHTML = html || '';
-        var img = template.content.querySelector('img[src]');
-        return img ? absolutizeUrl(img.getAttribute('src'), baseUrl) : '';
+    function stripHtml(html) {
+        var doc = parseHtmlFragment(html);
+        return (doc.body && doc.body.textContent || '').replace(/\s+/g, ' ').trim();
+    }
+
+    function srcsetCandidates(srcset, baseUrl) {
+        return String(srcset || '').split(',').map(function (part) {
+            var chunks = part.trim().split(/\s+/);
+            var url = chunks[0] ? absolutizeUrl(chunks[0], baseUrl) : '';
+            var width = 0;
+            for (var i = 1; i < chunks.length; i++) {
+                var match = /^(\d+)w$/.exec(chunks[i]);
+                if (match) width = parseInt(match[1], 10) || 0;
+            }
+            return { url: url, width: width };
+        }).filter(function (item) {
+            return item.url && isHttpsUrl(item.url);
+        }).sort(function (a, b) {
+            return a.width - b.width;
+        });
+    }
+
+    function orderedSrcsetUrls(srcset, baseUrl) {
+        var candidates = srcsetCandidates(srcset, baseUrl);
+        var preferred = candidates.filter(function (item) { return item.width >= 1200 && item.width <= 2400; });
+        var larger = candidates.filter(function (item) { return item.width > 2400; });
+        var smaller = candidates.filter(function (item) { return item.width > 0 && item.width < 1200; }).reverse();
+        var unsized = candidates.filter(function (item) { return !item.width; });
+        return preferred.concat(larger).concat(smaller).concat(unsized).map(function (item) { return item.url; });
+    }
+
+    function uniqueHttpsUrls(values, baseUrl) {
+        var seen = {};
+        var result = [];
+        (values || []).forEach(function (value) {
+            var abs = absolutizeUrl(value, baseUrl);
+            if (!isHttpsUrl(abs) || seen[abs]) return;
+            seen[abs] = true;
+            result.push(abs);
+        });
+        return result;
+    }
+
+    function imageUrlsFromHtml(html, baseUrl) {
+        var doc = parseHtmlFragment(html);
+        var urls = [];
+        Array.prototype.forEach.call(doc.querySelectorAll('img'), function (img) {
+            urls = urls.concat(orderedSrcsetUrls(img.getAttribute('srcset') || '', baseUrl));
+            urls.push(img.getAttribute('src') || '');
+        });
+        return uniqueHttpsUrls(urls, baseUrl);
     }
 
     function firstImageByLocalName(item, names) {
@@ -310,7 +356,7 @@
         return '';
     }
 
-    function extractImageUrl(item, baseUrl) {
+    function extractImageUrls(item, baseUrl) {
         var enclosure = item.querySelector('enclosure[url][type^="image/"]') || item.querySelector('enclosure[url]');
         var media = item.querySelector('content[url][medium="image"], content[url][type^="image/"], thumbnail[url]');
         var encoded = textOf(item, 'content\\:encoded') || localNameText(item, 'encoded');
@@ -318,22 +364,87 @@
         var candidates = [
             enclosure && enclosure.getAttribute('url'),
             media && media.getAttribute('url'),
-            firstImageByLocalName(item, ['content', 'thumbnail']),
-            imageFromHtml(textOf(item, 'description'), baseUrl),
-            imageFromHtml(encoded, baseUrl),
-            imageFromHtml(contentHtml, baseUrl),
-            imageFromHtml(textOf(item, 'summary'), baseUrl)
+            firstImageByLocalName(item, ['content', 'thumbnail'])
         ];
-        for (var i = 0; i < candidates.length; i++) {
-            var abs = absolutizeUrl(candidates[i], baseUrl);
-            if (isHttpsUrl(abs)) return abs;
+        return uniqueHttpsUrls(candidates, baseUrl)
+            .concat(imageUrlsFromHtml(textOf(item, 'description'), baseUrl))
+            .concat(imageUrlsFromHtml(encoded, baseUrl))
+            .concat(imageUrlsFromHtml(contentHtml, baseUrl))
+            .concat(imageUrlsFromHtml(textOf(item, 'summary'), baseUrl))
+            .filter(function (url, index, list) { return list.indexOf(url) === index; });
+    }
+
+    function hasParserError(doc) {
+        return !!(doc && doc.querySelector && doc.querySelector('parsererror'));
+    }
+
+    function escapeBareAmpersandsInXmlAttributes(xmlText) {
+        var text = String(xmlText || '');
+        var output = '';
+        var inTag = false;
+        var quote = '';
+        var i = 0;
+        var entityPattern = /^&(#[0-9]+|#x[0-9a-fA-F]+|[A-Za-z][A-Za-z0-9._:-]*);/;
+
+        while (i < text.length) {
+            if (!inTag) {
+                if (text.slice(i, i + 9) === '<![CDATA[') {
+                    var cdataEnd = text.indexOf(']]>', i + 9);
+                    var cdataStop = cdataEnd === -1 ? text.length : cdataEnd + 3;
+                    output += text.slice(i, cdataStop);
+                    i = cdataStop;
+                    continue;
+                }
+                if (text.slice(i, i + 4) === '<!--') {
+                    var commentEnd = text.indexOf('-->', i + 4);
+                    var commentStop = commentEnd === -1 ? text.length : commentEnd + 3;
+                    output += text.slice(i, commentStop);
+                    i = commentStop;
+                    continue;
+                }
+                if (text[i] === '<') inTag = true;
+                output += text[i++];
+                continue;
+            }
+
+            if (quote) {
+                if (text[i] === '&' && !entityPattern.test(text.slice(i))) {
+                    output += '&amp;';
+                    i++;
+                    continue;
+                }
+                if (text[i] === quote) quote = '';
+                output += text[i++];
+                continue;
+            }
+
+            if (text[i] === '"' || text[i] === "'") {
+                quote = text[i];
+            } else if (text[i] === '>') {
+                inTag = false;
+            }
+            output += text[i++];
         }
-        return '';
+
+        return output;
+    }
+
+    function parseXmlDocument(xmlText) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(xmlText, 'application/xml');
+        if (!hasParserError(doc)) return doc;
+
+        var repaired = escapeBareAmpersandsInXmlAttributes(xmlText);
+        if (repaired !== xmlText) {
+            doc = parser.parseFromString(repaired, 'application/xml');
+            if (!hasParserError(doc)) return doc;
+        }
+
+        throw rssError('RSS_PARSE_FAILED', 'feed parse failed');
     }
 
     function parseRssItems(xmlText, feedUrl, source) {
-        var doc = new DOMParser().parseFromString(xmlText, 'application/xml');
-        if (doc.querySelector('parsererror')) throw rssError('RSS_PARSE_FAILED', 'feed parse failed');
+        var doc = parseXmlDocument(xmlText);
         var nodes = Array.prototype.slice.call(doc.querySelectorAll('item, entry'));
         if (!nodes.length) nodes = nodesByLocalName(doc, ['item', 'entry']);
         return nodes.map(function (item, index) {
@@ -343,7 +454,8 @@
             })[0];
             var link = attrOf(item, 'link[rel="alternate"]', 'href') || attrOf(item, 'link[href]', 'href') || (localLink && localLink.getAttribute('href')) || textOf(item, 'link');
             var published = textOf(item, 'pubDate') || textOf(item, 'published') || textOf(item, 'updated');
-            var imageUrl = extractImageUrl(item, feedUrl);
+            var imageUrls = extractImageUrls(item, feedUrl);
+            var imageUrl = imageUrls[0] || '';
             var title = textOf(item, 'title') || source.name || 'RSS wallpaper';
             return {
                 sourceId: source.id,
@@ -352,12 +464,13 @@
                 description: stripHtml(rawDescription).slice(0, 240),
                 link: absolutizeUrl(link, feedUrl),
                 imageUrl: imageUrl,
+                imageUrls: imageUrls,
                 publishedAt: published ? Date.parse(published) || 0 : 0,
                 fetchedAt: Date.now(),
                 stableKey: source.id + ':' + (link || imageUrl || title || index)
             };
         }).filter(function (item) {
-            return isHttpsUrl(item.imageUrl);
+            return item.imageUrls && item.imageUrls.length;
         }).sort(function (a, b) {
             return (b.publishedAt || 0) - (a.publishedAt || 0);
         }).slice(0, 12);
@@ -371,15 +484,45 @@
     }
 
     function downloadImageBlob(url) {
-        return fetchWithWebFallback(url, 8000, function (response) { return response.blob(); });
+        return fetchWithWebFallback(url, RSS_IMAGE_TIMEOUT_MS, function (response) { return response.blob(); });
     }
 
-    function cacheRssItems(source, items) {
+    function downloadRssItemBlob(item) {
+        var urls = item.imageUrls && item.imageUrls.length ? item.imageUrls : [item.imageUrl];
+        var lastError = null;
+        function next(index) {
+            if (index >= urls.length) return Promise.reject(lastError || new Error('image download failed'));
+            return downloadImageBlob(urls[index]).then(function (blob) {
+                item.imageUrl = urls[index];
+                return blob;
+            }).catch(function (err) {
+                lastError = err;
+                return next(index + 1);
+            });
+        }
+        return next(0);
+    }
+
+    function cacheRssItems(source, items, options) {
+        options = options || {};
         var cached = [];
         var thumbs = D.loadThumbs();
         var meta = D.loadMeta();
+        var total = items.length;
+
+        function report(index) {
+            if (typeof options.onProgress === 'function') {
+                options.onProgress({
+                    current: Math.min(index + 1, total),
+                    total: total,
+                    cached: cached.length,
+                    source: source
+                });
+            }
+        }
 
         function next(index) {
+            report(index);
             if (index >= items.length) return Promise.resolve(cached);
             var item = items[index];
             var id = rssItemId(item);
@@ -389,7 +532,7 @@
                     cached.push(item);
                     return next(index + 1);
                 }
-                return downloadImageBlob(item.imageUrl).then(function (blob) {
+                return downloadRssItemBlob(item).then(function (blob) {
                     var url = URL.createObjectURL(blob);
                     return S.thumbnail(url).then(function (thumb) {
                         URL.revokeObjectURL(url);
@@ -402,7 +545,8 @@
                         URL.revokeObjectURL(url);
                         throw err || new Error('thumbnail failed');
                     });
-                }).catch(function () {
+                }).catch(function (err) {
+                    warn('RSS', 'skipped image: ' + item.imageUrl + ' (' + (err && err.message ? err.message : err) + ')');
                     return null;
                 }).then(function () {
                     return next(index + 1);
@@ -427,7 +571,7 @@
             });
             D.saveThumbs(thumbs);
             D.saveMeta(meta);
-            return { order: order, meta: meta, thumbs: thumbs, items: cached };
+            return { order: order, meta: meta, thumbs: thumbs, items: cached, total: total, cached: order.length };
         });
     }
 
@@ -440,12 +584,12 @@
         });
     }
 
-    function refreshRssSource(source) {
+    function refreshRssSource(source, options) {
         if (!source || !isHttpsUrl(source.url)) return Promise.reject(rssError('INVALID_RSS_URL', 'invalid url'));
         return fetchText(source.url, 8000).then(function (text) {
             var items = parseRssItems(text, source.url, source);
             if (!items.length) throw rssError('NO_RSS_IMAGES', 'no image entries');
-            return cacheRssItems(source, items);
+            return cacheRssItems(source, items, options);
         });
     }
 

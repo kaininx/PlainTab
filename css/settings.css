@@ -1640,6 +1640,13 @@ input[type="file"] {
     gap: 7px;
 }
 
+.rss-source-hint {
+    margin-top: -4px;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
 .rss-source-row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto;
