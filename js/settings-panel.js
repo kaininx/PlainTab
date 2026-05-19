@@ -200,7 +200,7 @@
         langBtn.setAttribute('aria-label', t('langTitle'));
         settingsBtn.setAttribute('title', t('settingsTitle'));
         settingsBtn.setAttribute('aria-label', t('settingsTitle'));
-        refreshUploadControls();
+        if (typeof refreshUploadControls === 'function') refreshUploadControls();
         refreshGallery();
         document.querySelectorAll('[data-i18n]').forEach(function (el) {
             var key = el.getAttribute('data-i18n');
