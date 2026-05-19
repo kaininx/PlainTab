@@ -332,17 +332,17 @@
         var baseSeed = mix(mood, dominant, hasHue ? 0.22 : 0.08);
         var contentSeed = mix(dominant, mood, hasHue ? 0.18 : 0.28);
         if (hasHue) {
-            baseSeed = boostChroma(baseSeed, 1.18);
-            contentSeed = boostChroma(contentSeed, 1.36);
+            baseSeed = boostChroma(baseSeed, 1.06);
+            contentSeed = boostChroma(contentSeed, 1.14);
         }
 
-        var surfaceBase = isLight ? mix(baseSeed, white, hasHue ? 0.36 : 0.48) : mix(baseSeed, { r: 14, g: 16, b: 21 }, hasHue ? 0.50 : 0.68);
-        var surfaceElevated = isLight ? mix(contentSeed, white, hasHue ? 0.42 : 0.62) : mix(contentSeed, { r: 34, g: 37, b: 45 }, hasHue ? 0.24 : 0.42);
+        var surfaceBase = isLight ? mix(baseSeed, white, hasHue ? 0.52 : 0.48) : mix(baseSeed, { r: 14, g: 16, b: 21 }, hasHue ? 0.64 : 0.68);
+        var surfaceElevated = isLight ? mix(contentSeed, white, hasHue ? 0.58 : 0.62) : mix(contentSeed, { r: 34, g: 37, b: 45 }, hasHue ? 0.40 : 0.42);
         surfaceBase = isLight ? fitLum(surfaceBase, hasHue ? 148 : 160, hasHue ? 222 : 218) : fitLum(surfaceBase, hasHue ? 22 : 20, hasHue ? 56 : 48);
         surfaceElevated = isLight ? fitLum(surfaceElevated, hasHue ? 168 : 184, hasHue ? 238 : 236) : fitLum(surfaceElevated, hasHue ? 48 : 40, hasHue ? 96 : 82);
         surfaceElevated = ensureContrast(surfaceBase, surfaceElevated, 14, true);
 
-        var tint = isLight ? mix(dominant, white, hasHue ? 0.34 : 0.46) : mix(dominant, white, hasHue ? 0.10 : 0.18);
+        var tint = isLight ? mix(dominant, white, hasHue ? 0.48 : 0.46) : mix(dominant, white, hasHue ? 0.20 : 0.18);
         tint = isLight ? fitLum(tint, 148, 222) : fitLum(tint, 84, 156);
 
         var accentItems = [];
