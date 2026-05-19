@@ -189,6 +189,12 @@ PlainTab يناسب هؤلاء الأشخاص:
 | تعدد اللغات | يدعم واجهة متعددة اللغات |
 | تعاون الذكاء الاصطناعي | مناسب للتعلم عن مشاركة الذكاء الاصطناعي في تطوير المشاريع |
 
+## تشخيص الموثوقية
+
+يفحص PlainTab مسارات ذاكرة التخزين المؤقت للخلفيات للتأكد من أن التخزين لا ينمو بلا حدود. أظهر أحدث تشخيص للذاكرة والتخزين أن صور RSS تبقى محدودة بـ 12 سجلاً في IndexedDB، وأن API و Bing يبقيان محدودين بسجل واحد لكل منهما، وأن إعادة تحميل الخلفية المتكررة تبقى مستقرة بعد فرض GC.
+
+التقرير الكامل بالإنجليزية: [Memory and storage diagnostic, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## بداية سريعة
 
 ### تثبيت الإضافة
@@ -247,6 +253,8 @@ PlainTab/
 - [تجربة عبر الإنترنت](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [صفحة مشروع GitHub](https://github.com/kaininx/PlainTab)
+
+- [تشخيص الذاكرة والتخزين](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## الترخيص
 

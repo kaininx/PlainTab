@@ -189,6 +189,12 @@ Firefox समर्थन अभी सीधे वादा नहीं क�
 | बहु-भाषा | बहु-भाषा इंटरफ़ेस समर्थित |
 | AI सहयोग | AI के साथ परियोजना विकास सीखने के लिए उपयुक्त |
 
+## विश्वसनीयता निदान
+
+PlainTab यह जांचता है कि वॉलपेपर cache paths में storage अनियंत्रित रूप से न बढ़े। नवीनतम memory और storage diagnostic में RSS images को 12 IndexedDB records तक सीमित, API और Bing को एक-एक record तक सीमित, और forced GC के बाद repeated wallpaper reloads को स्थिर पाया गया।
+
+पूरी रिपोर्ट अंग्रेज़ी में है: [Memory and storage diagnostic, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## त्वरित शुरुआत
 
 ### एक्सटेंशन इंस्टॉल करें
@@ -247,6 +253,8 @@ PlainTab अपनी मूल दिशा बनाए रखने की �
 - [ऑनलाइन अनुभव](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [GitHub प्रोजेक्ट होम](https://github.com/kaininx/PlainTab)
+
+- [Memory and storage diagnostic](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## लाइसेंस
 

@@ -189,6 +189,12 @@ Firefox 対応は今すぐお約束はできません。ブラウザ拡張の環
 | 多言語 | 多言語インターフェースに対応 |
 | AI 協働 | AI がプロジェクト開発に関わる様子を学べます |
 
+## 信頼性診断
+
+PlainTab では、壁紙キャッシュの保存量が無制限に増えないかを確認しています。最新のメモリおよびストレージ診断では、RSS 画像は IndexedDB の 12 件に制限され、API と Bing はそれぞれ 1 件に制限され、壁紙の再読み込みを繰り返しても強制 GC 後に安定していることを確認しました。
+
+完全なレポート（英語）：[Memory and storage diagnostic, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## クイックスタート
 
 ### 拡張機能のインストール
@@ -247,6 +253,8 @@ PlainTab は本来の方向性をできるだけ保ち続けます。クリー�
 - [オンライン体験](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [GitHub プロジェクトページ](https://github.com/kaininx/PlainTab)
+
+- [メモリとストレージ診断](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## ライセンス
 

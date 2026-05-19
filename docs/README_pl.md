@@ -189,6 +189,12 @@ Jeśli akurat interesujesz się rozszerzeniami do Firefoksa, kompatybilnością 
 | Wielojęzyczność | Obsługa wielojęzycznego interfejsu |
 | Kolaboracja AI | Nadaje się do nauki udziału AI w rozwoju projektów |
 
+## Diagnostyka niezawodności
+
+PlainTab sprawdza, czy ścieżki pamięci podręcznej tapet mają ograniczony wzrost danych. Najnowsza diagnostyka pamięci i magazynu potwierdziła, że obrazy RSS są ograniczone do 12 rekordów IndexedDB, API i Bing do jednego rekordu każde, a wielokrotne przeładowania tapety pozostają stabilne po wymuszonej GC.
+
+Pełny raport po angielsku: [diagnostyka pamięci i magazynu, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## Szybki start
 
 ### Instalacja rozszerzenia
@@ -247,6 +253,8 @@ PlainTab będzie starał się utrzymać swój pierwotny kierunek: czysty, szybki
 - [Wersja online](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [Strona projektu na GitHubie](https://github.com/kaininx/PlainTab)
+
+- [Diagnostyka pamięci i magazynu](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## Licencja
 

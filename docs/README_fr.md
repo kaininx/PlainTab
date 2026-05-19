@@ -189,6 +189,12 @@ Si vous vous intéressez aux extensions Firefox, à la compatibilité entre navi
 | Multilingue | Interface multilingue |
 | Collaboration IA | Idéal pour apprendre comment l'IA participe au développement de projets |
 
+## Diagnostic de fiabilité
+
+PlainTab vérifie que ses chemins de cache de fonds d’écran restent bornés. Le dernier diagnostic mémoire et stockage a confirmé que les images RSS restent limitées à 12 enregistrements IndexedDB, que l’API et Bing restent chacun limités à un enregistrement, et que les rechargements répétés de fond d’écran restent stables après GC forcé.
+
+Rapport complet en anglais : [diagnostic mémoire et stockage, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## Démarrage rapide
 
 ### Installer l'extension
@@ -247,6 +253,8 @@ PlainTab gardera sa direction d'origine : propre, rapide, silencieux et facile �
 - [Essayer en ligne](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [Page du projet GitHub](https://github.com/kaininx/PlainTab)
+
+- [Diagnostic mémoire et stockage](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## Licence
 

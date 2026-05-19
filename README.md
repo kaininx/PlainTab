@@ -189,6 +189,12 @@ If you happen to be interested in Firefox extensions, browser compatibility, or 
 | Multi-language | Interface available in multiple languages |
 | AI collaboration | Great for learning how AI participates in project development |
 
+## Reliability diagnostics
+
+PlainTab's wallpaper cache paths are checked for bounded storage growth. The latest memory and storage diagnostic found RSS images capped at 12 IndexedDB records, API and Bing each capped at one record, and repeated wallpaper reloads stable after forced GC.
+
+See the full report: [Memory and storage diagnostic, 2026-05-19](docs/ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## Quick start
 
 ### Install the extension
@@ -244,6 +250,7 @@ PlainTab will keep heading in its original direction: clean, fast, quiet, and le
 - [Changelog](docs/changelog-i18n/en.txt)
 - [Detailed Release Notes](docs/RELEASE_NOTES.md)
 - [Technical Docs](docs/technical/README_en.md)
+- [Memory and storage diagnostic](docs/ai-tasks/20260519-memory-storage-diagnostic-report.md)
 - [Live Demo](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [GitHub](https://github.com/kaininx/PlainTab)

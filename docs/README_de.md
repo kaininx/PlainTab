@@ -189,6 +189,12 @@ Wenn du dich zufällig für Firefox-Erweiterungen, Browser-Kompatibilität oder 
 | Mehrsprachig | Mehrsprachige Benutzeroberfläche |
 | KI-Kollaboration | Geeignet, um KI-gestützte Projektentwicklung zu lernen |
 
+## Zuverlässigkeitsdiagnose
+
+PlainTab prüft, ob die Wallpaper-Cache-Pfade begrenzt wachsen. Die aktuelle Speicher- und Storage-Diagnose zeigt: RSS-Bilder bleiben auf 12 IndexedDB-Einträge begrenzt, API und Bing bleiben jeweils auf einen Eintrag begrenzt, und wiederholtes Neuladen des Wallpapers bleibt nach erzwungener GC stabil.
+
+Vollständiger Bericht auf Englisch: [Speicher- und Storage-Diagnose, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## Schnellstart
 
 ### Erweiterung installieren
@@ -247,6 +253,8 @@ PlainTab wird versuchen, seine ursprüngliche Richtung beizubehalten: sauber, sc
 - [Online ausprobieren](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [GitHub-Projektseite](https://github.com/kaininx/PlainTab)
+
+- [Speicher- und Storage-Diagnose](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## Lizenz
 

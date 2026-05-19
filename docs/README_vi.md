@@ -189,6 +189,12 @@ Nếu bạn quan tâm đến tiện ích mở rộng Firefox, tương thích tr�
 | Đa ngôn ngữ | Hỗ trợ giao diện đa ngôn ngữ |
 | Hợp tác AI | Phù hợp để học cách AI tham gia phát triển dự án |
 
+## Chẩn đoán độ ổn định
+
+PlainTab kiểm tra các đường dẫn bộ nhớ đệm hình nền để đảm bảo dữ liệu không tăng không giới hạn. Báo cáo chẩn đoán bộ nhớ và lưu trữ mới nhất xác nhận ảnh RSS được giới hạn ở 12 bản ghi IndexedDB, API và Bing mỗi nguồn chỉ dùng một bản ghi, và việc tải lại hình nền nhiều lần vẫn ổn định sau khi ép GC.
+
+Báo cáo đầy đủ bằng tiếng Anh: [chẩn đoán bộ nhớ và lưu trữ, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## Bắt đầu nhanh
 
 ### Cài đặt tiện ích mở rộng
@@ -247,6 +253,8 @@ PlainTab sẽ cố gắng giữ hướng đi ban đầu của nó: sạch sẽ, 
 - [Trải nghiệm trực tuyến](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [Trang chủ dự án GitHub](https://github.com/kaininx/PlainTab)
+
+- [Chẩn đoán bộ nhớ và lưu trữ](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## Giấy phép
 

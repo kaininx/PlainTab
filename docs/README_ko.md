@@ -189,6 +189,12 @@ Firefox 지원은 지금 당장 약속드릴 수는 없습니다. 브라우저 �
 | 다국어 | 다국어 인터페이스 지원 |
 | AI 협업 | AI가 프로젝트 개발에 참여하는 모습을 배우기에 적합 |
 
+## 안정성 진단
+
+PlainTab은 배경화면 캐시 경로가 제한 없이 커지지 않는지 확인합니다. 최신 메모리 및 저장소 진단에서는 RSS 이미지가 IndexedDB 레코드 12개로 제한되고, API와 Bing은 각각 레코드 1개로 제한되며, 반복적인 배경화면 재로드도 강제 GC 후 안정적으로 유지되는 것을 확인했습니다.
+
+전체 보고서(영문): [Memory and storage diagnostic, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## 빠른 시작
 
 ### 확장 프로그램 설치
@@ -247,6 +253,8 @@ PlainTab은 원래의 방향을 최대한 지켜나갈 것입니다: 깨끗하�
 - [온라인 체험](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [GitHub 프로젝트 페이지](https://github.com/kaininx/PlainTab)
+
+- [메모리 및 저장소 진단](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## 라이선스
 

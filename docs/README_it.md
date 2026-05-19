@@ -189,6 +189,12 @@ Se ti interessano le estensioni per Firefox, la compatibilità tra browser o lo 
 | Multilingua | Interfaccia multilingue |
 | Collaborazione con l'IA | Ottimo per imparare come l'IA partecipa allo sviluppo di progetti |
 
+## Diagnostica di affidabilità
+
+PlainTab controlla che i percorsi di cache degli sfondi restino entro limiti definiti. L’ultima diagnostica di memoria e archiviazione ha verificato che le immagini RSS restano limitate a 12 record IndexedDB, API e Bing restano ciascuno limitati a un record, e i reload ripetuti dello sfondo restano stabili dopo GC forzato.
+
+Report completo in inglese: [diagnostica memoria e archiviazione, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## Avvio rapido
 
 ### Installare l'estensione
@@ -247,6 +253,8 @@ PlainTab manterrà la sua direzione originale: pulito, veloce, silenzioso e faci
 - [Prova online](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [Pagina del progetto su GitHub](https://github.com/kaininx/PlainTab)
+
+- [Diagnostica memoria e archiviazione](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## Licenza
 

@@ -189,6 +189,12 @@ Se você se interessa por extensões para Firefox, compatibilidade entre navegad
 | Múltiplos idiomas | Interface multilíngue |
 | Colaboração com IA | Ótimo para aprender como a IA participa do desenvolvimento de projetos |
 
+## Diagnóstico de confiabilidade
+
+O PlainTab verifica se os caminhos de cache de papel de parede têm crescimento de armazenamento limitado. O diagnóstico mais recente de memória e armazenamento confirmou que imagens RSS ficam limitadas a 12 registros no IndexedDB, API e Bing ficam limitados a um registro cada, e recarregamentos repetidos do papel de parede permanecem estáveis após GC forçado.
+
+Relatório completo em inglês: [diagnóstico de memória e armazenamento, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## Início rápido
 
 ### Instalar a extensão
@@ -247,6 +253,8 @@ O PlainTab vai manter sua direção original: limpo, rápido, silencioso e fáci
 - [Testar online](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [Página do projeto no GitHub](https://github.com/kaininx/PlainTab)
+
+- [Diagnóstico de memória e armazenamento](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## Licença
 

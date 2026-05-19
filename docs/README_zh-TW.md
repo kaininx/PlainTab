@@ -189,6 +189,12 @@ Firefox 支援現在還不能直接承諾，因為瀏覽器擴充環境、權限
 | 多語言 | 支援多語言介面 |
 | AI 協作 | 適合用來學習 AI 參與專案開發 |
 
+## 可靠性診斷
+
+PlainTab 的桌布快取路徑會檢查是否存在無界儲存成長。最新的記憶體與儲存診斷顯示：RSS 圖片穩定限制在 12 筆 IndexedDB 記錄內，API 和 Bing 各自限制為 1 筆記錄，重複桌布重載在強制 GC 後保持穩定。
+
+完整報告（英文）：[2026-05-19 記憶體與儲存診斷](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## 快速開始
 
 ### 安裝擴充功能
@@ -247,6 +253,8 @@ PlainTab 會盡量保持它原本的方向：乾淨、快速、安靜、可學�
 - [線上體驗](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [GitHub 專案主頁](https://github.com/kaininx/PlainTab)
+
+- [記憶體與儲存診斷](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## 授權
 

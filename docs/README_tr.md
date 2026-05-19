@@ -189,6 +189,12 @@ Firefox eklentileri, tarayıcı uyumluluğu veya Yapay Zeka destekli geliştirme
 | Çoklu dil | Çoklu dil arayüzünü destekler |
 | Yapay Zeka iş birliği | Yapay Zeka ile proje geliştirmeyi öğrenmek için uygundur |
 
+## Güvenilirlik tanısı
+
+PlainTab, duvar kağıdı önbellek yollarında sınırsız depolama büyümesi olup olmadığını kontrol eder. En son bellek ve depolama tanısı, RSS görsellerinin 12 IndexedDB kaydıyla, API ve Bing’in ise birer kayıtla sınırlı kaldığını; tekrarlı duvar kağıdı yeniden yüklemelerinin zorunlu GC sonrasında stabil olduğunu doğruladı.
+
+Tam rapor İngilizcedir: [bellek ve depolama tanısı, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## Hızlı başlangıç
 
 ### Eklentiyi yükle
@@ -247,6 +253,8 @@ PlainTab orijinal yönünü korumaya çalışacaktır: temiz, hızlı, sessiz ve
 - [Çevrimiçi deneyim](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [GitHub proje sayfası](https://github.com/kaininx/PlainTab)
+
+- [Bellek ve depolama tanısı](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## Lisans
 

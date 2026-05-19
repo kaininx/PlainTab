@@ -189,6 +189,12 @@ Firefox 支持现在还不能直接承诺，因为浏览器扩展环境、权限
 | 多语言 | 支持多语言界面 |
 | AI 协作 | 适合用来学习 AI 参与项目开发 |
 
+## 可靠性诊断
+
+PlainTab 的壁纸缓存路径会检查是否存在无界存储增长。最新的内存与存储诊断显示：RSS 图片稳定限制在 12 条 IndexedDB 记录内，API 和 Bing 各自限制为 1 条记录，重复壁纸重载在强制 GC 后保持稳定。
+
+完整报告（英文）：[2026-05-19 内存与存储诊断](ai-tasks/20260519-memory-storage-diagnostic-report.md).
+
 ## 快速开始
 
 ### 安装扩展
@@ -247,6 +253,8 @@ PlainTab 会尽量保持它原本的方向：干净、快速、安静、可学�
 - [在线体验](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 - [GitHub 项目主页](https://github.com/kaininx/PlainTab)
+
+- [内存与存储诊断](ai-tasks/20260519-memory-storage-diagnostic-report.md)
 
 ## 许可
 
