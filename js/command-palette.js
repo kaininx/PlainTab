@@ -226,9 +226,25 @@
         } catch (e) { return null; }
     }
 
+    function isHttpUrl(value) {
+        return /^http:\/\//i.test(String(value || '').trim());
+    }
+
+    function currentLanguageCode() {
+        var panel = window.SettingsPanelFull || window.SettingsPanel;
+        return panel && panel.getCurrentLang ? panel.getCurrentLang() : '';
+    }
+
+    function invalidUrlMessage(value, fallbackKey) {
+        if (!isHttpUrl(value)) return t(fallbackKey);
+        if (/^zh/i.test(currentLanguageCode())) return '不支持 http:// 链接，只能使用 https://。';
+        return 'http:// links are not supported. Use https:// only.';
+    }
+
     function normalizeHttpsUrl(value) {
         var url = String(value || '').trim();
         if (!url) return '';
+        if (isHttpUrl(url)) return '';
         if (!url.match(/^https?:\/\//)) url = 'https://' + url;
         if (!url.match(/^https:\/\/[^\s\/]+\.[^\s\/]+/)) return '';
         return url;
@@ -1143,7 +1159,7 @@
 
     function addShortcutFromCommandTerminal(urlValue, token, input) {
         var url = normalizeHttpsUrl(urlValue);
-        if (!url) return { ok: false, message: t('commandTerminalInvalidUrl') };
+        if (!url) return { ok: false, message: invalidUrlMessage(urlValue, 'commandTerminalInvalidUrl') };
         var shortcuts = loadShortcuts();
         if (shortcuts.some(function (s) { return s.url.toLowerCase() === url.toLowerCase(); })) {
             return { ok: false, message: t('commandTerminalShortcutExists') };
@@ -1288,7 +1304,7 @@
         var nextUrl = target.url;
         if (state.args.url) {
             nextUrl = normalizeHttpsUrl(state.args.url);
-            if (!nextUrl) return { ok: false, message: t('commandTerminalInvalidEditUrl') };
+            if (!nextUrl) return { ok: false, message: invalidUrlMessage(state.args.url, 'commandTerminalInvalidEditUrl') };
             if (loadShortcuts().some(function (shortcut) { return shortcut.id !== target.id && shortcut.url.toLowerCase() === nextUrl.toLowerCase(); })) {
                 return { ok: false, message: t('commandTerminalUrlExists') };
             }
@@ -2387,7 +2403,7 @@
         var url = normalizeHttpsUrl(urlValue);
         if (!url) {
             cpCurrentMode = 'feedback';
-            feedbackMessage(t('commandAddInvalidUrl'));
+            feedbackMessage(invalidUrlMessage(urlValue, 'commandAddInvalidUrl'));
             return true;
         }
         var shortcuts = loadShortcuts();
@@ -2563,8 +2579,22 @@
         var urlEl = document.getElementById('cpFormURL');
         var nameEl = document.getElementById('cpFormName');
         var btn = document.getElementById('cpFormFetchBtn');
-        var url = normalizeHttpsUrl(urlEl && urlEl.value);
-        if (!url) return;
+        var rawUrl = urlEl && urlEl.value;
+        var url = normalizeHttpsUrl(rawUrl);
+        if (!url) {
+            if (isHttpUrl(rawUrl)) {
+                var errorEl = document.getElementById('cpFormError');
+                if (errorEl) {
+                    errorEl.textContent = invalidUrlMessage(rawUrl, 'urlRequired');
+                    errorEl.style.display = 'block';
+                }
+                if (urlEl) urlEl.classList.add('error');
+            }
+            return;
+        }
+        var fetchErrorEl = document.getElementById('cpFormError');
+        if (fetchErrorEl) fetchErrorEl.style.display = 'none';
+        if (urlEl) urlEl.classList.remove('error');
 
         var isExt = typeof chrome !== 'undefined' && chrome.permissions && !!chrome.runtime && !!chrome.runtime.id;
         var doFetch = function () {
@@ -2624,7 +2654,7 @@
 
         if (!url) { errorEl.textContent = t('urlRequired'); errorEl.style.display = 'block'; urlEl.classList.add('error'); return; }
         url = normalizeHttpsUrl(url);
-        if (!url) { errorEl.textContent = t('urlRequired'); errorEl.style.display = 'block'; urlEl.classList.add('error'); return; }
+        if (!url) { errorEl.textContent = invalidUrlMessage(urlEl && urlEl.value, 'urlRequired'); errorEl.style.display = 'block'; urlEl.classList.add('error'); return; }
 
         var shortcuts = loadShortcuts();
         if (shortcuts.some(function (s) { return s.url.toLowerCase() === url.toLowerCase() && (!isEdit || s.id !== editId); })) {

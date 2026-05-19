@@ -33,7 +33,8 @@
         UPLOAD_PREFIX: 'ptab_wallpaper_blob_upload_',
         RSS_PREFIX: 'ptab_wallpaper_blob_rss_',
         FOLDER_HANDLE: 'ptab_wallpaper_folder_handle',
-        FOLDER_FILES: 'ptab_wallpaper_folder_files'
+        FOLDER_FILES: 'ptab_wallpaper_folder_files',
+        FOLDER_LIGHT_PREFIX: 'ptab_wallpaper_folder_light_'
     };
 
     // ================================================================
@@ -161,6 +162,11 @@
                     lastScanAt: 0,
                     lastError: '',
                     shuffleBag: [],
+                    previewWindow: [],
+                    permissionStatus: '',
+                    usingLightCache: false,
+                    lightCacheCount: 0,
+                    lastPermissionCheckAt: 0,
                     currentName: ''
                 }
             },
@@ -172,6 +178,7 @@
                     ],
                     activeSourceId: 'nasa-apod',
                     refreshIntervalMs: 86400000,
+                    displayMode: 'cycle',
                     showSummary: true,
                     showLink: true,
                     summaryPosition: 'bottom',
@@ -329,6 +336,12 @@
         catch (e) { return raw.slice(7); }
     }
 
+    function folderLightKey(nameOrId) {
+        var raw = String(nameOrId || '');
+        var encoded = raw.indexOf('folder:') === 0 ? raw.slice(7) : encodeURIComponent(raw);
+        return DB.FOLDER_LIGHT_PREFIX + encoded;
+    }
+
     function imgKey(id) {
         if (id === 'bing') return DB.BING_BLOB;
         if (id === 'api') return DB.API_BLOB;
@@ -418,6 +431,7 @@
         }
         var allowedIntervals = [0, 86400000, 259200000, 604800000];
         if (allowedIntervals.indexOf(merged.refreshIntervalMs) === -1) merged.refreshIntervalMs = defaults.refreshIntervalMs;
+        if (merged.displayMode !== 'latest' && merged.displayMode !== 'cycle') merged.displayMode = defaults.displayMode;
         if (merged.summaryPosition !== 'top' && merged.summaryPosition !== 'bottom') merged.summaryPosition = 'bottom';
         if (merged.summaryMode !== 'expanded' && merged.summaryMode !== 'icon') merged.summaryMode = 'expanded';
         merged.showSummary = merged.showSummary !== false;
@@ -512,11 +526,22 @@
         merged.lastScanAt = Math.max(0, parseInt(merged.lastScanAt, 10) || 0);
         merged.lastError = String(merged.lastError || '').slice(0, 240);
         merged.currentName = String(merged.currentName || '');
+        merged.permissionStatus = ['granted', 'prompt', 'denied'].indexOf(merged.permissionStatus) !== -1 ? merged.permissionStatus : '';
+        merged.usingLightCache = merged.usingLightCache === true;
+        merged.lightCacheCount = Math.max(0, parseInt(merged.lightCacheCount, 10) || 0);
+        merged.lastPermissionCheckAt = Math.max(0, parseInt(merged.lastPermissionCheckAt, 10) || 0);
         merged.shuffleBag = (Array.isArray(merged.shuffleBag) ? merged.shuffleBag : []).filter(function (name) {
             return typeof name === 'string';
         }).map(function (name) {
             return name.trim();
         }).filter(Boolean);
+        merged.previewWindow = (Array.isArray(merged.previewWindow) ? merged.previewWindow : []).filter(function (name) {
+            return typeof name === 'string';
+        }).map(function (name) {
+            return name.trim();
+        }).filter(function (name, index, list) {
+            return !!name && list.indexOf(name) === index;
+        }).slice(0, 12);
         return merged;
     }
 
@@ -627,6 +652,18 @@
 
     function clearFolderHandleAndIndex() {
         return idbDeleteMany([DB.FOLDER_HANDLE, DB.FOLDER_FILES]);
+    }
+
+    function loadFolderLightCache(nameOrId) {
+        return idbGet(folderLightKey(nameOrId));
+    }
+
+    function saveFolderLightCache(nameOrId, record) {
+        return idbPut(folderLightKey(nameOrId), record);
+    }
+
+    function deleteFolderLightCache(nameOrId) {
+        return idbDelete(folderLightKey(nameOrId));
     }
 
     function activeApiSource(config) {
@@ -907,7 +944,11 @@
             deleteMatching(isFolderId);
             model.cache.order = order.filter(function (id) { return !isFolderId(id); });
             model.providers.folder.state = {};
-            idbDeletes.push(DB.FOLDER_HANDLE, DB.FOLDER_FILES);
+            idbDeletePromise = idbDeleteMatching(function (key) {
+                return key === DB.FOLDER_HANDLE ||
+                    key === DB.FOLDER_FILES ||
+                    String(key).indexOf(DB.FOLDER_LIGHT_PREFIX) === 0;
+            });
         } else if (source === 'rss') {
             deleteMatching(isRssId);
             model.cache.order = order.filter(function (id) { return !isRssId(id); });
@@ -969,6 +1010,7 @@
             return key === DB.API_BLOB ||
                 key === DB.FOLDER_HANDLE ||
                 key === DB.FOLDER_FILES ||
+                String(key).indexOf(DB.FOLDER_LIGHT_PREFIX) === 0 ||
                 String(key).indexOf(DB.UPLOAD_PREFIX) === 0 ||
                 String(key).indexOf(DB.RSS_PREFIX) === 0;
         }).then(function () {
@@ -1116,6 +1158,7 @@
         imgKey: imgKey,
         folderId: folderId,
         folderNameFromId: folderNameFromId,
+        folderLightKey: folderLightKey,
         imageBlob: imageBlob,
         imageRecord: imageRecord,
         loadOrder: loadOrder,
@@ -1163,6 +1206,9 @@
         loadFolderFiles: loadFolderFiles,
         saveFolderFiles: saveFolderFiles,
         clearFolderHandleAndIndex: clearFolderHandleAndIndex,
+        loadFolderLightCache: loadFolderLightCache,
+        saveFolderLightCache: saveFolderLightCache,
+        deleteFolderLightCache: deleteFolderLightCache,
         isRssId: isRssId,
         isUploadId: isUploadId,
         isFolderId: isFolderId,

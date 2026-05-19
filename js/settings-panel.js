@@ -144,6 +144,12 @@
     var wallpaperDraftApiTestResult = null;
     var wallpaperDraftRssTestResult = null;
     var wallpaperDraftFolderMount = null;
+    var rssNoticeTimer = null;
+    var rssNoticeToken = 0;
+    var apiNoticeTimer = null;
+    var apiNoticeToken = 0;
+    var FOLDER_GALLERY_LIMIT = 12;
+    var FOLDER_THUMB_LOOKAHEAD = 12;
 
     // ================================================================
     // 语言面板
@@ -308,6 +314,30 @@
     // Build only the visible tab first so the modal can animate immediately.
     var _tabPages = {};
     var _tabEventBound = {};
+    var _tabScrollPositions = {};
+
+    function tabScrollElement(tabName) {
+        var page = _tabPages[tabName];
+        if (!page) return null;
+        return page.querySelector('.wallpaper-tab-body') ||
+            page.querySelector('.modal-page-body') ||
+            page.querySelector('[data-scroll-container]') ||
+            page;
+    }
+
+    function saveTabScroll(tabName) {
+        var el = tabScrollElement(tabName);
+        if (el) _tabScrollPositions[tabName] = el.scrollTop || 0;
+    }
+
+    function restoreTabScroll(tabName) {
+        var y = _tabScrollPositions[tabName];
+        if (typeof y !== 'number') return;
+        requestAnimationFrame(function () {
+            var el = tabScrollElement(tabName);
+            if (el) el.scrollTop = y;
+        });
+    }
 
     function renderTabContent() {
         ensureTabPage(activeTab);
@@ -324,6 +354,7 @@
         if (activeTab === 'shortcuts' && !_tabEventBound.shortcuts) { bindShortcutsEvents(); _tabEventBound.shortcuts = true; }
         if (activeTab === 'permissions' && !_tabEventBound.permissions) { bindPermissionsEvents(); _tabEventBound.permissions = true; }
         if (activeTab === 'data' && !_tabEventBound.data) { bindDataEvents(); _tabEventBound.data = true; }
+        restoreTabScroll(activeTab);
     }
 
     function ensureTabPage(tabName) {
@@ -353,6 +384,7 @@
     function refreshGeneratedTabPages() {
         if (!modalContent) return;
         closeCustomSelects();
+        saveTabScroll(activeTab);
         Object.keys(_tabPages).forEach(function (tabName) {
             _tabPages[tabName].remove();
             delete _tabPages[tabName];
@@ -374,6 +406,26 @@
     function tr(key) {
         var value = t(key);
         return value && value !== key ? value : key;
+    }
+
+    function isHttpUrl(value) {
+        return /^http:\/\//i.test(String(value || '').trim());
+    }
+
+    function httpsOnlyMessage(fallbackKey, value) {
+        if (!isHttpUrl(value)) return tr(fallbackKey);
+        if (/^zh/i.test(currentLang || '')) return '不支持 http:// 链接，只能使用 https://。';
+        return 'http:// links are not supported. Use https:// only.';
+    }
+
+    function rssDisplayText(key) {
+        var zh = /^zh/i.test(currentLang || '');
+        var map = {
+            displayMode: zh ? 'RSS 显示方式' : 'RSS Display',
+            latest: zh ? '固定最新一张' : 'Fixed latest image',
+            cycle: zh ? '循环显示' : 'Cycle cached images'
+        };
+        return map[key] || key;
     }
 
     function loadShortcutSettings() {
@@ -483,7 +535,15 @@
         if (!custom) return;
         var select = custom.querySelector('select');
         var value = custom.querySelector('.custom-select-value');
+        var trigger = custom.querySelector('.custom-select-trigger');
+        var disabled = !!(select && select.disabled);
         if (value && select) value.textContent = getSelectLabel(select);
+        custom.classList.toggle('disabled', disabled);
+        if (trigger) {
+            trigger.disabled = disabled;
+            trigger.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        }
+        if (disabled && custom.dataset.open === 'true') custom.dataset.open = 'false';
         custom.querySelectorAll('.custom-select-option').forEach(function (option) {
             var selected = select && option.dataset.value === select.value;
             option.classList.toggle('selected', selected);
@@ -591,10 +651,12 @@
             });
 
             trigger.addEventListener('click', function () {
+                if (select.disabled) return;
                 if (wrapper.dataset.open === 'true') closeCustomSelects();
                 else openCustomSelect(wrapper);
             });
             trigger.addEventListener('keydown', function (e) {
+                if (select.disabled) return;
                 if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
                     e.preventDefault();
                     openCustomSelect(wrapper);
@@ -759,6 +821,9 @@
             var folderId = mount.firstId;
             var thumbs = D.loadThumbs();
             var meta = D.loadMeta();
+            var initialBag = [mount.firstName].concat(mount.shuffleBag || []);
+            var thumbLookahead = buildFolderPreviewWindow(mount.files, '', initialBag, FOLDER_THUMB_LOOKAHEAD);
+            var previewWindow = mount.previewWindow || thumbLookahead.slice(0, FOLDER_GALLERY_LIMIT);
             thumbs[folderId] = mount.thumb;
             meta[folderId] = {
                 source: 'folder',
@@ -771,25 +836,38 @@
             D.saveThumbs(thumbs);
             D.saveMeta(meta);
             D.savePreview(mount.preview || mount.thumb);
-            draft.activeSource = 'folder';
-            draft.providers.folder.config = D.normalizeFolderConfig({
-                pathLabel: mount.pathLabel || '',
-                strategy: 'shuffle'
+            if (wallpaperBlur >= 5 && mount.preview && D.saveBlurThumb) D.saveBlurThumb(folderId, wallpaperBlur, mount.preview);
+            pruneFolderThumbs(thumbLookahead);
+            return prewarmFolderThumbs(mount.handle, thumbLookahead, wallpaperBlur).then(function () {
+                return prewarmFolderLightCache(mount.handle, thumbLookahead);
+            }).then(function () {
+                pruneFolderThumbs(thumbLookahead);
+                pruneFolderLightCache(thumbLookahead);
+                draft.activeSource = 'folder';
+                draft.providers.folder.config = D.normalizeFolderConfig({
+                    pathLabel: mount.pathLabel || '',
+                    strategy: 'shuffle'
+                });
+                draft.providers.folder.state = D.normalizeFolderState({
+                    status: 'ready',
+                    indexedCount: mount.files.length,
+                    completed: mount.completed === true,
+                    lastScanAt: Date.now(),
+                    lastError: '',
+                    shuffleBag: initialBag,
+                    previewWindow: previewWindow,
+                    permissionStatus: 'granted',
+                    usingLightCache: false,
+                    lightCacheCount: previewWindow.length,
+                    lastPermissionCheckAt: Date.now(),
+                    currentName: ''
+                });
+                draft.cache.order = ['bing', folderId];
+                draft.cache.index = 1;
+                draft.cache.meta = D.loadMeta();
+                D.saveWallpaper(draft);
+                return reloadAfterApply();
             });
-            draft.providers.folder.state = D.normalizeFolderState({
-                status: 'ready',
-                indexedCount: mount.files.length,
-                completed: mount.completed === true,
-                lastScanAt: Date.now(),
-                lastError: '',
-                shuffleBag: [mount.firstName].concat(mount.shuffleBag || []),
-                currentName: ''
-            });
-            draft.cache.order = ['bing', folderId];
-            draft.cache.index = 1;
-            draft.cache.meta = meta;
-            D.saveWallpaper(draft);
-            return reloadAfterApply();
         }
 
         function finishApply() {
@@ -867,6 +945,7 @@
             '<div class="rss-notice" id="rssNotice" hidden></div>' +
             '<div class="rss-add-row"><input id="rssNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="rssUrlInput" type="url" placeholder="https://example.com/feed.xml"><button id="rssAddBtn" type="button">' + tr('rssAdd') + '</button></div>' +
             '<div class="rss-options">' +
+            settingItem(rssDisplayText('displayMode'), '', '<select id="rssDisplayMode"><option value="cycle"' + selected('cycle', config.displayMode || 'cycle') + '>' + rssDisplayText('cycle') + '</option><option value="latest"' + selected('latest', config.displayMode) + '>' + rssDisplayText('latest') + '</option></select>', 'setting-compact') +
             settingItem(tr('rssRefreshInterval'), '', '<select id="rssRefreshInterval"><option value="0"' + selected(0, config.refreshIntervalMs) + '>' + tr('rssRefreshOff') + '</option><option value="86400000"' + selected(86400000, config.refreshIntervalMs) + '>' + tr('rssRefreshOneDay') + '</option><option value="259200000"' + selected(259200000, config.refreshIntervalMs) + '>' + tr('rssRefreshThreeDays') + '</option><option value="604800000"' + selected(604800000, config.refreshIntervalMs) + '>' + tr('rssRefreshSevenDays') + '</option></select>', 'setting-compact') +
             settingItem(tr('rssSummaryPosition'), '', '<select id="rssSummaryPosition"><option value="bottom"' + selected('bottom', config.summaryPosition) + '>' + tr('bottom') + '</option><option value="top"' + selected('top', config.summaryPosition) + '>' + tr('top') + '</option></select>', 'setting-compact') +
             settingItem(tr('rssSummaryMode'), '', '<select id="rssSummaryMode"><option value="expanded"' + selected('expanded', config.summaryMode) + '>' + tr('rssExpanded') + '</option><option value="icon"' + selected('icon', config.summaryMode) + '>' + tr('rssIconOnly') + '</option></select>', 'setting-compact') +
@@ -944,12 +1023,15 @@
             '<input type="number" id="modalSearchBgNum" class="input-w-55" min="0.04" max="0.32" step="0.01" value="' + searchBackgroundOpacity + '">';
         var searchBlurControl = '<input type="range" id="modalSearchBlurRange" min="0" max="40" step="1" value="' + searchBlur + '">' +
             '<input type="number" id="modalSearchBlurNum" class="input-w-55" min="0" max="40" step="1" value="' + searchBlur + '">';
-        var engineControl = '<select id="modalEngineSel">' +
+        var engineControl = IS_EXTENSION ? '<select id="modalEngineSel" disabled>' +
+            '<option value="browser" selected>' + tr('engineBrowserDefault') + '</option>' +
+            '</select>' : '<select id="modalEngineSel">' +
             '<option value="google"' + (currentEngine === 'google' ? ' selected' : '') + '>Google</option>' +
             '<option value="bing"' + (currentEngine === 'bing' ? ' selected' : '') + '>Bing</option>' +
             '<option value="baidu"' + (currentEngine === 'baidu' ? ' selected' : '') + '>Baidu</option>' +
             '<option value="duckduckgo"' + (currentEngine === 'duckduckgo' ? ' selected' : '') + '>DuckDuckGo</option>' +
             '</select>';
+        var engineDesc = IS_EXTENSION ? modalCopy('modalDescEngineExtension') : modalCopy('modalDescEngine');
         var body =
             settingGroup(tr('settingsGroupSearchVisibility'),
             settingItem(tr('searchLabel'), modalCopy('modalDescSearchMode'), searchModeControl) +
@@ -963,7 +1045,7 @@
             settingItem(tr('searchBackground'), modalCopy('modalDescSearchBackground'), searchBgControl) +
             settingItem(tr('searchBlur'), modalCopy('modalDescSearchBlur'), searchBlurControl)) +
             settingGroup(tr('settingsGroupSearchEngine'),
-            settingItem(tr('engineLabel'), modalCopy('modalDescEngine'), engineControl, IS_EXTENSION ? 'engine-row-hidden' : ''));
+            settingItem(tr('engineLabel'), engineDesc, engineControl, IS_EXTENSION ? 'setting-disabled' : ''));
 
         return buildPageShell(tr('tabSearch'), modalCopy('modalSubtitleSearch'), body);
     }
@@ -1114,17 +1196,42 @@
     }
 
     function bindWallpaperEvents() {
+        function setDrawerOpen(drawer, open) {
+            var body = drawer.querySelector('.source-drawer-body');
+            var inner = drawer.querySelector('.source-drawer-body-inner');
+            if (!body || !inner) {
+                drawer.classList.toggle('active', open);
+                return;
+            }
+            if (open) {
+                drawer.classList.add('active');
+                body.style.maxHeight = inner.scrollHeight + 'px';
+                return;
+            }
+            body.style.maxHeight = body.scrollHeight + 'px';
+            void body.offsetHeight;
+            drawer.classList.remove('active');
+            body.style.maxHeight = '0px';
+        }
+
+        modalContent.querySelectorAll('.source-drawer.active').forEach(function (drawer) {
+            var body = drawer.querySelector('.source-drawer-body');
+            var inner = drawer.querySelector('.source-drawer-body-inner');
+            if (body && inner) body.style.maxHeight = inner.scrollHeight + 'px';
+        });
+
         modalContent.querySelectorAll('.source-drawer-header').forEach(function (header) {
             header.addEventListener('click', function (e) {
                 if (e.target.closest('button, input, label')) return;
                 var drawer = header.parentElement;
                 var clickedSource = drawer.dataset.source;
                 var draft = currentWallpaperDraft();
-                draft.activeSource = clickedSource === 'upload' ? 'upload' : clickedSource;
+                var wasActive = drawer.classList.contains('active');
+                if (!wasActive) draft.activeSource = clickedSource === 'upload' ? 'upload' : clickedSource;
                 modalContent.querySelectorAll('.source-drawer').forEach(function (d) {
-                    d.classList.toggle('active', d.dataset.source === clickedSource);
+                    setDrawerOpen(d, !wasActive && d.dataset.source === clickedSource);
                 });
-                refreshWallpaperApplyFooter();
+                if (!wasActive) refreshWallpaperApplyFooter();
             });
         });
         bindFolderConfigEvents();
@@ -1152,9 +1259,32 @@
     function showRssNotice(message, type) {
         var el = document.getElementById('rssNotice');
         if (!el) return;
+        clearTimeout(rssNoticeTimer);
+        rssNoticeTimer = null;
+        rssNoticeToken += 1;
         el.textContent = message || '';
         el.dataset.type = type || 'info';
+        delete el.dataset.validation;
         el.hidden = !message;
+    }
+
+    function showRssValidation(message) {
+        setRssStatus(message);
+        showRssNotice(message, 'error');
+        var el = document.getElementById('rssNotice');
+        var token = rssNoticeToken;
+        if (el) el.dataset.validation = 'true';
+        rssNoticeTimer = setTimeout(function () {
+            if (token === rssNoticeToken) clearRssValidation();
+        }, 4000);
+    }
+
+    function clearRssValidation() {
+        var el = document.getElementById('rssNotice');
+        if (!el || el.dataset.validation !== 'true') return;
+        showRssNotice('', 'info');
+        var config = currentWallpaperDraft().providers.rss.config;
+        setRssStatus(rssStatusText(config, D.loadWallpaper().providers.rss.state || {}));
     }
 
     function setRssTestButtonState(button, testing) {
@@ -1165,6 +1295,118 @@
         button.textContent = testing ? tr('rssTesting') : button.dataset.idleLabel;
     }
 
+    function buildFolderPreviewWindow(files, currentName, shuffleBag, limit) {
+        limit = parseInt(limit, 10) || FOLDER_GALLERY_LIMIT;
+        if (WF && WF.buildPreviewWindow) return WF.buildPreviewWindow(files, currentName, shuffleBag, limit);
+        var names = [];
+        function add(name) {
+            name = String(name || '').trim();
+            if (name && names.indexOf(name) === -1 && names.length < limit) names.push(name);
+        }
+        add(currentName);
+        (Array.isArray(shuffleBag) ? shuffleBag : []).forEach(add);
+        (Array.isArray(files) ? files : []).forEach(function (file) { add(file && file.name); });
+        return names;
+    }
+
+    function prewarmFolderThumbs(handle, names, blur) {
+        if (!handle || !WF || !WF.readImageFile || !WF.preparePreviewFromFile || !names || !names.length) return Promise.resolve(false);
+        var chain = Promise.resolve(false);
+        names.slice(0, FOLDER_THUMB_LOOKAHEAD).forEach(function (name) {
+            chain = chain.then(function (changed) {
+                var id = D.folderId(name);
+                var hasThumb = !!D.loadThumbs()[id];
+                var hasBlur = blur < 5 || !D.blurThumbFor || !!D.blurThumbFor(id, blur);
+                if (hasThumb && hasBlur) return changed;
+                return WF.readImageFile(handle, name).then(function (file) {
+                    return WF.preparePreviewFromFile(file, id, blur);
+                }).then(function (prepared) {
+                    var thumbs = D.loadThumbs();
+                    if (prepared.thumb) thumbs[id] = prepared.thumb;
+                    D.saveThumbs(thumbs);
+                    if (blur >= 5 && prepared.preview && D.saveBlurThumb) D.saveBlurThumb(id, blur, prepared.preview);
+                    return true;
+                }).catch(function () {
+                    return changed;
+                });
+            });
+        });
+        return chain;
+    }
+
+    function prewarmFolderLightCache(handle, names) {
+        if (!handle || !WF || !WF.readImageFile || !WF.prepareLightCacheFromFile || !D.saveFolderLightCache || !names || !names.length) {
+            return Promise.resolve(false);
+        }
+        var chain = Promise.resolve(false);
+        names.slice(0, FOLDER_THUMB_LOOKAHEAD).forEach(function (name) {
+            chain = chain.then(function (changed) {
+                var id = D.folderId(name);
+                return WF.readImageFile(handle, name).then(function (file) {
+                    return (D.loadFolderLightCache ? D.loadFolderLightCache(name) : Promise.resolve(null)).then(function (existing) {
+                        if (existing && existing.blob && existing.size === file.size && existing.lastModified === file.lastModified) return changed;
+                        return WF.prepareLightCacheFromFile(file, id).then(function (prepared) {
+                            return D.saveFolderLightCache(name, prepared.record).then(function () {
+                                return true;
+                            });
+                        });
+                    });
+                }).catch(function () {
+                    return changed;
+                });
+            });
+        });
+        return chain;
+    }
+
+    function pruneFolderThumbs(names) {
+        var keep = {};
+        (names || []).forEach(function (name) { keep[D.folderId(name)] = true; });
+        var thumbs = D.loadThumbs();
+        var changed = false;
+        Object.keys(thumbs).forEach(function (id) {
+            if (D.isFolderId && D.isFolderId(id) && !keep[id]) {
+                delete thumbs[id];
+                if (D.deleteBlurThumb) D.deleteBlurThumb(id);
+                changed = true;
+            }
+        });
+        if (changed) D.saveThumbs(thumbs);
+    }
+
+    function pruneFolderLightCache(names) {
+        if (!D.idbKeys || !D.idbDeleteMany || !D.DB || !D.DB.FOLDER_LIGHT_PREFIX) return Promise.resolve(false);
+        var keep = {};
+        (names || []).forEach(function (name) {
+            if (D.folderLightKey) keep[D.folderLightKey(name)] = true;
+        });
+        return D.idbKeys().then(function (keys) {
+            var deletes = keys.filter(function (key) {
+                return String(key).indexOf(D.DB.FOLDER_LIGHT_PREFIX) === 0 && !keep[key];
+            });
+            if (!deletes.length) return false;
+            return D.idbDeleteMany(deletes).then(function () { return true; });
+        }).catch(function () { return false; });
+    }
+
+    function reauthorizeSavedFolder() {
+        if (!D.loadFolderHandle || !WF || !WF.requestReadPermission) return Promise.reject(new Error(tr('folderUnsupported')));
+        return D.loadFolderHandle().then(function (handle) {
+            if (!handle) throw new Error(tr('noFolderSelected'));
+            return WF.requestReadPermission(handle).then(function (state) {
+                if (state !== 'granted') throw new Error(tr('folderNeedsPermission'));
+                var folderState = D.loadFolderState ? D.loadFolderState() : {};
+                folderState.status = 'ready';
+                folderState.lastError = '';
+                folderState.lastPermissionCheckAt = Date.now();
+                folderState.permissionStatus = 'granted';
+                if (D.saveFolderState) D.saveFolderState(folderState);
+                if (window.reloadWallpaper) return window.reloadWallpaper();
+                return true;
+            });
+        });
+    }
+
     function folderStatusText() {
         var draft = currentWallpaperDraft();
         var config = draft.providers.folder.config || {};
@@ -1173,11 +1415,26 @@
         if (wallpaperDraftFolderMount) {
             return tr('folderReady') + (wallpaperDraftFolderMount.pathLabel || tr('sourceFolder')) + ' · ' + wallpaperDraftFolderMount.files.length + ' ' + tr('folderImagesUnit');
         }
+        if (state.usingLightCache) return tr('folderNeedsPermission') + ' · ' + tr('folderSaved') + (config.pathLabel || tr('sourceFolder'));
         if (state.status === 'needs-permission') return tr('folderNeedsPermission');
         if (state.status === 'ready' && config.pathLabel) return tr('folderSaved') + config.pathLabel + (state.indexedCount ? (' · ' + state.indexedCount + ' ' + tr('folderImagesUnit')) : '');
         if (state.status === 'empty') return tr('folderEmpty');
         if (state.status === 'error' && state.lastError) return state.lastError;
         return tr('noFolderSelected');
+    }
+
+    function folderPermissionStateClass(state) {
+        state = state || {};
+        if (state.status === 'needs-permission' || state.usingLightCache) return ' needs-permission';
+        if (state.permissionStatus === 'granted' || state.status === 'ready') return ' is-authorized';
+        return '';
+    }
+
+    function folderReauthLabel(state) {
+        state = state || {};
+        if (state.status === 'needs-permission' || state.usingLightCache) return tr('folderNeedsPermission');
+        if (state.permissionStatus === 'granted' || state.status === 'ready') return tr('folderReady');
+        return tr('folderNeedsPermission');
     }
 
     function showFolderNotice(message, type) {
@@ -1205,11 +1462,16 @@
         var supported = !!(WF && WF.isSupported && WF.isSupported());
         var draft = currentWallpaperDraft();
         var config = draft.providers.folder.config || {};
+        var state = draft.providers.folder.state || {};
+        var canReauth = supported && !!config.pathLabel;
         var label = wallpaperDraftFolderMount ? wallpaperDraftFolderMount.pathLabel : (config.pathLabel || tr('noFolderSelected'));
         return '<div class="folder-config">' +
-            '<div class="folder-current">' +
+            '<div class="folder-current' + folderPermissionStateClass(state) + '">' +
             '<div><span>' + tr('sourceFolder') + '</span><strong>' + escapeHtml(label) + '</strong></div>' +
+            '<div class="folder-actions">' +
+            '<button id="folderReauthBtn" class="secondary-action" type="button"' + (canReauth ? '' : ' disabled') + '>' + folderReauthLabel(state) + '</button>' +
             '<button id="folderChooseBtn" class="primary-action" type="button"' + (supported ? '' : ' disabled') + '>' + tr('chooseFolder') + '</button>' +
+            '</div>' +
             '</div>' +
             '<div class="folder-strategy-readonly"><span>' + tr('folderRotation') + '</span><strong>' + tr('strategyRandom') + '</strong></div>' +
             '<div class="folder-notice" id="folderNotice" hidden></div>' +
@@ -1232,6 +1494,24 @@
         var root = modalContent.querySelector('.folder-config');
         if (!root) return;
         var choose = root.querySelector('#folderChooseBtn');
+        var reauth = root.querySelector('#folderReauthBtn');
+        if (reauth) {
+            reauth.addEventListener('click', function () {
+                setFolderButtonState(reauth, true);
+                showFolderNotice(tr('folderPreparing'), 'info');
+                reauthorizeSavedFolder().then(function () {
+                    showFolderNotice(tr('folderReady'), 'success');
+                    setFolderStatus();
+                    refreshGallery();
+                }).catch(function (err) {
+                    var message = folderErrorMessage(err);
+                    showFolderNotice(message, 'error');
+                    setFolderStatus(message);
+                }).finally(function () {
+                    setFolderButtonState(reauth, false);
+                });
+            });
+        }
         if (!choose) return;
         choose.addEventListener('click', function () {
             if (!WF || !WF.pickDirectory || !WF.prepareMount) {
@@ -1246,6 +1526,8 @@
             }).then(function (mount) {
                 wallpaperDraftFolderMount = mount;
                 var draft = currentWallpaperDraft();
+                var initialBag = [mount.firstName].concat(mount.shuffleBag || []);
+                var previewWindow = mount.previewWindow || buildFolderPreviewWindow(mount.files, '', initialBag, FOLDER_GALLERY_LIMIT);
                 draft.activeSource = 'folder';
                 draft.providers.folder.config = D.normalizeFolderConfig({
                     pathLabel: mount.pathLabel || '',
@@ -1257,7 +1539,12 @@
                     completed: mount.completed === true,
                     lastScanAt: Date.now(),
                     lastError: '',
-                    shuffleBag: [mount.firstName].concat(mount.shuffleBag || []),
+                    shuffleBag: initialBag,
+                    previewWindow: previewWindow,
+                    permissionStatus: 'granted',
+                    usingLightCache: false,
+                    lightCacheCount: previewWindow.length,
+                    lastPermissionCheckAt: Date.now(),
                     currentName: ''
                 });
                 showFolderNotice(tr('folderReady') + (mount.pathLabel || tr('sourceFolder')), 'success');
@@ -1301,6 +1588,7 @@
     }
 
     function invalidateWallpaperTab() {
+        saveTabScroll('wallpaper');
         if (_tabPages.wallpaper) {
             _tabPages.wallpaper.remove();
             delete _tabPages.wallpaper;
@@ -1314,15 +1602,23 @@
         if (!root) return;
         var config = currentWallpaperDraft().providers.rss.config;
         var interval = root.querySelector('#rssRefreshInterval');
+        var displayMode = root.querySelector('#rssDisplayMode');
         var position = root.querySelector('#rssSummaryPosition');
         var mode = root.querySelector('#rssSummaryMode');
         var showSummary = root.querySelector('#rssShowSummary');
         var showLink = root.querySelector('#rssShowLink');
+        var urlInput = root.querySelector('#rssUrlInput');
         if (interval) interval.value = String(config.refreshIntervalMs);
+        if (displayMode) displayMode.value = config.displayMode || 'cycle';
         if (position) position.value = config.summaryPosition;
         if (mode) mode.value = config.summaryMode;
         if (showSummary) showSummary.checked = config.showSummary !== false;
         if (showLink) showLink.checked = config.showLink !== false;
+        if (urlInput) {
+            urlInput.addEventListener('input', function () {
+                clearRssValidation();
+            });
+        }
 
         root.querySelectorAll('input[name="rssSource"]').forEach(function (radio) {
             radio.addEventListener('change', function () {
@@ -1336,11 +1632,12 @@
             });
         });
 
-        [interval, position, mode].forEach(function (el) {
+        [interval, displayMode, position, mode].forEach(function (el) {
             if (!el) return;
             el.addEventListener('change', function () {
                 var next = currentWallpaperDraft().providers.rss.config;
                 if (el === interval) next.refreshIntervalMs = parseInt(el.value, 10) || 0;
+                if (el === displayMode) next.displayMode = el.value === 'latest' ? 'latest' : 'cycle';
                 if (el === position) next.summaryPosition = el.value;
                 if (el === mode) next.summaryMode = el.value;
                 refreshWallpaperApplyFooter();
@@ -1367,8 +1664,8 @@
         if (target.id === 'rssAddBtn') {
             var name = document.getElementById('rssNameInput').value.trim();
             var url = document.getElementById('rssUrlInput').value.trim();
-            if (config.sources.length >= 5) return setRssStatus(tr('rssLimit'));
-            if (!F.isHttpsUrl(url)) return setRssStatus(tr('rssInvalidUrl'));
+            if (config.sources.length >= 5) return showRssValidation(tr('rssLimit'));
+            if (!F.isHttpsUrl(url)) return showRssValidation(httpsOnlyMessage('rssInvalidUrl', url));
             var id = 'custom-' + F.generateId();
             config.sources.push({
                 id: id,
@@ -1386,8 +1683,12 @@
         var source = config.sources.filter(function (item) { return item.id === row.dataset.rssSource; })[0];
         if (!source) return;
         if (target.dataset.action === 'delete-rss') {
+            if (config.sources.length <= 1) {
+                setRssStatus(tr('rssNeedsSource'));
+                showRssNotice(tr('rssNeedsSource'), 'error');
+                return;
+            }
             config.sources = config.sources.filter(function (item) { return item.id !== source.id; });
-            if (!config.sources.length) config.sources = D.defaultRssConfig().sources;
             if (!config.sources.some(function (item) { return item.id === config.activeSourceId; })) config.activeSourceId = config.sources[0].id;
             invalidateWallpaperTab();
             return;
@@ -1436,6 +1737,12 @@
     function bindApiConfigEvents() {
         var root = modalContent.querySelector('.api-config');
         if (!root) return;
+        var urlInput = root.querySelector('#apiUrlInput');
+        if (urlInput) {
+            urlInput.addEventListener('input', function () {
+                clearApiValidation();
+            });
+        }
         root.addEventListener('click', onApiConfigClick);
         root.addEventListener('change', onApiConfigChange);
     }
@@ -1471,8 +1778,8 @@
             var url = document.getElementById('apiUrlInput').value.trim();
             var pathEl = document.getElementById('apiJsonPathInput');
             var list = apiType === 'json' ? config.jsonSources : config.imageSources;
-            if (list.length >= 5) return showApiNotice(tr('apiLimit'), 'error');
-            if (!F.isHttpsUrl(url)) return showApiNotice(tr('apiInvalidUrl'), 'error');
+            if (list.length >= 5) return showApiValidation(tr('apiLimit'));
+            if (!F.isHttpsUrl(url)) return showApiValidation(httpsOnlyMessage('apiInvalidUrl', url));
             var id = apiType + '-' + F.generateId();
             var source = {
                 id: id,
@@ -1509,9 +1816,29 @@
     function showApiNotice(message, type) {
         var el = document.getElementById('apiNotice');
         if (!el) return;
+        clearTimeout(apiNoticeTimer);
+        apiNoticeTimer = null;
+        apiNoticeToken += 1;
         el.textContent = message || '';
         el.dataset.type = type || 'info';
+        delete el.dataset.validation;
         el.hidden = !message;
+    }
+
+    function showApiValidation(message) {
+        showApiNotice(message, 'error');
+        var el = document.getElementById('apiNotice');
+        var token = apiNoticeToken;
+        if (el) el.dataset.validation = 'true';
+        apiNoticeTimer = setTimeout(function () {
+            if (token === apiNoticeToken) clearApiValidation();
+        }, 4000);
+    }
+
+    function clearApiValidation() {
+        var el = document.getElementById('apiNotice');
+        if (!el || el.dataset.validation !== 'true') return;
+        showApiNotice('', 'info');
     }
 
     function apiErrorMessage(err) {
@@ -2574,6 +2901,7 @@
         if (source === 'bing' || source === 'api') return source;
         var order = isRssWallpaperMode() ? activeRssOrder() : D.loadOrder();
         if (!order.length) return null;
+        if (isRssWallpaperMode() && D.loadRssConfig && D.loadRssConfig().displayMode === 'latest') return order[0];
         var index = D.getActiveIndex();
         var currentIndex = isLocalWallpaperMode() || isRssWallpaperMode() ? (index - 1 + order.length) % order.length : index % order.length;
         return order[currentIndex];
@@ -2745,9 +3073,13 @@
     function visibleFolderNames() {
         var state = D.loadFolderState ? D.loadFolderState() : {};
         var names = [];
-        if (state.currentName) names.push(state.currentName);
+        (state.previewWindow || []).forEach(function (name) {
+            if (names.length >= FOLDER_GALLERY_LIMIT) return;
+            if (names.indexOf(name) === -1) names.push(name);
+        });
+        if (state.currentName && names.indexOf(state.currentName) === -1) names.unshift(state.currentName);
         (state.shuffleBag || []).forEach(function (name) {
-            if (names.length >= 6) return;
+            if (names.length >= FOLDER_GALLERY_LIMIT) return;
             if (names.indexOf(name) === -1) names.push(name);
         });
         if (!names.length) {
@@ -2756,7 +3088,7 @@
                 if (names.indexOf(name) === -1) names.push(name);
             });
         }
-        return names.slice(0, 6);
+        return names.slice(0, FOLDER_GALLERY_LIMIT);
     }
 
     function scheduleVisibleFolderThumbs(names) {
@@ -2764,7 +3096,7 @@
         var thumbs = D.loadThumbs();
         var missing = names.filter(function (name) {
             return !thumbs[D.folderId(name)];
-        }).slice(0, 4);
+        }).slice(0, FOLDER_GALLERY_LIMIT);
         if (!missing.length) return;
 
         var run = function () {

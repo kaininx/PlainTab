@@ -46,6 +46,11 @@
     top: 28px;
 }
 
+.rss-wallpaper-info.top.expanded {
+    right: 132px;
+    max-width: min(720px, calc(100vw - 156px));
+}
+
 .rss-wallpaper-info.bottom {
     bottom: 28px;
 }
@@ -90,6 +95,10 @@
     right: 24px;
 }
 
+.rss-wallpaper-info.top.icon {
+    right: 132px;
+}
+
 .rss-info-toggle {
     width: 36px;
     height: 36px;
@@ -129,6 +138,37 @@
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+    .rss-wallpaper-info {
+        left: 16px;
+        right: 16px;
+    }
+
+    .rss-wallpaper-info.expanded {
+        max-width: calc(100vw - 32px);
+    }
+
+    .rss-wallpaper-info.top.expanded {
+        top: 66px;
+        right: 16px;
+        max-width: calc(100vw - 32px);
+    }
+
+    .rss-wallpaper-info.icon {
+        left: auto;
+        right: 16px;
+    }
+
+    .rss-wallpaper-info.top.icon {
+        top: 66px;
+        right: 16px;
+    }
+
+    .rss-info-popover {
+        width: min(320px, calc(100vw - 32px));
+    }
 }
 
 /* ========== 本地壁纸画廊 ========== */

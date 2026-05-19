@@ -8,6 +8,9 @@
     var D = window.WallpaperData;
     var S = window.WallpaperShow;
     var FIRST_BATCH_LIMIT = 48;
+    var PREVIEW_WINDOW_LIMIT = 12;
+    var LIGHT_CACHE_MAX_SIDE = 1920;
+    var LIGHT_CACHE_QUALITY = 0.82;
     var IMAGE_EXT_RE = /\.(jpe?g|png|webp|avif|gif|bmp)$/i;
 
     function folderError(code, message) {
@@ -136,6 +139,33 @@
         return shuffle(names);
     }
 
+    function buildPreviewWindow(files, currentName, shuffleBag, limit) {
+        limit = parseInt(limit, 10) || PREVIEW_WINDOW_LIMIT;
+        var seen = {};
+        var allNames = (Array.isArray(files) ? files : []).map(function (file) {
+            return String(file && file.name || '').trim();
+        }).filter(function (name) {
+            if (!name || seen[name]) return false;
+            seen[name] = true;
+            return true;
+        });
+        if (allNames.length <= limit) return allNames;
+
+        var valid = {};
+        allNames.forEach(function (name) { valid[name] = true; });
+        var windowNames = [];
+        function add(name) {
+            name = String(name || '').trim();
+            if (!name || !valid[name] || windowNames.indexOf(name) !== -1 || windowNames.length >= limit) return;
+            windowNames.push(name);
+        }
+
+        add(currentName);
+        (Array.isArray(shuffleBag) ? shuffleBag : []).forEach(add);
+        allNames.forEach(add);
+        return windowNames.slice(0, limit);
+    }
+
     function preparePreviewFromFile(file, id, blur) {
         if (!file) return Promise.reject(folderError('FOLDER_FILE_NOT_FOUND', 'file not found'));
         var url = URL.createObjectURL(file);
@@ -149,6 +179,69 @@
             var preview = values[1] || thumb;
             if (!thumb || !preview) throw folderError('FOLDER_THUMBNAIL_FAILED', 'folder thumbnail failed');
             return { id: id, thumb: thumb, preview: preview };
+        }, function (err) {
+            URL.revokeObjectURL(url);
+            throw err;
+        });
+    }
+
+    function imageFromUrl(url) {
+        return new Promise(function (resolve, reject) {
+            var img = new Image();
+            img.onload = function () { resolve(img); };
+            img.onerror = function () { reject(folderError('FOLDER_LIGHT_CACHE_FAILED', 'folder light cache failed')); };
+            img.src = url;
+        });
+    }
+
+    function canvasToBlob(canvas, type, quality) {
+        return new Promise(function (resolve, reject) {
+            if (!canvas.toBlob) {
+                reject(folderError('FOLDER_LIGHT_CACHE_FAILED', 'canvas toBlob unsupported'));
+                return;
+            }
+            canvas.toBlob(function (blob) {
+                if (blob) resolve(blob);
+                else reject(folderError('FOLDER_LIGHT_CACHE_FAILED', 'folder light cache failed'));
+            }, type, quality);
+        });
+    }
+
+    function prepareLightCacheFromFile(file, id) {
+        if (!file) return Promise.reject(folderError('FOLDER_FILE_NOT_FOUND', 'file not found'));
+        var url = URL.createObjectURL(file);
+        return imageFromUrl(url).then(function (img) {
+            var maxSide = Math.max(img.width || 0, img.height || 0);
+            var scale = maxSide > LIGHT_CACHE_MAX_SIDE ? LIGHT_CACHE_MAX_SIDE / maxSide : 1;
+            var width = Math.max(1, Math.round((img.width || 1) * scale));
+            var height = Math.max(1, Math.round((img.height || 1) * scale));
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            return canvasToBlob(canvas, 'image/jpeg', LIGHT_CACHE_QUALITY).then(function (blob) {
+                canvas.width = 0;
+                canvas.height = 0;
+                URL.revokeObjectURL(url);
+                return {
+                    id: id,
+                    record: {
+                        blob: blob,
+                        mime: blob.type || 'image/jpeg',
+                        name: file.name || '',
+                        size: file.size || 0,
+                        lastModified: file.lastModified || 0,
+                        cachedAt: Date.now(),
+                        source: 'folder-light'
+                    }
+                };
+            }, function (err) {
+                canvas.width = 0;
+                canvas.height = 0;
+                URL.revokeObjectURL(url);
+                throw err;
+            });
         }, function (err) {
             URL.revokeObjectURL(url);
             throw err;
@@ -172,6 +265,7 @@
                         scan.files.forEach(function (item) {
                             if (item.name !== record.name) usable.push(item);
                         });
+                        var shuffleBag = buildShuffleBag(usable, record.name);
                         return {
                             handle: handle,
                             pathLabel: String(handle && handle.name || ''),
@@ -183,7 +277,8 @@
                             firstId: id,
                             preview: prepared.preview,
                             thumb: prepared.thumb,
-                            shuffleBag: buildShuffleBag(usable, record.name)
+                            shuffleBag: shuffleBag,
+                            previewWindow: buildPreviewWindow(usable, '', [record.name].concat(shuffleBag))
                         };
                     });
                 }).catch(function () {
@@ -211,8 +306,10 @@
         readImageFile: readImageFile,
         fileRecord: fileRecord,
         buildShuffleBag: buildShuffleBag,
+        buildPreviewWindow: buildPreviewWindow,
         prepareMount: prepareMount,
         preparePreviewFromFile: preparePreviewFromFile,
+        prepareLightCacheFromFile: prepareLightCacheFromFile,
         rescan: rescan,
         error: folderError
     };
