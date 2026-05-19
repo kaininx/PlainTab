@@ -843,14 +843,16 @@
 
     function createWallpaperWorkOrder(source) {
         var saved = D.loadWallpaper();
-        source = normalizeDraftSource(source || saved.activeSource);
-        var config = providerConfigForSource(saved, source);
+        var savedSource = normalizeDraftSource(saved.activeSource);
+        var pendingSource = normalizeDraftSource(source || savedSource);
+        var pendingConfig = providerConfigForSource(saved, pendingSource);
+        var baselineConfig = providerConfigForSource(saved, savedSource);
         wallpaperWorkOrder = {
-            pendingSource: source,
-            pendingConfig: clonePlain(config),
+            pendingSource: pendingSource,
+            pendingConfig: clonePlain(pendingConfig),
             baseline: {
-                pendingSource: source,
-                pendingConfig: clonePlain(config)
+                pendingSource: savedSource,
+                pendingConfig: clonePlain(baselineConfig)
             },
             health: { state: 'Clean', reasonKey: 'wallpaperApplyNoChanges', message: '' }
         };
@@ -877,13 +879,14 @@
     function refreshWallpaperWorkOrderBaseline() {
         if (!wallpaperWorkOrder) return;
         var saved = D.loadWallpaper();
-        var source = normalizeDraftSource(wallpaperWorkOrder.pendingSource);
+        var source = normalizeDraftSource(saved.activeSource);
         var config = providerConfigForSource(saved, source);
+        wallpaperWorkOrder.pendingSource = source;
+        wallpaperWorkOrder.pendingConfig = clonePlain(config);
         wallpaperWorkOrder.baseline = {
             pendingSource: source,
             pendingConfig: clonePlain(config)
         };
-        wallpaperWorkOrder.pendingConfig = clonePlain(config);
         wallpaperWorkOrder.health = { state: 'Clean', reasonKey: 'wallpaperApplyNoChanges', message: '' };
         validateWallpaperWorkOrder();
     }
