@@ -8,7 +8,7 @@ function createStorage(initialWallpaper, options = {}) {
     calls,
     api: {
       loadWallpaper() {
-        return JSON.parse(JSON.stringify(wallpaper));
+        return wallpaper;
       },
       saveWallpaper(next) {
         calls.push(['saveWallpaper', next.activeSource]);
@@ -94,7 +94,7 @@ async function testRssRequiresMatchingPassedTest() {
 }
 
 async function testApplyPreparesBeforeCleanup() {
-  const storage = createStorage(baseWallpaper('bing'));
+  const storage = createStorage(baseWallpaper('upload'));
   const Apply = loadApplyModule(storage, {
     reloadWallpaper: () => {
       storage.calls.push(['reloadWallpaper']);
@@ -114,7 +114,7 @@ async function testApplyPreparesBeforeCleanup() {
     }
   });
   assert.strictEqual(result.state, 'Applied');
-  assert.deepStrictEqual(storage.calls.map((call) => call[0]), ['prepare', 'saveWallpaper', 'reloadWallpaper', 'cleanupSourceCache']);
+  assert.deepStrictEqual(storage.calls, [['prepare', 'rss'], ['saveWallpaper', 'rss'], ['reloadWallpaper'], ['cleanupSourceCache', 'upload']]);
   assert.strictEqual(storage.api.loadWallpaper().activeSource, 'rss');
 }
 
