@@ -239,6 +239,112 @@ body {
     background: var(--accent-soft);
 }
 
+/* ========== 首次使用提示 ========== */
+.onboarding-hint {
+    position: fixed;
+    left: 24px;
+    bottom: 24px;
+    z-index: 90;
+    width: min(390px, calc(100vw - 48px));
+    padding: 16px 18px 14px;
+    color: var(--text-primary);
+    background: var(--glass-tint), var(--glass-bg);
+    border: var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow), var(--glass-highlight);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(14px);
+    transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.55s;
+    user-select: none;
+}
+
+.onboarding-hint.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0s;
+}
+
+.onboarding-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    color: var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    font-family: inherit;
+    transition: color var(--transition), background var(--transition);
+}
+
+.onboarding-close:hover {
+    color: var(--text-primary);
+    background: var(--control-bg);
+}
+
+.onboarding-title {
+    padding-right: 28px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.onboarding-body {
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.onboarding-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+.onboarding-action {
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--control-border);
+    color: var(--text-secondary);
+    background: var(--control-bg);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    transition: color var(--transition), background var(--transition), border-color var(--transition), transform var(--transition);
+}
+
+.onboarding-action:hover {
+    color: var(--text-primary);
+    background: var(--control-bg-hover);
+    border-color: var(--control-border-hover);
+}
+
+.onboarding-action:active {
+    transform: scale(var(--press-scale));
+}
+
+.onboarding-action.primary {
+    color: rgb(var(--accent-contrast-rgb));
+    background: rgba(var(--accent-rgb), 0.85);
+    border-color: rgba(var(--accent-rgb), 0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .onboarding-hint,
+    .onboarding-hint.visible {
+        transition: opacity 0.2s ease, visibility 0s linear 0s;
+        transform: none;
+    }
+}
+
 /* ========== 响应式 ========== */
 @media (max-width: 480px) {
     .lang-btn {
@@ -269,5 +375,12 @@ body {
 
     .search-bar {
         width: 90vw;
+    }
+
+    .onboarding-hint {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        width: auto;
     }
 }

@@ -81,6 +81,8 @@
     var folderPermissionNoticeDismissed = false;
     var wallpaperDownloadNoticeEl = null;
     var wallpaperDownloadNoticeTimer = null;
+    var ONBOARDING_SEEN_KEY = 'ptab_onboarding_seen_v1';
+    var onboardingEl = null;
 
     // ================================================================
     // 壁纸 — 主加载流程（编排层）
@@ -1365,6 +1367,81 @@
         }
     }
 
+    function onboardingSeen() {
+        try { return localStorage.getItem(ONBOARDING_SEEN_KEY) === '1'; } catch (e) { return true; }
+    }
+
+    function markOnboardingSeen() {
+        try { localStorage.setItem(ONBOARDING_SEEN_KEY, '1'); } catch (e) { }
+    }
+
+    function onboardingCopy() {
+        return {
+            title: t('onboardingTitle'),
+            body: t('onboardingBody'),
+            primary: t('onboardingOpenSettings'),
+            secondary: t('onboardingDismiss'),
+            close: t('onboardingClose')
+        };
+    }
+
+    function dismissOnboarding() {
+        markOnboardingSeen();
+        if (!onboardingEl) return;
+        var el = onboardingEl;
+        onboardingEl = null;
+        el.classList.remove('visible');
+        setTimeout(function () {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        }, 260);
+    }
+
+    function showOnboardingHint() {
+        if (onboardingEl || onboardingSeen()) return;
+        var copy = onboardingCopy();
+        var hint = document.createElement('div');
+        hint.className = 'onboarding-hint';
+        hint.setAttribute('role', 'status');
+        hint.setAttribute('aria-live', 'polite');
+        hint.innerHTML =
+            '<button class="onboarding-close" type="button" aria-label="' + escapeAttr(copy.close) + '">×</button>' +
+            '<div class="onboarding-title">' + escapeHtml(copy.title) + '</div>' +
+            '<div class="onboarding-body">' + escapeHtml(copy.body) + '</div>' +
+            '<div class="onboarding-actions">' +
+            '<button class="onboarding-action primary" type="button">' + escapeHtml(copy.primary) + '</button>' +
+            '<button class="onboarding-action" type="button">' + escapeHtml(copy.secondary) + '</button>' +
+            '</div>';
+
+        hint.querySelector('.onboarding-close').addEventListener('click', dismissOnboarding);
+        hint.querySelector('.onboarding-action.primary').addEventListener('click', function () {
+            dismissOnboarding();
+            if (SP && SP.openModal) SP.openModal();
+        });
+        hint.querySelector('.onboarding-action:not(.primary)').addEventListener('click', dismissOnboarding);
+        hint.addEventListener('click', function (e) { e.stopPropagation(); });
+
+        onboardingEl = hint;
+        document.body.appendChild(hint);
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                if (onboardingEl === hint) hint.classList.add('visible');
+            });
+        });
+    }
+
+    function scheduleOnboardingHint() {
+        if (onboardingSeen()) return;
+        var show = function () {
+            if ((window.Palette && window.Palette.isOpen) || SP.isOpen() || SP.isLangPanelOpen()) return;
+            showOnboardingHint();
+        };
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(function () { setTimeout(show, 900); }, { timeout: 2200 });
+        } else {
+            setTimeout(show, 1800);
+        }
+    }
+
     function bindGlobalEvents() {
         // --- 全局鼠标跟踪 ---
 
@@ -1439,13 +1516,14 @@
 
         document.addEventListener('dblclick', function (e) {
             if (window.Palette && window.Palette.isOpen) return;
-            if (e.target.closest('button, input, select, .settings-panel, .language-panel')) return;
+            if (e.target.closest('button, input, select, .settings-panel, .language-panel, .onboarding-hint')) return;
             openPalette(false, pointerAnchorFromEvent(e));
         });
 
         document.addEventListener('auxclick', function (e) {
             if (e.button !== 1) return;
             if (window.Palette && window.Palette.isOpen) return;
+            if (e.target.closest('button, input, select, .settings-panel, .language-panel, .onboarding-hint')) return;
             e.preventDefault();
             openPalette(true, pointerAnchorFromEvent(e));
         });
@@ -1499,6 +1577,7 @@
             loadWallpaper();
             bindGlobalEvents();
             schedulePanelWarmup();
+            scheduleOnboardingHint();
         });
     }
 

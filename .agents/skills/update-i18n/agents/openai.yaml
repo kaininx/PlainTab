@@ -1,0 +1,7 @@
+interface:
+  display_name: "Update PlainTab I18N"
+  short_description: "Maintain runtime UI translations and language packs"
+  default_prompt: "Use $update-i18n to update PlainTab UI translations."
+
+policy:
+  allow_implicit_invocation: true
