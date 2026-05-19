@@ -191,10 +191,12 @@
             api: {
                 config: {
                     apiType: 'image',
-                    activeImageSourceId: '',
+                    activeImageSourceId: 'picsum-photos',
                     activeJsonSourceId: '',
                     refreshIntervalMs: 86400000,
-                    imageSources: [],
+                    imageSources: [
+                        { id: 'picsum-photos', name: 'Picsum Photos', url: 'https://picsum.photos/1920/1080' }
+                    ],
                     jsonSources: []
                 },
                 state: { lastCheckedAt: 0, lastSuccessAt: 0, lastError: '', lastSourceId: '', lastImageUrl: '' }
