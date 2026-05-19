@@ -9,6 +9,14 @@
     function t() { return window.t.apply(window, arguments); }
     function log() { window.log.apply(window, arguments); }
     function warn() { window.warn.apply(window, arguments); }
+    function formatText(key, values) {
+        return String(t(key)).replace(/\{([a-zA-Z0-9_]+)\}/g, function (_, name) {
+            return values && Object.prototype.hasOwnProperty.call(values, name) ? values[name] : '';
+        });
+    }
+    function scopeLabel(scope) {
+        return scope === 'hidden' ? t('commandHiddenScope') : t('commandNormalScope');
+    }
 
     // ================================================================
     // 常量
@@ -333,11 +341,7 @@
 
     function commandToggleLabel() {
         var key = cpCommandsCollapsed ? 'expandShortcutLinks' : 'collapseShortcutLinks';
-        var lang = window.SettingsPanel && window.SettingsPanel.getCurrentLang ? window.SettingsPanel.getCurrentLang() : '';
-        if (lang && lang.indexOf('zh') === 0) return cpCommandsCollapsed ? '展开快捷链接' : '收起快捷链接';
-        var label = t(key);
-        if (label && label !== key) return label;
-        return cpCommandsCollapsed ? 'Show shortcut links' : 'Hide shortcut links';
+        return t(key);
     }
 
     function palettePromptLabel() {
@@ -659,7 +663,7 @@
         if (state.type === 'help') {
             html += renderShellHelpOutput();
         } else if (state.type === 'add') {
-            html += '<div class="cp-shell-empty">press Enter to add ' + escapeHTML(state.query || '<url>') + '</div>';
+            html += '<div class="cp-shell-empty">' + escapeHTML(formatText('commandTerminalPromptAdd', { value: state.query || '<url>' })) + '</div>';
         } else if (state.raw && (state.type === 'open' || state.type === 'shortcut') && rest.length) {
             html += '<div class="cp-shell-section"># completions</div>';
             rest.forEach(function (s) { html += buildShellShortcutHTML(s, 'tab'); });
@@ -790,9 +794,9 @@
     function commandTerminalEditHint(state, candidates) {
         if (state.args.name || state.args.url) {
             var target = candidates[0];
-            return target ? ('Press Enter to update ' + target.name + '.') : 'No matching shortcut to edit.';
+            return target ? formatText('commandTerminalUpdateNamed', { name: target.name }) : t('commandTerminalNoMatchEdit');
         }
-        if (candidates.length) return 'Press Enter to edit the target, or type edit <name> <new name/url>.';
+        if (candidates.length) return t('commandTerminalEditTargetHint');
         return 'Type edit <name>, or edit <name> <new name/url>.';
     }
 
@@ -864,35 +868,35 @@
     function commandTerminalHelpHTML() {
         var groups = [
             {
-                title: 'navigation',
+                title: t('commandTerminalGroupNavigation'),
                 items: [
-                    ['help, h', 'show this command guide'],
-                    ['ls', 'list shortcuts in this panel'],
-                    ['<keyword>', 'search shortcuts'],
-                    ['open, o <name>', 'open first match'],
-                    ['recent', 'show recently opened shortcuts'],
-                    ['clear', 'clear terminal output']
+                    ['help, h', t('commandTerminalHelpGuide')],
+                    ['ls', t('commandTerminalListShortcuts')],
+                    ['<keyword>', t('commandTerminalSearchShortcuts')],
+                    ['open, o <name>', t('commandTerminalOpenFirst')],
+                    ['recent', t('commandTerminalShowRecent')],
+                    ['clear', t('commandTerminalClearOutput')]
                 ]
             },
             {
-                title: 'management',
+                title: t('commandTerminalGroupManagement'),
                 items: [
-                    ['add <url>', 'add URL; title is fetched automatically'],
-                    ['edit <name> [new]', 'select target or update inline'],
-                    ['del <name>', 'select target, Enter again confirms'],
-                    [isHiddenMode ? 'unhide <name>' : 'hide <name>', isHiddenMode ? 'move shortcut to normal panel' : 'move shortcut to hidden panel'],
-                    ['delall', 'review, then delete all shortcuts in this panel']
+                    ['add <url>', t('commandTerminalAddUrl')],
+                    ['edit <name> [new]', t('commandTerminalEditInline')],
+                    ['del <name>', t('commandTerminalDeleteInline')],
+                    [isHiddenMode ? 'unhide <name>' : 'hide <name>', isHiddenMode ? t('commandTerminalMoveNormal') : t('commandTerminalMoveHidden')],
+                    ['delall', t('commandTerminalDeleteAll')]
                 ]
             },
             {
-                title: 'data and keys',
+                title: t('commandTerminalGroupDataKeys'),
                 items: [
-                    ['import', 'import shortcuts from file'],
-                    ['export', 'export current panel shortcuts'],
-                    ['reset', 'reset usage stats in this panel'],
-                    ['restore', 'restore built-in defaults'],
-                    ['Tab', 'complete command or selected target'],
-                    ['Up / Down / Enter / Esc', 'select row, run/open, close']
+                    ['import', t('commandTerminalImportFile')],
+                    ['export', t('commandTerminalExportCurrent')],
+                    ['reset', t('commandTerminalResetUsage')],
+                    ['restore', t('commandTerminalRestoreDefaults')],
+                    ['Tab', t('commandTerminalCompleteCommand')],
+                    ['Up / Down / Enter / Esc', t('commandTerminalNavigationKeys')]
                 ]
             }
         ];
@@ -930,19 +934,19 @@
         } else if (state.type === 'help') {
             html += commandTerminalHelpHTML();
         } else if (state.type === 'add') {
-            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to add ' + escapeHTML(state.query || '<url>') + '.</div>';
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + escapeHTML(formatText('commandTerminalPromptAdd', { value: state.query || '<url>' })) + '</div>';
         } else if (state.type === 'import') {
-            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to choose a shortcuts file.</div>';
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + t('commandTerminalPromptChooseImportFile') + '</div>';
         } else if (state.type === 'export') {
-            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to export current panel shortcuts.</div>';
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + t('commandTerminalPromptExport') + '</div>';
         } else if (state.type === 'clear-screen') {
-            html += '<div class="cp-command-terminal-message">Press Enter to clear terminal output.</div>';
+            html += '<div class="cp-command-terminal-message">' + t('commandTerminalPromptClearOutput') + '</div>';
         } else if (state.type === 'delete-all') {
-            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to review deleting all shortcuts in this panel.</div>';
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + t('commandTerminalPromptReviewDeleteAll') + '</div>';
         } else if (state.type === 'reset') {
-            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to reset current panel usage stats.</div>';
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + t('commandTerminalPromptResetUsage') + '</div>';
         } else if (state.type === 'restore') {
-            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">Press Enter to restore built-in defaults.</div>';
+            html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + t('commandTerminalPromptRestoreDefaults') + '</div>';
         } else if (state.type === 'edit') {
             html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + escapeHTML(commandTerminalEditHint(state, candidates)) + '</div>';
             if (candidates.length) {
@@ -964,7 +968,7 @@
                     html += buildCommandTerminalRow(shortcut, tag, icons);
                 });
             } else {
-                html += '<div class="cp-command-terminal-empty">' + (state.type === 'recent' ? 'No recent shortcuts.' : 'No matching shortcuts.') + '</div>';
+                html += '<div class="cp-command-terminal-empty">' + (state.type === 'recent' ? t('noRecentShortcuts') : t('noResults')) + '</div>';
             }
         }
         html += '</div>';
@@ -1128,21 +1132,27 @@
             };
             img.src = favUrl;
         }
-        return { ok: true, message: 'Added ' + name + ' to ' + (isHiddenMode ? 'hidden' : 'normal') + ' shortcuts.' };
+        return {
+            ok: true,
+            message: formatText('commandTerminalAdded', {
+                name: name,
+                scope: scopeLabel(isHiddenMode ? 'hidden' : 'normal')
+            })
+        };
     }
 
     function addShortcutFromCommandTerminal(urlValue, token, input) {
         var url = normalizeHttpsUrl(urlValue);
-        if (!url) return { ok: false, message: 'Invalid URL. Use add example.com or add https://example.com.' };
+        if (!url) return { ok: false, message: t('commandTerminalInvalidUrl') };
         var shortcuts = loadShortcuts();
         if (shortcuts.some(function (s) { return s.url.toLowerCase() === url.toLowerCase(); })) {
-            return { ok: false, message: 'Shortcut already exists.' };
+            return { ok: false, message: t('commandTerminalShortcutExists') };
         }
         fetchTitleForCommandTerminal(url, function (name) {
             if (token !== commandTerminalAsyncToken || commandTerminalCommittedInput !== input) return;
             renderCommandTerminalResult(input, createCommandTerminalShortcut(name, url));
         });
-        return { pending: true, message: 'Resolving page title for ' + urlHostLabel(url) + '...' };
+        return { pending: true, message: formatText('commandTerminalResolvingTitle', { host: urlHostLabel(url) }) };
     }
 
     function importShortcutsFromCommandTerminal(inputCommand) {
@@ -1156,7 +1166,7 @@
             reader.onload = function () {
                 var parsed = parseShortcutImportPayload(reader.result, file.name);
                 if (!parsed.items.length) {
-                    renderCommandTerminalResult(inputCommand, { ok: false, message: 'No importable shortcuts found.' });
+                    renderCommandTerminalResult(inputCommand, { ok: false, message: t('commandTerminalNoImportable') });
                     return;
                 }
                 var sourceScope = parsed.format === 'json' ? normalizeScope(parsed.scope, isHiddenMode) : null;
@@ -1164,24 +1174,35 @@
                 var result = importShortcutsToScope(parsed.items, targetScope);
                 renderCommandTerminalResult(inputCommand, {
                     ok: true,
-                    message: 'Imported to ' + targetScope + ': added ' + result.added + ', moved ' + result.moved + ', skipped ' + result.skipped + '.'
+                    message: formatText('commandTerminalImported', {
+                        scope: scopeLabel(targetScope),
+                        added: result.added,
+                        moved: result.moved,
+                        skipped: result.skipped
+                    })
                 });
             };
             reader.readAsText(file);
         });
         setTimeout(function () { input.click(); }, 0);
-        return { pending: true, message: 'Choose a JSON or HTML shortcuts file.' };
+        return { pending: true, message: t('commandTerminalChooseImportFile') };
     }
 
     function exportShortcutsFromCommandTerminal() {
         var count = shortcutsForScope(currentScopeName()).length;
         handleExport();
-        return { ok: true, message: 'Exported ' + count + ' shortcuts from ' + currentScopeName() + ' panel.' };
+        return {
+            ok: true,
+            message: formatText('commandTerminalExported', {
+                count: count,
+                scope: scopeLabel(currentScopeName())
+            })
+        };
     }
 
     function clearShortcutsFromCommandTerminal(confirmed) {
         var scope = currentScopeName();
-        if (!confirmed) return { ok: false, message: 'Type delall, then press Enter again to confirm.' };
+        if (!confirmed) return { ok: false, message: t('commandTerminalConfirmDeleteAllFirst') };
         var hidden = loadHidden();
         var removeIds = {};
         var keptShortcuts = loadShortcuts().filter(function (shortcut) {
@@ -1195,20 +1216,26 @@
         saveIcons(icons);
         saveRecents(loadRecents().filter(function (id) { return !removeIds[id]; }));
         if (scope === 'hidden') saveHidden(hidden.filter(function (id) { return !removeIds[id]; }));
-        return { ok: true, message: 'Deleted ' + Object.keys(removeIds).length + ' shortcuts from ' + scope + ' panel.' };
+        return {
+            ok: true,
+            message: formatText('commandTerminalDeletedFromScope', {
+                count: Object.keys(removeIds).length,
+                scope: scopeLabel(scope)
+            })
+        };
     }
 
     function commandTerminalActionHint(state) {
-        if (state.type === 'delete') return state.confirm ? 'Press Enter to delete the target shortcut.' : 'Press Enter to select the target, then Enter again to confirm.';
-        if (state.type === 'hide') return 'Press Enter to move the target shortcut to hidden panel.';
-        if (state.type === 'unhide') return 'Press Enter to move the target shortcut to normal panel.';
+        if (state.type === 'delete') return state.confirm ? t('commandTerminalConfirmDelete') : t('commandTerminalDeleteInline');
+        if (state.type === 'hide') return t('commandTerminalMoveHiddenHint');
+        if (state.type === 'unhide') return t('commandTerminalMoveNormalHint');
         return '';
     }
 
     function deleteShortcutFromCommandTerminal(state) {
-        if (!state.confirm) return { ok: false, message: 'Destructive command. Use del <name> --yes.' };
+        if (!state.confirm) return { ok: false, message: t('commandTerminalDestructiveDelete') };
         var target = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
-        if (!target) return { ok: false, message: 'No matching shortcut to delete.' };
+        if (!target) return { ok: false, message: t('commandTerminalNoMatchDelete') };
         return deleteCommandTerminalTarget(target);
     }
 
@@ -1219,26 +1246,26 @@
         saveIcons(icons);
         saveRecents(loadRecents().filter(function (id) { return id !== target.id; }));
         saveHidden(loadHidden().filter(function (id) { return id !== target.id; }));
-        return { ok: true, message: 'Deleted ' + target.name + '.' };
+        return { ok: true, message: formatText('commandTerminalDeletedNamed', { name: target.name }) };
     }
 
     function moveShortcutFromCommandTerminal(state, scope) {
         var target = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
-        if (!target) return { ok: false, message: 'No matching shortcut.' };
+        if (!target) return { ok: false, message: t('commandTerminalNoMatch') };
         saveHidden(setShortcutScope(target.id, scope, loadHidden().slice()));
         return { ok: true, message: (scope === 'hidden' ? 'Hidden ' : 'Unhid ') + target.name + '.' };
     }
 
     function editShortcutFromCommandTerminal(state) {
         var target = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
-        if (!target) return { ok: false, message: 'No matching shortcut to edit.' };
+        if (!target) return { ok: false, message: t('commandTerminalNoMatchEdit') };
         return editShortcutFromCommandTerminalByTarget(target, state);
     }
 
     function editCommandTerminalTarget(target, value) {
         value = String(value || '').trim();
-        if (!target) return { ok: false, message: 'No matching shortcut to edit.' };
-        if (!value) return { pending: true, message: 'Type a new name or URL, then press Enter.' };
+        if (!target) return { ok: false, message: t('commandTerminalNoMatchEdit') };
+        if (!value) return { pending: true, message: t('commandTerminalTypeNewValue') };
         var state = { args: {}, query: target.name };
         if (/^url\s+/i.test(value)) {
             state.args.url = value.replace(/^url\s+/i, '').trim();
@@ -1255,18 +1282,18 @@
     }
 
     function editShortcutFromCommandTerminalByTarget(target, state) {
-        if (!state.args.name && !state.args.url) return { ok: false, message: 'Type a new name or URL, then press Enter.' };
+        if (!state.args.name && !state.args.url) return { ok: false, message: t('commandTerminalTypeNewValue') };
         var oldName = target.name;
         var nextName = state.args.name || target.name;
         var nextUrl = target.url;
         if (state.args.url) {
             nextUrl = normalizeHttpsUrl(state.args.url);
-            if (!nextUrl) return { ok: false, message: 'Invalid URL. Type example.com or https://example.com.' };
+            if (!nextUrl) return { ok: false, message: t('commandTerminalInvalidEditUrl') };
             if (loadShortcuts().some(function (shortcut) { return shortcut.id !== target.id && shortcut.url.toLowerCase() === nextUrl.toLowerCase(); })) {
-                return { ok: false, message: 'Shortcut URL already exists.' };
+                return { ok: false, message: t('commandTerminalUrlExists') };
             }
         }
-        if (nextName === target.name && nextUrl === target.url) return { ok: true, message: 'No changes.' };
+        if (nextName === target.name && nextUrl === target.url) return { ok: true, message: t('commandTerminalNoChanges') };
         var shortcuts = loadShortcuts();
         shortcuts.forEach(function (shortcut) {
             if (shortcut.id === target.id) {
@@ -1278,7 +1305,7 @@
         var icons = loadIcons();
         icons[target.id] = getFaviconUrl(nextUrl) || ('LETTER:' + nextName[0].toUpperCase());
         saveIcons(icons);
-        return { ok: true, message: 'Updated ' + oldName + ' -> ' + nextName + '.' };
+        return { ok: true, message: formatText('commandTerminalUpdated', { oldName: oldName, newName: nextName }) };
     }
 
     function resetStatsFromCommandTerminal() {
@@ -1290,11 +1317,11 @@
         });
         saveShortcuts(shortcuts);
         saveRecents(loadRecents().filter(function (id) { return !targetIds[id]; }));
-        return { ok: true, message: 'Reset usage stats in ' + currentScopeName() + ' panel.' };
+        return { ok: true, message: formatText('commandTerminalResetUsageOk', { scope: scopeLabel(currentScopeName()) }) };
     }
 
     function restoreDefaultsFromCommandTerminal() {
-        if (isHiddenMode) return { ok: false, message: 'Hidden panel has no built-in default shortcuts.' };
+        if (isHiddenMode) return { ok: false, message: t('commandTerminalRestoreHiddenUnavailable') };
         var shortcuts = loadShortcuts().slice();
         var hidden = loadHidden().slice();
         var existing = findShortcutByUrl(shortcuts, BUILTIN_GITHUB.url);
@@ -1315,7 +1342,7 @@
         }
         saveShortcuts(shortcuts);
         saveHidden(hidden);
-        return { ok: true, message: 'Restored default shortcut GitHub.' };
+        return { ok: true, message: t('commandTerminalRestoreDefaultOk') };
     }
 
     function runCommandTerminalAction(input, action) {
@@ -1329,15 +1356,20 @@
     function commandTerminalPendingMessage(value) {
         if (!commandTerminalPendingAction) return null;
         if (commandTerminalPendingAction.type === 'delete-all') {
-            return { pending: true, message: 'Delete all shortcuts in ' + currentScopeName() + ' panel? Press Enter again to confirm, or type cancel.' };
+            return { pending: true, message: formatText('commandTerminalConfirmDeleteAll', { scope: scopeLabel(currentScopeName()) }) };
         }
         var target = shortcutById(commandTerminalPendingAction.targetId);
-        if (!target) return { ok: false, message: 'Target shortcut no longer exists.' };
+        if (!target) return { ok: false, message: t('commandTerminalTargetMissing') };
         if (commandTerminalPendingAction.type === 'delete') {
-            return { pending: true, message: 'Delete ' + target.name + '? Press Enter again to confirm, or type cancel.' };
+            return { pending: true, message: formatText('commandTerminalConfirmDeleteNamed', { name: target.name }) };
         }
         if (commandTerminalPendingAction.type === 'edit') {
-            return { pending: true, message: value ? 'Press Enter to update ' + target.name + ' with "' + value + '".' : 'Edit ' + target.name + '. Type a new name or URL, then press Enter.' };
+            return {
+                pending: true,
+                message: value ?
+                    formatText('commandTerminalPromptUpdateNamed', { name: target.name, value: value }) :
+                    formatText('commandTerminalPromptEditNamed', { name: target.name })
+            };
         }
         return null;
     }
@@ -1349,7 +1381,7 @@
             if (/^(cancel|c|no|n)$/i.test(input)) {
                 commandTerminalPendingAction = null;
                 commandTerminalCommittedInput = command;
-                renderCommandTerminalResult(command, { ok: true, message: 'Canceled.' });
+                renderCommandTerminalResult(command, { ok: true, message: t('commandTerminalCanceled') });
                 clearCommandTerminalInput();
                 return true;
             }
@@ -1369,14 +1401,14 @@
         if (!target) {
             commandTerminalPendingAction = null;
             commandTerminalCommittedInput = command;
-            renderCommandTerminalResult(command, { ok: false, message: 'Target shortcut no longer exists.' });
+            renderCommandTerminalResult(command, { ok: false, message: t('commandTerminalTargetMissing') });
             clearCommandTerminalInput();
             return true;
         }
         if (/^(cancel|c|no|n)$/i.test(input)) {
             commandTerminalPendingAction = null;
             commandTerminalCommittedInput = command;
-            renderCommandTerminalResult(command, { ok: true, message: 'Canceled.' });
+            renderCommandTerminalResult(command, { ok: true, message: t('commandTerminalCanceled') });
             clearCommandTerminalInput();
             return true;
         }
@@ -1388,7 +1420,7 @@
                 clearCommandTerminalInput();
                 return true;
             }
-            commandTerminalResult = { pending: true, message: 'Press Enter to confirm deleting ' + target.name + ', or type cancel.' };
+            commandTerminalResult = { pending: true, message: formatText('commandTerminalConfirmDeletingNamed', { name: target.name }) };
             renderCommandTerminal(command, true, commandTerminalResult);
             clearCommandTerminalInput();
             return true;
@@ -1437,7 +1469,7 @@
                 handleShortcutClick(target.id);
             } else {
                 commandTerminalCommittedInput = input;
-                renderCommandTerminalResult(input, { ok: false, message: 'No shortcut matches "' + (state.query || '') + '".' });
+                renderCommandTerminalResult(input, { ok: false, message: formatText('commandTerminalNoShortcutMatches', { query: state.query || '' }) });
                 clearCommandTerminalInput();
             }
             return true;
@@ -1492,7 +1524,7 @@
                 return runCommandTerminalAction(input, function () { return editShortcutFromCommandTerminal(state); });
             }
             var editTarget = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
-            if (!editTarget) return runCommandTerminalAction(input, function () { return { ok: false, message: 'No matching shortcut to edit.' }; });
+            if (!editTarget) return runCommandTerminalAction(input, function () { return { ok: false, message: t('commandTerminalNoMatchEdit') }; });
             commandTerminalPendingAction = { type: 'edit', targetId: editTarget.id, command: input };
             commandTerminalCommittedInput = input;
             commandTerminalResult = commandTerminalPendingMessage('');
@@ -1506,7 +1538,7 @@
                 return runCommandTerminalAction(input, function () { return deleteShortcutFromCommandTerminal(state); });
             }
             var deleteTarget = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
-            if (!deleteTarget) return runCommandTerminalAction(input, function () { return { ok: false, message: 'No matching shortcut to delete.' }; });
+            if (!deleteTarget) return runCommandTerminalAction(input, function () { return { ok: false, message: t('commandTerminalNoMatchDelete') }; });
             commandTerminalPendingAction = { type: 'delete', targetId: deleteTarget.id, command: input };
             commandTerminalCommittedInput = input;
             commandTerminalResult = commandTerminalPendingMessage('');
@@ -1916,11 +1948,6 @@
         if (cmd === 'help') return t('commands');
         var key = map[cmd] || 'commands';
         var desc = t(key);
-        if (desc && desc !== key) return desc;
-        if (cmd === 'restore') {
-            var lang = window.SettingsPanel && window.SettingsPanel.getCurrentLang ? window.SettingsPanel.getCurrentLang() : '';
-            return lang && lang.indexOf('zh') === 0 ? '恢复默认快捷方式' : 'Restore default shortcuts';
-        }
         return desc || key;
     }
 
@@ -2360,13 +2387,13 @@
         var url = normalizeHttpsUrl(urlValue);
         if (!url) {
             cpCurrentMode = 'feedback';
-            feedbackMessage('无法添加：请输入有效的 HTTPS 地址。');
+            feedbackMessage(t('commandAddInvalidUrl'));
             return true;
         }
         var shortcuts = loadShortcuts();
         if (shortcuts.some(function (s) { return s.url.toLowerCase() === url.toLowerCase(); })) {
             cpCurrentMode = 'feedback';
-            feedbackMessage('这个快捷方式已经存在。');
+            feedbackMessage(t('commandDuplicateUrl'));
             return true;
         }
         var name = smartUrlName(url);
@@ -2832,10 +2859,18 @@
     }
 
     function importResultMessage(result, scope, sourceScope) {
-        var target = scope === 'hidden' ? '隐藏面板' : '普通面板';
-        var msg = '已导入到' + target + '：新增 ' + result.added + '，迁移 ' + result.moved + '，跳过 ' + result.skipped + '。';
+        var target = scope === 'hidden' ? t('commandHiddenScope') : t('commandNormalScope');
+        var msg = formatText('commandImportResult', {
+            target: target,
+            added: result.added,
+            moved: result.moved,
+            skipped: result.skipped
+        });
         if (sourceScope && sourceScope !== currentScopeName()) {
-            msg = '这是' + (sourceScope === 'hidden' ? '隐藏' : '普通') + '面板数据，' + msg;
+            msg = formatText('commandImportFromOtherScope', {
+                source: sourceScope === 'hidden' ? t('commandHiddenScope') : t('commandNormalScope'),
+                message: msg
+            });
         }
         return msg;
     }
@@ -2852,7 +2887,7 @@
                 var parsed = parseShortcutImportPayload(reader.result, file.name);
                 if (!parsed.items.length) {
                     cpCurrentMode = 'feedback';
-                    feedbackMessage('未找到可导入的快捷方式。');
+                    feedbackMessage(t('commandImportEmpty'));
                     return;
                 }
                 var sourceScope = parsed.format === 'json' ? normalizeScope(parsed.scope, isHiddenMode) : null;
@@ -2907,7 +2942,9 @@
         saveRecents(loadRecents().filter(function (id) { return !targetIds[id]; }));
         renderShortcutList('');
         cpCurrentMode = 'feedback';
-        feedbackMessage((targetScope === 'hidden' ? '隐藏面板' : '普通面板') + '的使用统计已重置。');
+        feedbackMessage(formatText('commandResetUsageOk', {
+            scope: targetScope === 'hidden' ? t('commandHiddenScope') : t('commandNormalScope')
+        }));
     }
 
     function hideShortcut(id) {
@@ -2926,9 +2963,9 @@
         setFeedbackContentMode(false);
         setIconPageMode(false);
         var scope = currentScopeName();
-        var scopeLabel = scope === 'hidden' ? '隐藏面板' : '普通面板';
+        var scopeLabel = scope === 'hidden' ? t('commandHiddenScope') : t('commandNormalScope');
         cpContent.innerHTML = '<div class="cp-clear-confirm">' +
-            '<p class="cp-clear-text">确定清空' + scopeLabel + '的快捷方式？另一侧不会被清空。</p>' +
+            '<p class="cp-clear-text">' + formatText('commandClearConfirm', { scope: scopeLabel }) + '</p>' +
             '<button id="cpClearYes" class="cp-clear-btn-yes">' + t('yes') + '</button>' +
             '<button id="cpClearNo" class="cp-clear-btn-no">' + t('no') + '</button>' +
             '</div>';
@@ -2964,7 +3001,7 @@
     function handleRestore() {
         if (isHiddenMode) {
             cpCurrentMode = 'feedback';
-            feedbackMessage('隐藏面板默认没有内置快捷方式。');
+            feedbackMessage(t('commandRestoreHiddenUnavailable'));
             return;
         }
 
@@ -2991,7 +3028,7 @@
         cpCurrentMode = 'list';
         renderShortcutList('');
         cpCurrentMode = 'feedback';
-        feedbackMessage('已恢复默认快捷方式 GitHub。');
+        feedbackMessage(t('commandRestoreDefaultOk'));
     }
 
     // ================================================================

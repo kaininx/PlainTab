@@ -154,8 +154,13 @@
         var searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.placeholder = t('searchPlaceholder');
         if (engineIcon) engineIcon.setAttribute('title', t('engineTitle'));
+        if (engineIcon) engineIcon.setAttribute('aria-label', t('engineTitle'));
         langBtn.setAttribute('title', t('langTitle'));
+        langBtn.setAttribute('aria-label', t('langTitle'));
         settingsBtn.setAttribute('title', t('settingsTitle'));
+        settingsBtn.setAttribute('aria-label', t('settingsTitle'));
+        if (uploadBtn) uploadBtn.setAttribute('title', t('addImage'));
+        if (uploadBtn) uploadBtn.setAttribute('aria-label', t('addImage'));
         refreshGallery();
         document.querySelectorAll('[data-i18n]').forEach(function (el) {
             var key = el.getAttribute('data-i18n');
@@ -347,18 +352,17 @@
 
     function getSourceLabel(source) {
         var map = {
-            bing: t('sourceBing') || 'Bing 每日壁纸',
-            upload: t('sourceUpload') || '本地上传',
-            folder: t('sourceFolder') || '本地文件夹',
-            rss: t('sourceRss') || 'RSS 订阅',
-            api: t('sourceApi') || 'API 端点'
-        };
+            bing:tr('sourceBing'),
+            upload:tr('sourceUpload'),
+            folder:tr('sourceFolder'),
+            rss:tr('sourceRss'),
+            api:tr('sourceApi')};
         return map[source] || source;
     }
 
-    function tr(key, fallback) {
+    function tr(key) {
         var value = t(key);
-        return value && value !== key ? value : fallback;
+        return value && value !== key ? value : key;
     }
 
     function loadShortcutSettings() {
@@ -429,46 +433,10 @@
             '</div>';
     }
 
-    function modalCopy(key, fallback) {
+    function modalCopy(key) {
         var lang = I18N[currentLang] || {};
         var en = I18N.en || {};
-        var enFallback = {
-            modalSubtitleAppearance: 'Theme, wallpaper display, and panel texture live here.',
-            modalSubtitleSearch: 'Search visibility, layout, surface, and engine live here.',
-            modalSubtitleWallpaper: 'The five sources keep their own signal colors, with the current source expanded.',
-            modalSubtitleShortcuts: 'Command entry, hidden entry, recommendations, and panel skins live here.',
-            modalSubtitlePermissions: 'Browser permissions used by shortcuts, RSS, and API sources live here.',
-            modalSubtitleData: 'Export or restore the full PlainTab configuration.',
-            modalSubtitleAbout: 'PlainTab stays quietly behind your new tab page.',
-            modalDescSearchMode: 'Choose when the search box should appear.',
-            modalDescSearchHistory: 'Keep recent searches available below the search bar.',
-            modalDescSearchPosition: 'Choose a centered vertical anchor for the search box.',
-            modalDescSearchIconPosition: 'Place the search icon or web engine logo on either side.',
-            modalDescSearchWidth: 'Set how much horizontal room the search box takes.',
-            modalDescSearchRadius: 'Match the search box shape to the current wallpaper mood.',
-            modalDescSearchBackground: 'Tune the search box glass surface strength.',
-            modalDescSearchBlur: 'Adjust how much the wallpaper diffuses behind the search box.',
-            modalDescWallpaperFit: 'Choose how the wallpaper fills the viewport.',
-            modalDescWallpaperPosition: 'Pick the visual anchor point when the wallpaper is cropped.',
-            modalDescWallpaperBlur: 'Soften the wallpaper itself while keeping foreground controls sharp.',
-            modalDescOverlay: 'Darken the wallpaper to improve foreground readability.',
-            modalDescIconOpacity: 'Tune the presence of corner buttons and the search engine icon.',
-            modalDescTheme: 'Extract surface, stroke, accent, and text colors from the wallpaper.',
-            modalDescPanelOpacity: 'Adjust the distance between floating panels and the wallpaper.',
-            modalDescUiRadius: 'Choose the overall corner language for panels and controls.',
-            modalDescEngine: 'Web mode can switch engines; extension mode uses the browser default.',
-            modalDescHotkey: 'Open the command palette and quick entries.',
-            modalDescHiddenHotkey: 'Open hidden shortcut management directly.',
-            modalDescRecommend: 'Keep the high-frequency recommendations area.',
-            modalDescPalettePlacement: 'Open the command palette from the trigger point, or keep the old fixed position.',
-            modalDescPaletteSkin: 'Choose the command panel style. Regular follows theme colors; the other styles use independent colors. Terminal is recommended and supports temporary resize.',
-            modalDescWebAccess: 'Allow PlainTab to read HTTPS pages for shortcut titles, RSS/API tests, and configured data sources. PlainTab does not modify page content.',
-            modalDescDataJson: 'Readable JSON is convenient for archives and troubleshooting.',
-            modalDescDataEncrypted: 'Password-protected backup, compressed before encryption.',
-            modalDescDataImport: 'Import JSON or encrypted PlainTab backup files.',
-            modalDescDataImportPass: 'Required only for encrypted backup files.'
-        };
-        return lang[key] || en[key] || (currentLang.indexOf('zh') === 0 ? fallback : (enFallback[key] || fallback));
+        return lang[key] || en[key] || key;
     }
 
     function settingItem(label, desc, control, extraClass, note) {
@@ -684,36 +652,36 @@
     function validateWallpaperDraft() {
         var draft = currentWallpaperDraft();
         var source = D.compatMode ? D.compatMode(draft.activeSource) : draft.activeSource;
-        if (!wallpaperDraftChanged()) return { valid: false, reason: tr('wallpaperApplyNoChanges', '没有未应用更改') };
+        if (!wallpaperDraftChanged()) return { valid: false, reason: tr('wallpaperApplyNoChanges') };
         if (source === 'bing' || source === 'local') return { valid: true, reason: '' };
         if (source === 'folder') {
-            if (!WF || !WF.isSupported || !WF.isSupported()) return { valid: false, reason: tr('folderUnsupported', '当前浏览器不支持文件夹壁纸') };
-            if (!wallpaperDraftFolderMount) return { valid: false, reason: tr('folderNeedsValidSelection', '请选择有效文件夹') };
+            if (!WF || !WF.isSupported || !WF.isSupported()) return { valid: false, reason: tr('folderUnsupported') };
+            if (!wallpaperDraftFolderMount) return { valid: false, reason: tr('folderNeedsValidSelection') };
             return { valid: true, reason: '' };
         }
         if (source === 'rss') {
             var rss = selectedDraftRssSource();
-            if (!rss) return { valid: false, reason: tr('rssNeedsSource', '请添加并选择 RSS 源') };
+            if (!rss) return { valid: false, reason: tr('rssNeedsSource') };
             var rssHash = D.rssFieldHash(rss);
-            if (!D.isTestPassed(rss, rssHash)) return { valid: false, reason: tr('rssNeedsTest', '当前 RSS 源需要测试通过') };
+            if (!D.isTestPassed(rss, rssHash)) return { valid: false, reason: tr('rssNeedsTest') };
             return { valid: true, reason: '' };
         }
         if (source === 'api') {
             var api = selectedDraftApiSource();
-            if (!api) return { valid: false, reason: tr('apiNeedsSource', '请添加并选择 API 源') };
+            if (!api) return { valid: false, reason: tr('apiNeedsSource') };
             var apiType = draft.providers.api.config.apiType;
             var apiHash = D.apiFieldHash(api, apiType);
-            if (!D.isTestPassed(api, apiHash)) return { valid: false, reason: tr('apiNeedsTest', '当前 API 源需要测试通过') };
+            if (!D.isTestPassed(api, apiHash)) return { valid: false, reason: tr('apiNeedsTest') };
             return { valid: true, reason: '' };
         }
-        return { valid: false, reason: tr('sourcePendingHint', '这个来源的配置正在接入中') };
+        return { valid: false, reason: tr('sourcePendingHint') };
     }
 
     function wallpaperApplyFooterHTML() {
         var validation = validateWallpaperDraft();
         return '<div class="wallpaper-apply-footer">' +
-            '<div class="wallpaper-apply-status" id="wallpaperApplyStatus">' + escapeHtml(validation.reason || tr('wallpaperApplyReady', '可以应用配置')) + '</div>' +
-            '<button id="wallpaperApplyBtn" class="primary-action" type="button"' + (validation.valid ? '' : ' disabled') + '>' + tr('wallpaperApply', '应用配置') + '</button>' +
+            '<div class="wallpaper-apply-status" id="wallpaperApplyStatus">' + escapeHtml(validation.reason || tr('wallpaperApplyReady')) + '</div>' +
+            '<button id="wallpaperApplyBtn" class="primary-action" type="button"' + (validation.valid ? '' : ' disabled') + '>' + tr('wallpaperApply') + '</button>' +
             '</div>';
     }
 
@@ -722,7 +690,7 @@
         var button = document.getElementById('wallpaperApplyBtn');
         if (!status || !button) return;
         var validation = validateWallpaperDraft();
-        status.textContent = validation.reason || tr('wallpaperApplyReady', '可以应用配置');
+        status.textContent = validation.reason || tr('wallpaperApplyReady');
         button.disabled = !validation.valid;
     }
 
@@ -840,7 +808,7 @@
 
         var applyPromise;
         if (sourceNeedsDiscardPrompt(previousSource, nextSource)) {
-            if (!confirm(tr('wallpaperDiscardCacheConfirm', '切换来源会丢弃当前来源已缓存的壁纸数据。继续吗？'))) {
+            if (!confirm(tr('wallpaperDiscardCacheConfirm'))) {
                 if (applyBtn) applyBtn.disabled = false;
                 refreshWallpaperApplyFooter();
                 return;
@@ -856,16 +824,16 @@
             refreshGallery();
         }).catch(function (err) {
             var status = document.getElementById('wallpaperApplyStatus');
-            if (status) status.textContent = err && err.message ? err.message : String(err || 'Apply failed');
+            if (status) status.textContent = err && err.message ? err.message : String(err || tr('wallpaperApplyFailed'));
             if (applyBtn) applyBtn.disabled = false;
         });
     }
 
     function rssStatusText(config, state) {
         var count = D.activeRssOrder ? D.activeRssOrder(config.activeSourceId).length : 0;
-        if (state.lastError) return tr('rssStatusError', 'RSS 状态：') + state.lastError;
-        if (state.lastSuccessAt) return tr('rssStatusCached', '已缓存') + ' ' + count + '/12 · ' + new Date(state.lastSuccessAt).toLocaleString();
-        return count ? (tr('rssStatusCached', '已缓存') + ' ' + count + '/12') : tr('rssStatusEmpty', '尚未缓存 RSS 图片');
+        if (state.lastError) return tr('rssStatusError') + state.lastError;
+        if (state.lastSuccessAt) return tr('rssStatusCached') + ' ' + count + '/12 · ' + new Date(state.lastSuccessAt).toLocaleString();
+        return count ? (tr('rssStatusCached') + ' ' + count + '/12') : tr('rssStatusEmpty');
     }
 
     function buildRssConfigHTML() {
@@ -879,20 +847,20 @@
             return '<div class="rss-source-row' + selectedClass + '" data-rss-source="' + escapeHtml(source.id) + '">' +
                 '<span class="source-status-dot ' + (passed ? 'passed' : 'failed') + '"></span>' +
                 '<label class="rss-source-main"><input type="radio" name="rssSource" value="' + escapeHtml(source.id) + '"' + checked + '><span><strong>' + escapeHtml(source.name) + '</strong><small>' + escapeHtml(source.url) + '</small></span></label>' +
-                '<button class="rss-test-btn" type="button" data-action="test-rss">' + tr('rssTest', '测试') + '</button>' +
-                '<button class="rss-delete-btn" type="button" data-action="delete-rss" aria-label="' + tr('deleteImage', '删除') + '">×</button>' +
+                '<button class="rss-test-btn" type="button" data-action="test-rss">' + tr('rssTest') + '</button>' +
+                '<button class="rss-delete-btn" type="button" data-action="delete-rss" aria-label="' + tr('deleteImage') + '">×</button>' +
                 '</div>';
         }).join('');
         return '<div class="rss-config">' +
             '<div class="rss-source-list">' + rows + '</div>' +
             '<div class="rss-notice" id="rssNotice" hidden></div>' +
-            '<div class="rss-add-row"><input id="rssNameInput" type="text" placeholder="' + tr('rssNamePlaceholder', '源名称') + '"><input id="rssUrlInput" type="url" placeholder="https://example.com/feed.xml"><button id="rssAddBtn" type="button">' + tr('rssAdd', '添加') + '</button></div>' +
+            '<div class="rss-add-row"><input id="rssNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="rssUrlInput" type="url" placeholder="https://example.com/feed.xml"><button id="rssAddBtn" type="button">' + tr('rssAdd') + '</button></div>' +
             '<div class="rss-options">' +
-            settingItem(tr('rssRefreshInterval', '自动拉取'), '', '<select id="rssRefreshInterval"><option value="0"' + selected(0, config.refreshIntervalMs) + '>' + tr('rssRefreshOff', '关闭') + '</option><option value="86400000"' + selected(86400000, config.refreshIntervalMs) + '>1 天</option><option value="259200000"' + selected(259200000, config.refreshIntervalMs) + '>3 天</option><option value="604800000"' + selected(604800000, config.refreshIntervalMs) + '>7 天</option></select>', 'setting-compact') +
-            settingItem(tr('rssSummaryPosition', '摘要位置'), '', '<select id="rssSummaryPosition"><option value="bottom"' + selected('bottom', config.summaryPosition) + '>' + tr('bottom', '下方') + '</option><option value="top"' + selected('top', config.summaryPosition) + '>' + tr('top', '上方') + '</option></select>', 'setting-compact') +
-            settingItem(tr('rssSummaryMode', '摘要展示'), '', '<select id="rssSummaryMode"><option value="expanded"' + selected('expanded', config.summaryMode) + '>' + tr('rssExpanded', '展开条带') + '</option><option value="icon"' + selected('icon', config.summaryMode) + '>' + tr('rssIconOnly', 'i 按钮') + '</option></select>', 'setting-compact') +
-            settingItem(tr('rssShowSummary', '显示摘要'), '', '<label class="switch-control"><input type="checkbox" id="rssShowSummary"><span></span></label>', 'setting-compact') +
-            settingItem(tr('rssShowLink', '显示正文链接'), '', '<label class="switch-control"><input type="checkbox" id="rssShowLink"><span></span></label>', 'setting-compact') +
+            settingItem(tr('rssRefreshInterval'), '', '<select id="rssRefreshInterval"><option value="0"' + selected(0, config.refreshIntervalMs) + '>' + tr('rssRefreshOff') + '</option><option value="86400000"' + selected(86400000, config.refreshIntervalMs) + '>' + tr('rssRefreshOneDay') + '</option><option value="259200000"' + selected(259200000, config.refreshIntervalMs) + '>' + tr('rssRefreshThreeDays') + '</option><option value="604800000"' + selected(604800000, config.refreshIntervalMs) + '>' + tr('rssRefreshSevenDays') + '</option></select>', 'setting-compact') +
+            settingItem(tr('rssSummaryPosition'), '', '<select id="rssSummaryPosition"><option value="bottom"' + selected('bottom', config.summaryPosition) + '>' + tr('bottom') + '</option><option value="top"' + selected('top', config.summaryPosition) + '>' + tr('top') + '</option></select>', 'setting-compact') +
+            settingItem(tr('rssSummaryMode'), '', '<select id="rssSummaryMode"><option value="expanded"' + selected('expanded', config.summaryMode) + '>' + tr('rssExpanded') + '</option><option value="icon"' + selected('icon', config.summaryMode) + '>' + tr('rssIconOnly') + '</option></select>', 'setting-compact') +
+            settingItem(tr('rssShowSummary'), '', '<label class="switch-control"><input type="checkbox" id="rssShowSummary"><span></span></label>', 'setting-compact') +
+            settingItem(tr('rssShowLink'), '', '<label class="switch-control"><input type="checkbox" id="rssShowLink"><span></span></label>', 'setting-compact') +
             '</div>' +
             '<div class="rss-status" id="rssStatus">' + escapeHtml(rssStatusText(config, state)) + '</div>' +
             '</div>';
@@ -905,8 +873,8 @@
         return '<div class="api-source-row' + (checked ? ' selected' : '') + '" data-api-type="' + apiType + '" data-api-source="' + escapeHtml(source.id) + '">' +
             '<span class="source-status-dot ' + (passed ? 'passed' : 'failed') + '"></span>' +
             '<label class="api-source-main"><input type="radio" name="apiSource" value="' + escapeHtml(source.id) + '"' + checked + '><span><strong>' + escapeHtml(source.name) + '</strong><small>' + escapeHtml(source.url) + '</small></span></label>' +
-            '<button type="button" data-action="test-api">' + tr('apiTest', '测试') + '</button>' +
-            '<button type="button" data-action="delete-api" aria-label="' + tr('deleteImage', '删除') + '">×</button>' +
+            '<button type="button" data-action="test-api">' + tr('apiTest') + '</button>' +
+            '<button type="button" data-action="delete-api" aria-label="' + tr('deleteImage') + '">×</button>' +
             '</div>';
     }
 
@@ -918,46 +886,46 @@
         var rows = sources.map(function (source) { return apiSourceRowHTML(source, apiType, activeId); }).join('');
         function selected(value, current) { return String(value) === String(current) ? ' selected' : ''; }
         return '<div class="api-config" data-api-type="' + apiType + '">' +
-            '<div class="api-type-tabs"><button type="button" data-api-type-tab="image" class="' + (apiType === 'image' ? 'active' : '') + '"><span></span>' + tr('apiTypeImage', '图片直链/重定向') + '</button><button type="button" data-api-type-tab="json" class="' + (apiType === 'json' ? 'active' : '') + '"><span></span>' + tr('apiTypeJson', 'JSON') + '</button></div>' +
+            '<div class="api-type-tabs"><button type="button" data-api-type-tab="image" class="' + (apiType === 'image' ? 'active' : '') + '"><span></span>' + tr('apiTypeImage') + '</button><button type="button" data-api-type-tab="json" class="' + (apiType === 'json' ? 'active' : '') + '"><span></span>' + tr('apiTypeJson') + '</button></div>' +
             '<div class="api-source-list">' + rows + '</div>' +
             '<div class="api-notice" id="apiNotice" hidden></div>' +
-            '<div class="api-add-row"><input id="apiNameInput" type="text" placeholder="' + tr('rssNamePlaceholder', '源名称') + '"><input id="apiUrlInput" type="url" placeholder="https://example.com/wallpaper">' + (apiType === 'json' ? '<input id="apiJsonPathInput" type="text" placeholder="data.image.url">' : '') + '<button id="apiAddBtn" type="button">' + tr('rssAdd', '添加') + '</button></div>' +
+            '<div class="api-add-row"><input id="apiNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="apiUrlInput" type="url" placeholder="https://example.com/wallpaper">' + (apiType === 'json' ? '<input id="apiJsonPathInput" type="text" placeholder="data.image.url">' : '') + '<button id="apiAddBtn" type="button">' + tr('rssAdd') + '</button></div>' +
             '<div class="api-options">' +
-            settingItem(tr('rssRefreshInterval', '自动拉取'), '', '<select id="apiRefreshInterval"><option value="0"' + selected(0, config.refreshIntervalMs) + '>' + tr('rssRefreshOff', '关闭') + '</option><option value="-1"' + selected(-1, config.refreshIntervalMs) + '>' + tr('apiRefreshEveryTab', '每次打开') + '</option><option value="86400000"' + selected(86400000, config.refreshIntervalMs) + '>1 天</option><option value="259200000"' + selected(259200000, config.refreshIntervalMs) + '>3 天</option><option value="604800000"' + selected(604800000, config.refreshIntervalMs) + '>7 天</option></select>', 'setting-compact') +
+            settingItem(tr('rssRefreshInterval'), '', '<select id="apiRefreshInterval"><option value="0"' + selected(0, config.refreshIntervalMs) + '>' + tr('rssRefreshOff') + '</option><option value="-1"' + selected(-1, config.refreshIntervalMs) + '>' + tr('apiRefreshEveryTab') + '</option><option value="86400000"' + selected(86400000, config.refreshIntervalMs) + '>' + tr('rssRefreshOneDay') + '</option><option value="259200000"' + selected(259200000, config.refreshIntervalMs) + '>' + tr('rssRefreshThreeDays') + '</option><option value="604800000"' + selected(604800000, config.refreshIntervalMs) + '>' + tr('rssRefreshSevenDays') + '</option></select>', 'setting-compact') +
             '</div>' +
             '</div>';
     }
 
     function buildSearchHTML() {
         var searchModeControl = '<select id="modalSearchMode">' +
-            '<option value="hover"' + (searchMode === 'hover' ? ' selected' : '') + '>' + (t('searchHover') || '悬停时显示') + '</option>' +
-            '<option value="always"' + (searchMode === 'always' ? ' selected' : '') + '>' + (t('searchAlways') || '始终显示') + '</option>' +
-            '<option value="never"' + (searchMode === 'never' ? ' selected' : '') + '>' + (t('searchNever') || '始终隐藏') + '</option>' +
+            '<option value="hover"' + (searchMode === 'hover' ? ' selected' : '') + '>' + tr('searchHover') + '</option>' +
+            '<option value="always"' + (searchMode === 'always' ? ' selected' : '') + '>' + tr('searchAlways') + '</option>' +
+            '<option value="never"' + (searchMode === 'never' ? ' selected' : '') + '>' + tr('searchNever') + '</option>' +
             '</select>';
         var searchHistoryControl = '<select id="modalSearchHistoryLimit">' +
-            '<option value="0"' + (searchHistoryLimit === 0 ? ' selected' : '') + '>' + tr('searchHistoryOff', '关闭') + '</option>' +
+            '<option value="0"' + (searchHistoryLimit === 0 ? ' selected' : '') + '>' + tr('searchHistoryOff') + '</option>' +
             '<option value="5"' + (searchHistoryLimit === 5 ? ' selected' : '') + '>5</option>' +
             '<option value="10"' + (searchHistoryLimit === 10 ? ' selected' : '') + '>10</option>' +
             '</select>';
         var searchPosControl = '<select id="modalSearchPos">' +
-            '<option value="edge-top"' + (searchPosition === 'edge-top' ? ' selected' : '') + '>' + tr('posEdgeTop', '贴近顶部') + '</option>' +
-            '<option value="top"' + (searchPosition === 'top' ? ' selected' : '') + '>' + tr('posHigh', '居上') + '</option>' +
-            '<option value="upper"' + (searchPosition === 'upper' ? ' selected' : '') + '>' + (t('posUpper') || '中上') + '</option>' +
-            '<option value="center-upper"' + (searchPosition === 'center-upper' ? ' selected' : '') + '>' + tr('posCenterUpper', '居中偏上') + '</option>' +
-            '<option value="center"' + (searchPosition === 'center' ? ' selected' : '') + '>' + (t('posCenter') || '居中') + '</option>' +
-            '<option value="center-lower"' + (searchPosition === 'center-lower' ? ' selected' : '') + '>' + tr('posCenterLower', '居中偏下') + '</option>' +
-            '<option value="lower"' + (searchPosition === 'lower' ? ' selected' : '') + '>' + (t('posLower') || '中下') + '</option>' +
-            '<option value="bottom"' + (searchPosition === 'bottom' ? ' selected' : '') + '>' + tr('posLow', '居下') + '</option>' +
-            '<option value="edge-bottom"' + (searchPosition === 'edge-bottom' ? ' selected' : '') + '>' + tr('posEdgeBottom', '贴近底部') + '</option>' +
+            '<option value="edge-top"' + (searchPosition === 'edge-top' ? ' selected' : '') + '>' + tr('posEdgeTop') + '</option>' +
+            '<option value="top"' + (searchPosition === 'top' ? ' selected' : '') + '>' + tr('posHigh') + '</option>' +
+            '<option value="upper"' + (searchPosition === 'upper' ? ' selected' : '') + '>' + tr('posUpper') + '</option>' +
+            '<option value="center-upper"' + (searchPosition === 'center-upper' ? ' selected' : '') + '>' + tr('posCenterUpper') + '</option>' +
+            '<option value="center"' + (searchPosition === 'center' ? ' selected' : '') + '>' + tr('posCenter') + '</option>' +
+            '<option value="center-lower"' + (searchPosition === 'center-lower' ? ' selected' : '') + '>' + tr('posCenterLower') + '</option>' +
+            '<option value="lower"' + (searchPosition === 'lower' ? ' selected' : '') + '>' + tr('posLower') + '</option>' +
+            '<option value="bottom"' + (searchPosition === 'bottom' ? ' selected' : '') + '>' + tr('posLow') + '</option>' +
+            '<option value="edge-bottom"' + (searchPosition === 'edge-bottom' ? ' selected' : '') + '>' + tr('posEdgeBottom') + '</option>' +
             '</select>';
         var searchIconPositionControl = '<select id="modalSearchIconPosition">' +
-            '<option value="left"' + (searchIconPosition === 'left' ? ' selected' : '') + '>' + tr('iconLeft', '左侧') + '</option>' +
-            '<option value="right"' + (searchIconPosition === 'right' ? ' selected' : '') + '>' + tr('iconRight', '右侧') + '</option>' +
+            '<option value="left"' + (searchIconPosition === 'left' ? ' selected' : '') + '>' + tr('iconLeft') + '</option>' +
+            '<option value="right"' + (searchIconPosition === 'right' ? ' selected' : '') + '>' + tr('iconRight') + '</option>' +
             '</select>';
         var radiusControl = '<select id="modalSearchRadius">' +
-            '<option value="capsule"' + (searchRadius === 'capsule' ? ' selected' : '') + '>' + (t('radiusCapsule') || '胶囊') + '</option>' +
-            '<option value="rounded"' + (searchRadius === 'rounded' ? ' selected' : '') + '>' + (t('radiusRounded') || '圆角') + '</option>' +
-            '<option value="sharp"' + (searchRadius === 'sharp' ? ' selected' : '') + '>' + (t('radiusSharp') || '直角') + '</option>' +
+            '<option value="capsule"' + (searchRadius === 'capsule' ? ' selected' : '') + '>' + tr('radiusCapsule') + '</option>' +
+            '<option value="rounded"' + (searchRadius === 'rounded' ? ' selected' : '') + '>' + tr('radiusRounded') + '</option>' +
+            '<option value="sharp"' + (searchRadius === 'sharp' ? ' selected' : '') + '>' + tr('radiusSharp') + '</option>' +
             '</select>';
         var searchWidthControl = '<input type="range" id="modalSearchWidthRange" min="360" max="760" step="10" value="' + searchWidth + '">' +
             '<input type="number" id="modalSearchWidthNum" class="input-w-55" min="360" max="760" step="10" value="' + searchWidth + '">';
@@ -972,35 +940,35 @@
             '<option value="duckduckgo"' + (currentEngine === 'duckduckgo' ? ' selected' : '') + '>DuckDuckGo</option>' +
             '</select>';
         var body =
-            settingGroup(tr('settingsGroupSearchVisibility', '显示'),
-            settingItem(t('searchLabel') || '搜索栏显示', modalCopy('modalDescSearchMode', '设定搜索框出现的时机。'), searchModeControl) +
-            settingItem(tr('searchHistory', '搜索历史'), modalCopy('modalDescSearchHistory', '在搜索栏下方保留最近搜索。'), searchHistoryControl)) +
-            settingGroup(tr('settingsGroupSearchLayout', '布局'),
-            settingItem(t('searchPosition') || '搜索栏位置', modalCopy('modalDescSearchPosition', '选择搜索框在画面中轴上的高度。'), searchPosControl) +
-            settingItem(tr('searchWidth', '搜索栏宽度'), modalCopy('modalDescSearchWidth', '调整搜索框占据的横向空间。'), searchWidthControl) +
-            settingItem(tr('searchIconPosition', '搜索图标位置'), modalCopy('modalDescSearchIconPosition', '选择搜索图标或网页版引擎 Logo 在左侧还是右侧。'), searchIconPositionControl)) +
-            settingGroup(tr('settingsGroupSearchSurface', '样式'),
-            settingItem(t('searchRadius') || '搜索栏圆角', modalCopy('modalDescSearchRadius', '让搜索框形态匹配当前壁纸氛围。'), radiusControl) +
-            settingItem(tr('searchBackground', '搜索框背景'), modalCopy('modalDescSearchBackground', '调节搜索框玻璃表面的强弱。'), searchBgControl) +
-            settingItem(tr('searchBlur', '搜索框模糊'), modalCopy('modalDescSearchBlur', '调节搜索框背后的壁纸扩散程度。'), searchBlurControl)) +
-            settingGroup(tr('settingsGroupSearchEngine', '搜索引擎'),
-            settingItem(t('engineLabel') || '搜索引擎', modalCopy('modalDescEngine', '网页版可切换，扩展版沿用浏览器默认搜索。'), engineControl, IS_EXTENSION ? 'engine-row-hidden' : ''));
+            settingGroup(tr('settingsGroupSearchVisibility'),
+            settingItem(tr('searchLabel'), modalCopy('modalDescSearchMode'), searchModeControl) +
+            settingItem(tr('searchHistory'), modalCopy('modalDescSearchHistory'), searchHistoryControl)) +
+            settingGroup(tr('settingsGroupSearchLayout'),
+            settingItem(tr('searchPosition'), modalCopy('modalDescSearchPosition'), searchPosControl) +
+            settingItem(tr('searchWidth'), modalCopy('modalDescSearchWidth'), searchWidthControl) +
+            settingItem(tr('searchIconPosition'), modalCopy('modalDescSearchIconPosition'), searchIconPositionControl)) +
+            settingGroup(tr('settingsGroupSearchSurface'),
+            settingItem(tr('searchRadius'), modalCopy('modalDescSearchRadius'), radiusControl) +
+            settingItem(tr('searchBackground'), modalCopy('modalDescSearchBackground'), searchBgControl) +
+            settingItem(tr('searchBlur'), modalCopy('modalDescSearchBlur'), searchBlurControl)) +
+            settingGroup(tr('settingsGroupSearchEngine'),
+            settingItem(tr('engineLabel'), modalCopy('modalDescEngine'), engineControl, IS_EXTENSION ? 'engine-row-hidden' : ''));
 
-        return buildPageShell(tr('tabSearch', '搜索设置'), modalCopy('modalSubtitleSearch', '搜索栏的显示、位置、形态和搜索引擎集中在这里。'), body);
+        return buildPageShell(tr('tabSearch'), modalCopy('modalSubtitleSearch'), body);
     }
 
     function buildAppearanceHTML() {
         var wallpaperFitControl = '<select id="modalWallpaperFit">' +
-            '<option value="cover"' + (wallpaperFit === 'cover' ? ' selected' : '') + '>' + tr('fitCover', '铺满裁切') + '</option>' +
-            '<option value="contain"' + (wallpaperFit === 'contain' ? ' selected' : '') + '>' + tr('fitContain', '完整显示') + '</option>' +
-            '<option value="100% 100%"' + (wallpaperFit === '100% 100%' ? ' selected' : '') + '>' + tr('fitStretch', '拉伸填充') + '</option>' +
+            '<option value="cover"' + (wallpaperFit === 'cover' ? ' selected' : '') + '>' + tr('fitCover') + '</option>' +
+            '<option value="contain"' + (wallpaperFit === 'contain' ? ' selected' : '') + '>' + tr('fitContain') + '</option>' +
+            '<option value="100% 100%"' + (wallpaperFit === '100% 100%' ? ' selected' : '') + '>' + tr('fitStretch') + '</option>' +
             '</select>';
         var wallpaperPositionControl = '<select id="modalWallpaperPosition">' +
-            '<option value="center"' + (wallpaperPosition === 'center' ? ' selected' : '') + '>' + (t('posCenter') || '居中') + '</option>' +
-            '<option value="top"' + (wallpaperPosition === 'top' ? ' selected' : '') + '>' + (t('posTop') || '顶部') + '</option>' +
-            '<option value="bottom"' + (wallpaperPosition === 'bottom' ? ' selected' : '') + '>' + (t('posBottom') || '底部') + '</option>' +
-            '<option value="left"' + (wallpaperPosition === 'left' ? ' selected' : '') + '>' + tr('alignLeft', '靠左') + '</option>' +
-            '<option value="right"' + (wallpaperPosition === 'right' ? ' selected' : '') + '>' + tr('alignRight', '靠右') + '</option>' +
+            '<option value="center"' + (wallpaperPosition === 'center' ? ' selected' : '') + '>' + tr('posCenter') + '</option>' +
+            '<option value="top"' + (wallpaperPosition === 'top' ? ' selected' : '') + '>' + tr('posTop') + '</option>' +
+            '<option value="bottom"' + (wallpaperPosition === 'bottom' ? ' selected' : '') + '>' + tr('posBottom') + '</option>' +
+            '<option value="left"' + (wallpaperPosition === 'left' ? ' selected' : '') + '>' + tr('alignLeft') + '</option>' +
+            '<option value="right"' + (wallpaperPosition === 'right' ? ' selected' : '') + '>' + tr('alignRight') + '</option>' +
             '</select>';
         var wallpaperBlurControl = '<input type="range" id="modalWallpaperBlurRange" min="0" max="15" step="1" value="' + wallpaperBlur + '">' +
             '<input type="number" id="modalWallpaperBlurNum" class="input-w-55" min="0" max="15" step="1" value="' + wallpaperBlur + '">';
@@ -1012,26 +980,26 @@
         var panelOpacityControl = '<input type="range" id="modalPanelOpacityRange" min="0.3" max="1" step="0.01" value="' + panelOpacity + '">' +
             '<input type="number" id="modalPanelOpacityNum" class="input-w-55" min="0.3" max="1" step="0.01" value="' + panelOpacity + '">';
         var uiRadiusControl = '<select id="modalUiRadius">' +
-            '<option value="compact"' + (uiRadius === 'compact' ? ' selected' : '') + '>' + tr('radiusCompact', '克制') + '</option>' +
-            '<option value="soft"' + (uiRadius === 'soft' ? ' selected' : '') + '>' + tr('radiusSoft', '柔和') + '</option>' +
-            '<option value="round"' + (uiRadius === 'round' ? ' selected' : '') + '>' + tr('radiusRound', '圆润') + '</option>' +
+            '<option value="compact"' + (uiRadius === 'compact' ? ' selected' : '') + '>' + tr('radiusCompact') + '</option>' +
+            '<option value="soft"' + (uiRadius === 'soft' ? ' selected' : '') + '>' + tr('radiusSoft') + '</option>' +
+            '<option value="round"' + (uiRadius === 'round' ? ' selected' : '') + '>' + tr('radiusRound') + '</option>' +
             '</select>';
 
         var body =
-            settingGroup(tr('settingsGroupTheme', '主题'),
-            settingItem(t('themeEnableLabel') || '壁纸主题色', modalCopy('modalDescTheme', '从当前壁纸提取表面、描边、强调和文字色。'), themeControl, 'setting-compact')) +
-            settingGroup(tr('settingsGroupWallpaper', '壁纸'),
-            settingItem(tr('wallpaperFit', '壁纸适配'), modalCopy('modalDescWallpaperFit', '选择壁纸如何填充整个视口。'), wallpaperFitControl) +
-            settingItem(tr('wallpaperPosition', '壁纸焦点'), modalCopy('modalDescWallpaperPosition', '当壁纸被裁切时选择画面锚点。'), wallpaperPositionControl) +
-            settingItem(tr('wallpaperBlur', '背景模糊'), modalCopy('modalDescWallpaperBlur', '柔化壁纸本身，前景控件保持清晰。'), wallpaperBlurControl) +
-            settingItem(t('overlayLabel') || '壁纸遮罩', modalCopy('modalDescOverlay', '加深背景，提升前景元素识别度。'), overlayControl)) +
-            settingGroup(tr('settingsGroupSurface', '界面'),
-            settingItem(t('opacityLabel') || '图标透明度', modalCopy('modalDescIconOpacity', '控制角落按钮和搜索引擎图标的存在感。'), opacityControl) +
-            settingItem(t('panelOpacityLabel') || '面板透明度', modalCopy('modalDescPanelOpacity', '调整浮层与壁纸之间的距离感。'), panelOpacityControl) +
-            settingItem(tr('uiRadiusLabel', '界面圆角'), modalCopy('modalDescUiRadius', '切换面板和控件的整体圆角语言。'), uiRadiusControl)) +
-            '<div class="settings-actions"><button class="reset-defaults-btn" id="modalResetBtn">' + (t('resetAdv') || '恢复默认设置') + '</button></div>';
+            settingGroup(tr('settingsGroupTheme'),
+            settingItem(tr('themeEnableLabel'), modalCopy('modalDescTheme'), themeControl, 'setting-compact')) +
+            settingGroup(tr('settingsGroupWallpaper'),
+            settingItem(tr('wallpaperFit'), modalCopy('modalDescWallpaperFit'), wallpaperFitControl) +
+            settingItem(tr('wallpaperPosition'), modalCopy('modalDescWallpaperPosition'), wallpaperPositionControl) +
+            settingItem(tr('wallpaperBlur'), modalCopy('modalDescWallpaperBlur'), wallpaperBlurControl) +
+            settingItem(tr('overlayLabel'), modalCopy('modalDescOverlay'), overlayControl)) +
+            settingGroup(tr('settingsGroupSurface'),
+            settingItem(tr('opacityLabel'), modalCopy('modalDescIconOpacity'), opacityControl) +
+            settingItem(tr('panelOpacityLabel'), modalCopy('modalDescPanelOpacity'), panelOpacityControl) +
+            settingItem(tr('uiRadiusLabel'), modalCopy('modalDescUiRadius'), uiRadiusControl)) +
+            '<div class="settings-actions"><button class="reset-defaults-btn" id="modalResetBtn">' + tr('resetAdv') + '</button></div>';
 
-        return buildPageShell(tr('tabAppearance', '界面设置'), modalCopy('modalSubtitleAppearance', '主题、壁纸显示和浮层质感集中在这里。'), body);
+        return buildPageShell(tr('tabAppearance'), modalCopy('modalSubtitleAppearance'), body);
     }
 
     function bindSearchEvents() {
@@ -1098,18 +1066,18 @@
     function buildWallpaperHTML() {
         if (!wallpaperDraft) openWallpaperDraft();
         var sources = [
-            { id: 'bing',   name: getSourceLabel('bing'),   desc: t('sourceBingDesc')   || '每日自动更新，根据语言选择地区' },
-            { id: 'upload', name: getSourceLabel('upload'), desc: t('sourceUploadDesc') || '上传图片，最多 12 张轮换' },
-            { id: 'folder', name: getSourceLabel('folder'), desc: t('sourceFolderDesc') || '从本地文件夹直接读取图片' },
-            { id: 'rss',    name: getSourceLabel('rss'),    desc: t('sourceRssDesc')    || '从 RSS Feed 自动下载图片' },
-            { id: 'api',    name: getSourceLabel('api'),    desc: t('sourceApiDesc')    || '从 API 接口获取图片 URL' }
+            { id: 'bing',   name: getSourceLabel('bing'),   desc:tr('sourceBingDesc')},
+            { id: 'upload', name: getSourceLabel('upload'), desc:tr('sourceUploadDesc')},
+            { id: 'folder', name: getSourceLabel('folder'), desc:tr('sourceFolderDesc')},
+            { id: 'rss',    name: getSourceLabel('rss'),    desc:tr('sourceRssDesc')},
+            { id: 'api',    name: getSourceLabel('api'),    desc:tr('sourceApiDesc')}
         ];
 
         var draftSource = draftActiveSource();
         var activeSource = draftSource === 'local' ? 'upload' : draftSource;
         var configs = {
-            bing:   '<p>' + (t('bingConfigHint') || '根据当前界面语言自动选择 Bing 市场区域。') + '</p>',
-            upload: '<p>' + (t('uploadConfigHint') || '在一级面板中使用「+」按钮上传图片。支持多选，单张上限 12 张。') + '</p>',
+            bing:   '<p>' + tr('bingConfigHint') + '</p>',
+            upload: '<p>' + tr('uploadConfigHint') + '</p>',
             folder: buildFolderConfigHTML(),
             rss:    buildRssConfigHTML(),
             api:    buildApiConfigHTML()
@@ -1128,8 +1096,8 @@
         }).join('');
 
         return '<div class="wallpaper-tab-shell">' +
-            '<div class="wallpaper-tab-header"><h2>' + tr('tabWallpaper', '壁纸来源') + '</h2><p>' + modalCopy('modalSubtitleWallpaper', '五个来源保持各自的识别色，当前来源展开配置。') + '</p></div>' +
-            '<div class="wallpaper-tab-body"><div class="source-accordion">' + drawers + '</div><div class="wallpaper-reset-row"><button class="danger-action" id="wallpaperResetBtn" type="button">' + tr('wallpaperResetDefaults', '恢复默认壁纸设置') + '</button></div></div>' +
+            '<div class="wallpaper-tab-header"><h2>' + tr('tabWallpaper') + '</h2><p>' + modalCopy('modalSubtitleWallpaper') + '</p></div>' +
+            '<div class="wallpaper-tab-body"><div class="source-accordion">' + drawers + '</div><div class="wallpaper-reset-row"><button class="danger-action" id="wallpaperResetBtn" type="button">' + tr('wallpaperResetDefaults') + '</button></div></div>' +
             wallpaperApplyFooterHTML() +
             '</div>';
     }
@@ -1155,7 +1123,7 @@
         if (applyBtn) applyBtn.addEventListener('click', applyWallpaperDraft);
         var reset = modalContent.querySelector('#wallpaperResetBtn');
         if (reset) reset.addEventListener('click', function () {
-            if (!confirm(tr('wallpaperResetConfirm', '这会清理上传、RSS、API 和文件夹壁纸缓存，并切回 Bing。继续吗？'))) return;
+            if (!confirm(tr('wallpaperResetConfirm'))) return;
             D.resetWallpaperDefaults().then(function () {
                 currentMode = 'bing';
                 invalidateWallpaperTab();
@@ -1183,22 +1151,22 @@
         if (!button.dataset.idleLabel) button.dataset.idleLabel = button.textContent;
         button.disabled = !!testing;
         button.classList.toggle('testing', !!testing);
-        button.textContent = testing ? tr('rssTesting', '正在测试...') : button.dataset.idleLabel;
+        button.textContent = testing ? tr('rssTesting') : button.dataset.idleLabel;
     }
 
     function folderStatusText() {
         var draft = currentWallpaperDraft();
         var config = draft.providers.folder.config || {};
         var state = draft.providers.folder.state || {};
-        if (!WF || !WF.isSupported || !WF.isSupported()) return tr('folderUnsupported', '当前浏览器不支持文件夹壁纸');
+        if (!WF || !WF.isSupported || !WF.isSupported()) return tr('folderUnsupported');
         if (wallpaperDraftFolderMount) {
-            return tr('folderReady', '已准备文件夹：') + (wallpaperDraftFolderMount.pathLabel || tr('sourceFolder', '本地文件夹')) + ' · ' + wallpaperDraftFolderMount.files.length + ' ' + tr('folderImagesUnit', '张图片');
+            return tr('folderReady') + (wallpaperDraftFolderMount.pathLabel || tr('sourceFolder')) + ' · ' + wallpaperDraftFolderMount.files.length + ' ' + tr('folderImagesUnit');
         }
-        if (state.status === 'needs-permission') return tr('folderNeedsPermission', '需要重新授权文件夹');
-        if (state.status === 'ready' && config.pathLabel) return tr('folderSaved', '已保存文件夹：') + config.pathLabel + (state.indexedCount ? (' · ' + state.indexedCount + ' ' + tr('folderImagesUnit', '张图片')) : '');
-        if (state.status === 'empty') return tr('folderEmpty', '未找到支持的图片');
+        if (state.status === 'needs-permission') return tr('folderNeedsPermission');
+        if (state.status === 'ready' && config.pathLabel) return tr('folderSaved') + config.pathLabel + (state.indexedCount ? (' · ' + state.indexedCount + ' ' + tr('folderImagesUnit')) : '');
+        if (state.status === 'empty') return tr('folderEmpty');
         if (state.status === 'error' && state.lastError) return state.lastError;
-        return tr('noFolderSelected', '未选择文件夹');
+        return tr('noFolderSelected');
     }
 
     function showFolderNotice(message, type) {
@@ -1219,20 +1187,20 @@
         if (!button.dataset.idleLabel) button.dataset.idleLabel = button.textContent;
         button.disabled = !!busy;
         button.classList.toggle('testing', !!busy);
-        button.textContent = busy ? tr('folderPreparing', '正在读取...') : button.dataset.idleLabel;
+        button.textContent = busy ? tr('folderPreparing') : button.dataset.idleLabel;
     }
 
     function buildFolderConfigHTML() {
         var supported = !!(WF && WF.isSupported && WF.isSupported());
         var draft = currentWallpaperDraft();
         var config = draft.providers.folder.config || {};
-        var label = wallpaperDraftFolderMount ? wallpaperDraftFolderMount.pathLabel : (config.pathLabel || tr('noFolderSelected', '未选择文件夹'));
+        var label = wallpaperDraftFolderMount ? wallpaperDraftFolderMount.pathLabel : (config.pathLabel || tr('noFolderSelected'));
         return '<div class="folder-config">' +
             '<div class="folder-current">' +
-            '<div><span>' + tr('sourceFolder', '本地文件夹') + '</span><strong>' + escapeHtml(label) + '</strong></div>' +
-            '<button id="folderChooseBtn" class="primary-action" type="button"' + (supported ? '' : ' disabled') + '>' + tr('chooseFolder', '选择文件夹') + '</button>' +
+            '<div><span>' + tr('sourceFolder') + '</span><strong>' + escapeHtml(label) + '</strong></div>' +
+            '<button id="folderChooseBtn" class="primary-action" type="button"' + (supported ? '' : ' disabled') + '>' + tr('chooseFolder') + '</button>' +
             '</div>' +
-            '<div class="folder-strategy-readonly"><span>' + tr('folderRotation', '轮换方式') + '</span><strong>' + tr('strategyRandom', '随机') + '</strong></div>' +
+            '<div class="folder-strategy-readonly"><span>' + tr('folderRotation') + '</span><strong>' + tr('strategyRandom') + '</strong></div>' +
             '<div class="folder-notice" id="folderNotice" hidden></div>' +
             '<div class="folder-status" id="folderStatus">' + escapeHtml(folderStatusText()) + '</div>' +
             '</div>';
@@ -1240,13 +1208,13 @@
 
     function folderErrorMessage(err) {
         var map = {
-            FOLDER_UNSUPPORTED: tr('folderUnsupported', '当前浏览器不支持文件夹壁纸'),
-            FOLDER_PERMISSION_DENIED: tr('folderNeedsPermission', '需要重新授权文件夹'),
-            FOLDER_NO_IMAGES: tr('folderEmpty', '未找到支持的图片'),
-            FOLDER_NO_USABLE_IMAGES: tr('folderNoUsableImages', '找到图片，但无法读取可用壁纸'),
-            FOLDER_THUMBNAIL_FAILED: tr('folderPreviewFailed', '无法生成文件夹壁纸预览')
+            FOLDER_UNSUPPORTED: tr('folderUnsupported'),
+            FOLDER_PERMISSION_DENIED: tr('folderNeedsPermission'),
+            FOLDER_NO_IMAGES: tr('folderEmpty'),
+            FOLDER_NO_USABLE_IMAGES: tr('folderNoUsableImages'),
+            FOLDER_THUMBNAIL_FAILED: tr('folderPreviewFailed')
         };
-        return map[err && err.code] || (err && err.message ? err.message : String(err || 'Folder failed'));
+        return map[err && err.code] || (err && err.message ? err.message : String(err || tr('folderLoadFailed')));
     }
 
     function bindFolderConfigEvents() {
@@ -1256,12 +1224,12 @@
         if (!choose) return;
         choose.addEventListener('click', function () {
             if (!WF || !WF.pickDirectory || !WF.prepareMount) {
-                showFolderNotice(tr('folderUnsupported', '当前浏览器不支持文件夹壁纸'), 'error');
+                showFolderNotice(tr('folderUnsupported'), 'error');
                 refreshWallpaperApplyFooter();
                 return;
             }
             setFolderButtonState(choose, true);
-            showFolderNotice(tr('folderPreparing', '正在读取...'), 'info');
+            showFolderNotice(tr('folderPreparing'), 'info');
             WF.pickDirectory().then(function (handle) {
                 return WF.prepareMount(handle, { blur: wallpaperBlur });
             }).then(function (mount) {
@@ -1281,7 +1249,7 @@
                     shuffleBag: [mount.firstName].concat(mount.shuffleBag || []),
                     currentName: ''
                 });
-                showFolderNotice(tr('folderReady', '已准备文件夹：') + (mount.pathLabel || tr('sourceFolder', '本地文件夹')), 'success');
+                showFolderNotice(tr('folderReady') + (mount.pathLabel || tr('sourceFolder')), 'success');
                 invalidateWallpaperTab();
             }).catch(function (err) {
                 if (err && err.name === 'AbortError') {
@@ -1302,13 +1270,13 @@
         var code = err && err.code;
         var message = err && err.message ? err.message : String(err || '');
         var map = {
-            INVALID_RSS_URL: tr('rssInvalidUrl', '请输入 https:// 链接'),
-            NO_RSS_IMAGES: tr('rssNoImages', '测试失败：该 RSS 没有可用图片条目'),
-            NO_USABLE_RSS_IMAGES: tr('rssNoUsableImages', '找到图片条目，但图片无法下载或生成缩略图'),
-            RSS_PERMISSION_DENIED: tr('rssPermissionDenied', '没有获得该 RSS 地址的访问权限'),
-            RSS_PARSE_FAILED: tr('rssParseFailed', 'RSS 内容无法解析'),
-            RSS_FETCH_FAILED: tr('rssFetchFailed', 'RSS 请求失败，请检查链接或稍后重试'),
-            RSS_TIMEOUT: tr('rssTimeout', 'RSS 请求超时，请稍后重试')
+            INVALID_RSS_URL: tr('rssInvalidUrl'),
+            NO_RSS_IMAGES: tr('rssNoImages'),
+            NO_USABLE_RSS_IMAGES: tr('rssNoUsableImages'),
+            RSS_PERMISSION_DENIED: tr('rssPermissionDenied'),
+            RSS_PARSE_FAILED: tr('rssParseFailed'),
+            RSS_FETCH_FAILED: tr('rssFetchFailed'),
+            RSS_TIMEOUT: tr('rssTimeout')
         };
         if (code && map[code]) return map[code];
         if (message === 'invalid url') return map.INVALID_RSS_URL;
@@ -1388,8 +1356,8 @@
         if (target.id === 'rssAddBtn') {
             var name = document.getElementById('rssNameInput').value.trim();
             var url = document.getElementById('rssUrlInput').value.trim();
-            if (config.sources.length >= 5) return setRssStatus(tr('rssLimit', '最多 5 个 RSS 源'));
-            if (!F.isHttpsUrl(url)) return setRssStatus(tr('rssInvalidUrl', '请输入 https:// 链接'));
+            if (config.sources.length >= 5) return setRssStatus(tr('rssLimit'));
+            if (!F.isHttpsUrl(url)) return setRssStatus(tr('rssInvalidUrl'));
             var id = 'custom-' + F.generateId();
             config.sources.push({
                 id: id,
@@ -1416,8 +1384,8 @@
         if (target.dataset.action === 'test-rss') {
             var testButton = target;
             setRssTestButtonState(testButton, true);
-            setRssStatus(tr('rssTesting', '正在测试...'));
-            showRssNotice(tr('rssTesting', '正在测试...'), 'info');
+            setRssStatus(tr('rssTesting'));
+            showRssNotice(tr('rssTesting'), 'info');
             F.testRssSource(source).then(function (result) {
                 source.test = {
                     status: 'passed',
@@ -1427,7 +1395,7 @@
                     error: ''
                 };
                 wallpaperDraftRssTestResult = result;
-                var message = tr('rssTestOk', '测试通过，可用图片条目：') + result.count;
+                var message = tr('rssTestOk') + result.count;
                 setRssStatus(message);
                 showRssNotice(message, 'success');
                 refreshWallpaperApplyFooter();
@@ -1492,8 +1460,8 @@
             var url = document.getElementById('apiUrlInput').value.trim();
             var pathEl = document.getElementById('apiJsonPathInput');
             var list = apiType === 'json' ? config.jsonSources : config.imageSources;
-            if (list.length >= 5) return showApiNotice(tr('apiLimit', '最多 5 个 API 源'), 'error');
-            if (!F.isHttpsUrl(url)) return showApiNotice(tr('apiInvalidUrl', '请输入 https:// 链接'), 'error');
+            if (list.length >= 5) return showApiNotice(tr('apiLimit'), 'error');
+            if (!F.isHttpsUrl(url)) return showApiNotice(tr('apiInvalidUrl'), 'error');
             var id = apiType + '-' + F.generateId();
             var source = {
                 id: id,
@@ -1537,22 +1505,22 @@
 
     function apiErrorMessage(err) {
         var map = {
-            INVALID_API_URL: tr('apiInvalidUrl', '请输入 https:// 链接'),
-            API_AUTH_REQUIRED: tr('apiAuthRequired', '该接口可能需要鉴权，当前版本仅支持把 token 放在 URL 参数里的 GET 接口'),
-            API_CORS_OR_NETWORK: tr('apiCorsFailed', '请求失败，可能是 CORS、网络或权限限制'),
-            API_TIMEOUT: tr('apiTimeout', 'API 请求超时'),
-            API_JSON_PARSE_FAILED: tr('apiJsonParseFailed', 'JSON 内容无法解析'),
-            API_JSON_PATH_FAILED: tr('apiJsonPathFailed', '没有从 JSON 中找到图片 URL'),
-            API_NOT_IMAGE: tr('apiNotImage', '响应不是图片'),
-            API_IMAGE_DOWNLOAD_FAILED: tr('apiImageDownloadFailed', '图片下载失败')
+            INVALID_API_URL: tr('apiInvalidUrl'),
+            API_AUTH_REQUIRED: tr('apiAuthRequired'),
+            API_CORS_OR_NETWORK: tr('apiCorsFailed'),
+            API_TIMEOUT: tr('apiTimeout'),
+            API_JSON_PARSE_FAILED: tr('apiJsonParseFailed'),
+            API_JSON_PATH_FAILED: tr('apiJsonPathFailed'),
+            API_NOT_IMAGE: tr('apiNotImage'),
+            API_IMAGE_DOWNLOAD_FAILED: tr('apiImageDownloadFailed')
         };
-        return map[err && err.code] || (err && err.message ? err.message : String(err || 'API failed'));
+        return map[err && err.code] || (err && err.message ? err.message : String(err || tr('apiLoadFailed')));
     }
 
     function runApiSourceTest(source, apiType, button) {
         button.disabled = true;
         button.classList.add('testing');
-        showApiNotice(tr('rssTesting', '正在测试...'), 'info');
+        showApiNotice(tr('rssTesting'), 'info');
         F.testApiSource(source, apiType).then(function (result) {
             source.test = {
                 status: 'passed',
@@ -1562,7 +1530,7 @@
                 error: ''
             };
             wallpaperDraftApiTestResult = result;
-            showApiNotice(tr('apiTestOk', '测试通过'), 'success');
+            showApiNotice(tr('apiTestOk'), 'success');
             refreshWallpaperApplyFooter();
             var passedDot = button.closest('.api-source-row') && button.closest('.api-source-row').querySelector('.source-status-dot');
             if (passedDot) passedDot.classList.add('passed');
@@ -1592,28 +1560,28 @@
         var checked = loadPaletteRecommend() ? ' checked' : '';
         var placement = loadPalettePlacement();
         var placementControl = '<select id="cpPlacement">' +
-            '<option value="follow"' + (placement === 'follow' ? ' selected' : '') + '>' + tr('cpPlacementFollow', '\u8ddf\u968f\u89e6\u53d1\u4f4d\u7f6e') + '</option>' +
-            '<option value="fixed"' + (placement === 'fixed' ? ' selected' : '') + '>' + tr('cpPlacementFixed', '\u56fa\u5b9a\u4f4d\u7f6e') + '</option>' +
+            '<option value="follow"' + (placement === 'follow' ? ' selected' : '') + '>' + tr('cpPlacementFollow') + '</option>' +
+            '<option value="fixed"' + (placement === 'fixed' ? ' selected' : '') + '>' + tr('cpPlacementFixed') + '</option>' +
             '</select>';
         var skin = loadPaletteSkin();
         var skinControl = '<select id="cpSkin">' +
-            '<option value="default"' + (skin === 'default' ? ' selected' : '') + '>' + tr('cpSkinDefault', '\u5e38\u89c4') + '</option>' +
-            '<option value="terminal"' + (skin === 'terminal' ? ' selected' : '') + '>' + tr('cpSkinTerminal', '\u6781\u5ba2') + '</option>' +
-            '<option value="shell"' + (skin === 'shell' ? ' selected' : '') + '>' + tr('cpSkinShell', '\u63a7\u5236\u53f0') + '</option>' +
-            '<option value="command-terminal"' + (skin === 'command-terminal' ? ' selected' : '') + '>' + tr('cpSkinCommandTerminal', '\u7ec8\u7aef \u00b7 \u63a8\u8350') + '</option>' +
+            '<option value="default"' + (skin === 'default' ? ' selected' : '') + '>' + tr('cpSkinDefault') + '</option>' +
+            '<option value="terminal"' + (skin === 'terminal' ? ' selected' : '') + '>' + tr('cpSkinTerminal') + '</option>' +
+            '<option value="shell"' + (skin === 'shell' ? ' selected' : '') + '>' + tr('cpSkinShell') + '</option>' +
+            '<option value="command-terminal"' + (skin === 'command-terminal' ? ' selected' : '') + '>' + tr('cpSkinCommandTerminal') + '</option>' +
             '</select>';
 
         var body =
-            settingGroup(tr('cpGroupAppearance', '外观'),
-            settingItem(tr('cpSkinLabel', '\u547d\u4ee4\u9762\u677f\u6837\u5f0f'), modalCopy('modalDescPaletteSkin', '\u5e38\u89c4\u8ddf\u968f\u4e3b\u9898\u8272\uff1b\u5176\u4ed6\u6837\u5f0f\u4f7f\u7528\u72ec\u7acb\u914d\u8272\u3002\u63a8\u8350\u4f7f\u7528\u7ec8\u7aef\u6837\u5f0f\uff0c\u652f\u6301\u53f3\u4e0b\u89d2\u4e34\u65f6\u8c03\u6574\u5927\u5c0f\u3002'), skinControl, 'setting-compact')) +
-            settingGroup(tr('cpGroupOpen', '打开方式'),
-            settingItem(tr('cpPlacementLabel', '\u547d\u4ee4\u9762\u677f\u4f4d\u7f6e'), modalCopy('modalDescPalettePlacement', '\u4ece\u89e6\u53d1\u70b9\u8ddf\u624b\u6253\u5f00\uff0c\u6216\u4fdd\u6301\u539f\u6765\u7684\u56fa\u5b9a\u4f4d\u7f6e\u3002'), placementControl, 'setting-compact') +
-            settingItem(t('cpHotkeyLabel') || '命令面板快捷键', modalCopy('modalDescHotkey', '打开命令面板与快捷入口。'), '<input type="text" class="hotkey-input" id="hkNormal" value="' + hkNormal + '" readonly>') +
-            settingItem(t('cpHiddenHotkeyLabel') || '隐藏面板快捷键', modalCopy('modalDescHiddenHotkey', '直接打开隐藏快捷入口管理。'), '<input type="text" class="hotkey-input" id="hkHidden" value="' + hkHidden + '" readonly>')) +
-            settingGroup(tr('cpGroupContent', '内容'),
-            settingItem(t('cpRecommendLabel') || '显示推荐', modalCopy('modalDescRecommend', '保留高频入口的推荐区域。'), '<label class="switch-control"><input type="checkbox" id="cpRecommend"' + checked + '><span></span></label>', 'setting-compact'));
+            settingGroup(tr('cpGroupAppearance'),
+            settingItem(tr('cpSkinLabel'), modalCopy('modalDescPaletteSkin'), skinControl, 'setting-compact')) +
+            settingGroup(tr('cpGroupOpen'),
+            settingItem(tr('cpPlacementLabel'), modalCopy('modalDescPalettePlacement'), placementControl, 'setting-compact') +
+            settingItem(tr('cpHotkeyLabel'), modalCopy('modalDescHotkey'), '<input type="text" class="hotkey-input" id="hkNormal" value="' + hkNormal + '" readonly>') +
+            settingItem(tr('cpHiddenHotkeyLabel'), modalCopy('modalDescHiddenHotkey'), '<input type="text" class="hotkey-input" id="hkHidden" value="' + hkHidden + '" readonly>')) +
+            settingGroup(tr('cpGroupContent'),
+            settingItem(tr('cpRecommendLabel'), modalCopy('modalDescRecommend'), '<label class="switch-control"><input type="checkbox" id="cpRecommend"' + checked + '><span></span></label>', 'setting-compact'));
 
-        return buildPageShell(tr('tabShortcuts', '命令面板'), modalCopy('modalSubtitleShortcuts', '命令入口、隐藏入口、推荐和面板皮肤集中在这里。'), body);
+        return buildPageShell(tr('tabShortcuts'), modalCopy('modalSubtitleShortcuts'), body);
     }
 
     function bindShortcutsEvents() {
@@ -1639,44 +1607,44 @@
     }
 
     function buildDataHTML() {
-        var jsonControl = '<button class="primary-action" id="dataExportJsonBtn" type="button">' + tr('dataExportJson', '导出 JSON') + '</button>';
-        var encryptedControl = '<div class="data-inline-control"><input id="dataExportPass" type="password" autocomplete="new-password" placeholder="' + tr('dataPassphrase', '口令') + '"><button class="primary-action" id="dataExportEncryptedBtn" type="button">' + tr('dataExportEncrypted', '导出加密文件') + '</button></div>';
-        var importControl = '<button class="primary-action" id="dataImportChooseBtn" type="button">' + tr('dataChooseFile', '选择文件') + '</button><span class="data-file-name" id="dataImportFileName"></span>';
-        var importPassControl = '<input id="dataImportPass" type="password" autocomplete="current-password" placeholder="' + tr('dataPassphrase', '口令') + '">';
-        var body = settingGroup(tr('dataExport', '导出'),
-            settingItem('JSON', modalCopy('modalDescDataJson', 'JSON 方便留存和排查。'), jsonControl, 'setting-compact') +
-            settingItem(tr('dataEncrypted', '加密'), modalCopy('modalDescDataEncrypted', '加密文件会先压缩再加密，体积通常更小。'), encryptedControl)) +
-            settingGroup(tr('dataImport', '导入'),
-            settingItem(tr('dataBackupFile', '备份文件'), modalCopy('modalDescDataImport', '支持 JSON 或加密备份文件。'), importControl, 'setting-compact') +
-            settingItem(tr('dataImportPass', '导入口令'), modalCopy('modalDescDataImportPass', '仅导入加密文件时需要。'), importPassControl, 'setting-compact')) +
+        var jsonControl = '<button class="primary-action" id="dataExportJsonBtn" type="button">' + tr('dataExportJson') + '</button>';
+        var encryptedControl = '<div class="data-inline-control"><input id="dataExportPass" type="password" autocomplete="new-password" placeholder="' + tr('dataPassphrase') + '"><button class="primary-action" id="dataExportEncryptedBtn" type="button">' + tr('dataExportEncrypted') + '</button></div>';
+        var importControl = '<button class="primary-action" id="dataImportChooseBtn" type="button">' + tr('dataChooseFile') + '</button><span class="data-file-name" id="dataImportFileName"></span>';
+        var importPassControl = '<input id="dataImportPass" type="password" autocomplete="current-password" placeholder="' + tr('dataPassphrase') + '">';
+        var body = settingGroup(tr('dataExport'),
+            settingItem('JSON', modalCopy('modalDescDataJson'), jsonControl, 'setting-compact') +
+            settingItem(tr('dataEncrypted'), modalCopy('modalDescDataEncrypted'), encryptedControl)) +
+            settingGroup(tr('dataImport'),
+            settingItem(tr('dataBackupFile'), modalCopy('modalDescDataImport'), importControl, 'setting-compact') +
+            settingItem(tr('dataImportPass'), modalCopy('modalDescDataImportPass'), importPassControl, 'setting-compact')) +
             '<div class="data-status" id="dataStatus" hidden></div>';
-        return buildPageShell(tr('tabData', '数据'), modalCopy('modalSubtitleData', '导出或恢复 PlainTab 的完整用户配置。'), body);
+        return buildPageShell(tr('tabData'), modalCopy('modalSubtitleData'), body);
     }
 
     function buildPermissionsHTML() {
         var webAccessControl = '<section class="permission-card" id="webAccessCard" data-state="checking">' +
             '<div class="permission-card-header">' +
             '<div class="permission-card-copy">' +
-            '<span class="permission-eyebrow">' + tr('permissionGroupWebAccess', '网页读取') + '</span>' +
-            '<h3>' + tr('webAccessTitle', 'HTTPS 网站读取权限') + '</h3>' +
-            '<p>' + modalCopy('modalDescWebAccess', '用于添加快捷方式时获取网页标题，也用于 RSS/API 测试与读取你配置的数据源。PlainTab 不会修改网页内容。') + '</p>' +
+            '<span class="permission-eyebrow">' + tr('permissionGroupWebAccess') + '</span>' +
+            '<h3>' + tr('webAccessTitle') + '</h3>' +
+            '<p>' + modalCopy('modalDescWebAccess') + '</p>' +
             '</div>' +
-            '<span class="permission-state" id="webAccessState" data-type="info">' + tr('webAccessChecking', '正在检查权限...') + '</span>' +
+            '<span class="permission-state" id="webAccessState" data-type="info">' + tr('webAccessChecking') + '</span>' +
             '</div>' +
-            '<div class="permission-uses" aria-label="' + tr('permissionUsesLabel', '用途') + '">' +
-            '<span>' + tr('permissionUseShortcut', '快捷方式标题') + '</span>' +
-            '<span>' + tr('permissionUseRss', 'RSS 测试') + '</span>' +
-            '<span>' + tr('permissionUseApi', 'API 读取') + '</span>' +
+            '<div class="permission-uses" aria-label="' + tr('permissionUsesLabel') + '">' +
+            '<span>' + tr('permissionUseShortcut') + '</span>' +
+            '<span>' + tr('permissionUseRss') + '</span>' +
+            '<span>' + tr('permissionUseApi') + '</span>' +
             '</div>' +
-            '<div class="permission-note">' + tr('webAccessHint', '默认会按站点请求授权；一次性授权后，PlainTab 可在 HTTPS 站点上更顺畅地自动读取标题与测试数据源。') + '</div>' +
+            '<div class="permission-note">' + tr('webAccessHint') + '</div>' +
             '<div class="permission-control">' +
-            '<button class="primary-action" id="webAccessGrantBtn" type="button">' + tr('webAccessGrant', '一次性授权 HTTPS 网站') + '</button>' +
-            '<button class="permission-revoke-action" id="webAccessRevokeBtn" type="button">' + tr('webAccessRevoke', '改回按需授权') + '</button>' +
+            '<button class="primary-action" id="webAccessGrantBtn" type="button">' + tr('webAccessGrant') + '</button>' +
+            '<button class="permission-revoke-action" id="webAccessRevokeBtn" type="button">' + tr('webAccessRevoke') + '</button>' +
             '</div>' +
             '</section>';
         var body = webAccessControl +
             '<div class="permission-status" id="permissionsStatus" hidden></div>';
-        return buildPageShell(tr('tabPermissions', '权限'), modalCopy('modalSubtitlePermissions', '快捷方式、RSS 和 API 共用的浏览器权限放在这里。'), body);
+        return buildPageShell(tr('tabPermissions'), modalCopy('modalSubtitlePermissions'), body);
     }
 
     function bindDataEvents() {
@@ -1729,14 +1697,14 @@
         if (revokeBtn) revokeBtn.disabled = !!disabled || !granted;
         if (revokeBtn) revokeBtn.hidden = !granted;
         if (card) card.dataset.state = disabled ? 'checking' : (granted ? 'granted' : 'ondemand');
-        if (granted) setWebAccessStatus(tr('webAccessEnabled', '已授权所有 HTTPS 网站读取'), 'success');
-        else setWebAccessStatus(tr('webAccessDisabled', '按需授权；未授权时使用降级名称'), 'info');
+        if (granted) setWebAccessStatus(tr('webAccessEnabled'), 'success');
+        else setWebAccessStatus(tr('webAccessDisabled'), 'info');
     }
 
     function refreshAllHttpsAccessState() {
         if (!hasPermissionApi()) {
             updateWebAccessControls(false, true);
-            setWebAccessStatus(tr('webAccessUnsupported', '仅扩展模式支持此授权'), 'info');
+            setWebAccessStatus(tr('webAccessUnsupported'), 'info');
             return;
         }
         chrome.permissions.contains({ origins: [HTTPS_ALL_ORIGIN] }, function (granted) {
@@ -1750,10 +1718,10 @@
             return;
         }
         updateWebAccessControls(false, true);
-        setWebAccessStatus(tr('webAccessRequesting', '等待浏览器授权确认...'), 'info');
+        setWebAccessStatus(tr('webAccessRequesting'), 'info');
         chrome.permissions.request({ origins: [HTTPS_ALL_ORIGIN] }, function (granted) {
             updateWebAccessControls(!!granted, false);
-            setPermissionsStatus(granted ? tr('webAccessGrantOk', '已启用 HTTPS 网站读取权限') : tr('webAccessGrantCanceled', '授权已取消'), granted ? 'success' : 'info');
+            setPermissionsStatus(granted ? tr('webAccessGrantOk') : tr('webAccessGrantCanceled'), granted ? 'success' : 'info');
         });
     }
 
@@ -1765,7 +1733,7 @@
         updateWebAccessControls(true, true);
         chrome.permissions.remove({ origins: [HTTPS_ALL_ORIGIN] }, function (removed) {
             updateWebAccessControls(!removed, false);
-            setPermissionsStatus(removed ? tr('webAccessRevokeOk', '已改回按需获取') : tr('webAccessRevokeFailed', '没有可撤销的 HTTPS 网站读取授权'), removed ? 'success' : 'info');
+            setPermissionsStatus(removed ? tr('webAccessRevokeOk') : tr('webAccessRevokeFailed'), removed ? 'success' : 'info');
         });
     }
 
@@ -1871,23 +1839,23 @@
         try {
             var payload = D.exportUserData();
             downloadText('plaintab-config-' + backupDateStamp() + '.json', JSON.stringify(payload, null, 2), 'application/json');
-            setDataStatus(tr('dataExportOk', '导出完成'), 'success');
+            setDataStatus(tr('dataExportOk'), 'success');
         } catch (e) {
-            setDataStatus(tr('dataExportFailed', '导出失败：') + (e && e.message ? e.message : String(e)), 'error');
+            setDataStatus(tr('dataExportFailed') + (e && e.message ? e.message : String(e)), 'error');
         }
     }
 
     function exportEncryptedDataBackup() {
         var pass = (document.getElementById('dataExportPass') || {}).value || '';
         if (!pass) {
-            setDataStatus(tr('dataPassRequired', '请输入加密口令'), 'error');
+            setDataStatus(tr('dataPassRequired'), 'error');
             return;
         }
         if (!window.crypto || !crypto.subtle || !window.TextEncoder) {
-            setDataStatus(tr('dataCryptoUnsupported', '当前浏览器不支持加密备份'), 'error');
+            setDataStatus(tr('dataCryptoUnsupported'), 'error');
             return;
         }
-        setDataStatus(tr('dataExporting', '正在导出...'), 'info');
+        setDataStatus(tr('dataExporting'), 'info');
         var payload = D.exportUserData();
         var json = JSON.stringify(payload);
         var bytes = new TextEncoder().encode(json);
@@ -1912,17 +1880,17 @@
                         data: bytesToBase64(new Uint8Array(cipherBuffer))
                     };
                     downloadText('plaintab-config-' + backupDateStamp() + '.ptab', JSON.stringify(wrapper), 'application/octet-stream');
-                    setDataStatus(tr('dataExportOk', '导出完成'), 'success');
+                    setDataStatus(tr('dataExportOk'), 'success');
                 });
             });
         }).catch(function (e) {
-            setDataStatus(tr('dataExportFailed', '导出失败：') + (e && e.message ? e.message : String(e)), 'error');
+            setDataStatus(tr('dataExportFailed') + (e && e.message ? e.message : String(e)), 'error');
         });
     }
 
     function decryptDataBackup(wrapper, passphrase) {
-        if (!passphrase) return Promise.reject(new Error(tr('dataPassRequired', '请输入加密口令')));
-        if (!window.crypto || !crypto.subtle || !window.TextDecoder) return Promise.reject(new Error(tr('dataCryptoUnsupported', '当前浏览器不支持加密备份')));
+        if (!passphrase) return Promise.reject(new Error(tr('dataPassRequired')));
+        if (!window.crypto || !crypto.subtle || !window.TextDecoder) return Promise.reject(new Error(tr('dataCryptoUnsupported')));
         var salt = base64ToBytes(wrapper.salt);
         var iv = base64ToBytes(wrapper.iv);
         var cipher = base64ToBytes(wrapper.data);
@@ -1937,9 +1905,9 @@
     }
 
     function validateBackupPayload(payload) {
-        if (!payload || typeof payload !== 'object') throw new Error(tr('dataInvalidBackup', '备份文件无效'));
-        if (payload.app && payload.app !== 'PlainTab') throw new Error(tr('dataInvalidBackup', '备份文件无效'));
-        if (!payload.data || typeof payload.data !== 'object') throw new Error(tr('dataInvalidBackup', '备份文件无效'));
+        if (!payload || typeof payload !== 'object') throw new Error(tr('dataInvalidBackup'));
+        if (payload.app && payload.app !== 'PlainTab') throw new Error(tr('dataInvalidBackup'));
+        if (!payload.data || typeof payload.data !== 'object') throw new Error(tr('dataInvalidBackup'));
         return payload;
     }
 
@@ -1961,7 +1929,7 @@
     }
 
     function importDataBackup(file) {
-        setDataStatus(tr('dataImporting', '正在导入...'), 'info');
+        setDataStatus(tr('dataImporting'), 'info');
         readFileAsText(file).then(function (text) {
             var parsed = JSON.parse(text);
             if (parsed && parsed.encrypted === true) {
@@ -1973,20 +1941,20 @@
             validateBackupPayload(payload);
             D.importUserData(payload);
             refreshAfterDataImport();
-            setDataStatus(tr('dataImportOk', '导入完成'), 'success');
+            setDataStatus(tr('dataImportOk'), 'success');
         }).catch(function (e) {
-            setDataStatus(tr('dataImportFailed', '导入失败：') + (e && e.message ? e.message : String(e)), 'error');
+            setDataStatus(tr('dataImportFailed') + (e && e.message ? e.message : String(e)), 'error');
         });
     }
 
     function buildAboutHTML() {
-        return buildPageShell(tr('tabAbout', '关于'), modalCopy('modalSubtitleAbout', '一个静静待在新标签页背后的 PlainTab。'),
+        return buildPageShell(tr('tabAbout'), modalCopy('modalSubtitleAbout'),
             '<div class="about-section">' +
             '<div class="about-name">PlainTab</div>' +
             '<div class="about-version">v3.2.0</div>' +
-            '<p class="about-desc">' + (t('aboutDesc') || '一款零闪白、极简纯粹的浏览器新标签页扩展。支持五种壁纸来源，双层渲染引擎确保首帧即壁纸。') + '</p>' +
+            '<p class="about-desc">' + tr('aboutDesc') + '</p>' +
             '<a class="about-link" href="https://github.com/kaininx/PlainTab" target="_blank">github.com/kaininx/PlainTab</a>' +
-            '<div class="about-footer">' + (t('aboutFooter') || 'Made by kaininx · MIT License') + '</div>' +
+            '<div class="about-footer">' + tr('aboutFooter') + '</div>' +
             '</div>');
     }
 
@@ -2429,7 +2397,7 @@
         }
         isRecording = which;
         inputEl.classList.add('recording');
-        inputEl.value = t('pressCombo') || '按下组合键...';
+        inputEl.value =tr('pressCombo');
     }
 
     function cancelRecording() {
@@ -2456,8 +2424,8 @@
         if (!el) { cancelRecording(); return; }
 
         if (!e.ctrlKey || e.altKey) {
-            el.value = t('needCtrl') || '需要 Ctrl 键';
-            setTimeout(function () { if (isRecording) el.value = t('pressCombo') || '按下组合键...'; }, 800);
+            el.value =tr('needCtrl');
+            setTimeout(function () { if (isRecording) el.value =tr('pressCombo'); }, 800);
             return;
         }
 
@@ -2471,8 +2439,8 @@
             var otherId = isRecording === 'normal' ? 'hkHidden' : 'hkNormal';
             var otherEl = document.getElementById(otherId);
             if (otherEl && combo.toLowerCase() === otherEl.value.toLowerCase()) {
-                el.value = t('hotkeyConflict') || '冲突！';
-                setTimeout(function () { if (isRecording) el.value = t('pressCombo') || '按下组合键...'; }, 1000);
+                el.value =tr('hotkeyConflict');
+                setTimeout(function () { if (isRecording) el.value =tr('pressCombo'); }, 1000);
                 return;
             }
 
@@ -2484,8 +2452,8 @@
 
             isRecording = null;
         } else {
-            el.value = t('needLetter') || '需要字母键 A-Z';
-            setTimeout(function () { if (isRecording) el.value = t('pressCombo') || '按下组合键...'; }, 800);
+            el.value =tr('needLetter');
+            setTimeout(function () { if (isRecording) el.value =tr('pressCombo'); }, 800);
         }
     }
 

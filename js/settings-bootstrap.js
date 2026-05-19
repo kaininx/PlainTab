@@ -214,8 +214,13 @@
         var searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.placeholder = t('searchPlaceholder');
         if (settingsBtn) settingsBtn.title = t('settingsTitle');
+        if (settingsBtn) settingsBtn.setAttribute('aria-label', t('settingsTitle'));
         if (langBtn) langBtn.title = t('langTitle');
+        if (langBtn) langBtn.setAttribute('aria-label', t('langTitle'));
         if (engineIcon) engineIcon.title = t('engineTitle');
+        if (engineIcon) engineIcon.setAttribute('aria-label', t('engineTitle'));
+        if (uploadBtn) uploadBtn.title = t('addImage');
+        if (uploadBtn) uploadBtn.setAttribute('aria-label', t('addImage'));
         if (modeChipEl) {
             var source = currentMode === 'local' ? 'upload' : currentMode;
             var labels = {
