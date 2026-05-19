@@ -1,52 +1,52 @@
-# Core Rules
+# 核心规则
 
-<!-- Loaded automatically at session start for all files -->
+## 项目形态
 
-## Investigation & Accuracy
+- PlainTab 是静态 Manifest V3 新标签页扩展，也能通过 `index.html` 直接作为网页运行。
+- 使用原生 JavaScript 和 CSS。不要添加包管理器、构建步骤、前端框架、lint/test 框架或大型运行时依赖。
+- 交互应保持安静、快速、内容优先。避免重度毛玻璃、大面积缩放动画、过冲动效，以及会抢走壁纸注意力的装饰复杂度。
 
-- Never speculate about code you have not read. Read files and search for usages before making claims.
-- If the user references a file, read it before answering.
-- Treat `.claude/rules/` as the current implementation guide. If the implementation and a rule disagree, the implementation wins for the immediate task, and the rule should be updated when the task asks for documentation sync.
-- If uncertain, say so and propose how to verify. Do not fabricate APIs, paths, options, or behavior.
+## 启动不变量
 
-## Scope Discipline
+零白屏启动顺序是产品行为的一部分：
 
-- Do what has been asked; nothing more, nothing less.
-- When intent is ambiguous, default to research and recommendations; only edit when explicitly asked.
-- Make only the changes requested. Do not refactor adjacent code, add docstrings to unchanged code, or create abstractions for a single use.
-- Follow scoping words ("only", "just", "exactly") literally.
-- Preserve unrelated user changes in the working tree.
+1. DOM 中先有 `#wallpaperBack`。
+2. `js/preload.js` 同步执行。
+3. DOM 中再有 `#wallpaperFront`。
+4. 其余页面 DOM 随后出现。
+5. `js/languages.js` 加载。
+6. 壁纸 data/show/folder/fetch、settings bootstrap、`js/newtab.js` 加载。
 
-## Project Constraints
+不要移动 `preload.js`，不要把它改成 async，也不要把网络、IndexedDB、canvas、i18n 加载、文件夹扫描或昂贵 JSON 工作放进首屏路径。
 
-- Do not introduce build tools, `npm`, `package.json`, frontend frameworks, lint frameworks, test frameworks, or large runtime dependencies.
-- Use vanilla JavaScript, native CSS, static browser APIs, and existing project modules.
-- Keep the extension able to run as a standalone web page by opening `index.html`.
+## 存储和数据安全
 
-## Verification & Safety
+- `js/wallpaper/data.js` 是 `localStorage` 和 IndexedDB 的所有者。其他模块应使用 `window.WallpaperData` API。
+- 先写入大 Blob 数据，再写引用。
+- 先移除引用，再删除大数据。
+- Blob URL 不再需要时必须释放。
+- 失败时保留可见壁纸。任何时候至少应有一个壁纸层可用。
 
-- Before declaring done: re-check requirements, run the relevant static checks/tests, and state what changed and what could not be verified.
-- Ask before destructive actions: deleting files/branches, force pushes, hard resets, or `--no-verify`.
-- Edit existing files in place. Do not create new files unless required. Clean up scratch files.
-- For storage and wallpaper changes, verify key names and startup order against `js/wallpaper/data.js`, `js/preload.js`, `index.html`, and `js/newtab.js`.
+## 范围控制
 
-## First-Paint Discipline
+- 用能解决问题的最小改动。
+- 不要为了风格或架构洁癖重写稳定模块。
+- 除非需求明确要求，不要重做存储、来源选择或启动流程。
+- 工作区里可能有用户改动；不要回退无关修改。
+- 共享视觉 token 集中放在 CSS 变量里，优先用 class/attribute 切换，减少 JS 动态写样式。
 
-- First paint has priority over structural elegance.
-- Do not move `js/preload.js`, make it async, or add network/IDB/canvas/file-system work to it.
-- `preload.js` may synchronously read only `ptab_wallpaper_preview` and write `#wallpaperBack`.
-- At least one wallpaper layer must always have visible content or the built-in gradient fallback.
+## 验证
 
-## Efficiency
+改 JavaScript 后，检查触及文件或整个 JS 树：
 
-- Parallelize independent reads where possible; serialize dependent edits and verification.
-- Prefer fast text search first. If `rg` is unavailable or blocked, use the next best local search without stalling.
-- Never use placeholder or guessed parameters.
+```powershell
+Get-ChildItem -Recurse js -Include *.js | ForEach-Object { node --check $_.FullName }
+```
 
-## Memory Resilience
+只改 rules/docs 时，至少运行：
 
-- Keep `AGENTS.md` as the shared AI entry point. `CLAUDE.md` is only a Claude Code adapter.
-- Do not recreate the removed root `ai/` directory. Put temporary AI task notes under `docs/ai-tasks/`.
-- Keep shared skills canonical in `.agents/skills/`; `.claude/skills/` should contain thin Claude adapters.
-- When updating tool-specific memory files, sync durable project guidance back to `AGENTS.md` or `.claude/rules/`.
-- If `AGENTS.md` or `CLAUDE.md` is reset, recover project context from `.claude/rules/` before editing.
+```powershell
+git diff --check -- .claude/rules
+```
+
+如果改动 i18n key 或语言包，按 `30-language.md` 和 `update-i18n` skill 执行。

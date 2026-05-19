@@ -1,92 +1,62 @@
-# 全局交互需求规格
+# 运行时规则
 
-## 行为概述
+## 入口流程
 
-全局运行时由 `index.html`、`js/preload.js`、`js/settings-bootstrap.js`、`js/newtab.js` 和按需加载的完整设置/命令面板组成。目标是：首屏快速、壁纸不断层、设置和命令面板按需加载。
+`index.html` 加载顺序：
 
-### 启动顺序
+1. CSS 和图标资源。
+2. `#wallpaperBack`。
+3. 同步 `js/preload.js`。
+4. `#wallpaperFront` 和可见 UI DOM。
+5. `js/languages.js`。
+6. `js/wallpaper/data.js`、`show.js`、`folder.js`、`fetch.js`。
+7. `js/settings-bootstrap.js`。
+8. `js/newtab.js`。
 
-`index.html` 的加载顺序是零白屏设计的一部分：
+`js/newtab.js` 是启动、壁纸加载、搜索执行、全局事件、设置 bootstrap 和命令面板加载的主编排者。
 
-1. `#wallpaperBack`
-2. 同步 `js/preload.js`
-3. `#wallpaperFront`
-4. RSS 信息层、搜索栏、角落按钮、一级设置面板、语言面板、模态容器、命令面板容器
-5. `js/languages.js`
-6. `js/wallpaper/data.js`
-7. `js/wallpaper/show.js`
-8. `js/wallpaper/folder.js`
-9. `js/wallpaper/fetch.js`
-10. `js/settings-bootstrap.js`
-11. `js/newtab.js`
+## 启动工作
 
-不要移动 `preload.js`，不要给它加 `async/defer`，不要让它访问网络、IDB、canvas、`WallpaperData` 或文件系统接口。
+- 首屏保持轻。
+- 立即加载并应用当前最好的缓存壁纸。
+- 网络刷新、文件夹扫描、面板预热、onboarding 提示、命令面板预热都放到启动之后，通常用 `requestIdleCallback` 加 timeout fallback。
+- 初始壁纸可见前，不要加入阻塞性的 i18n、网络、存储工作。
 
-### 启动流程
+## 设置协调
 
-`newtab.js` 在 DOM ready 后：
+设置有两个表面：
 
-1. 获取 `window.SettingsPanel` bootstrap。
-2. 调用 `WallpaperData.migrate()`，当前实现只确保 schema baseline。
-3. 初始化设置 bootstrap：读取 UI、语言、当前壁纸源，应用 CSS 变量和基础事件。
-4. 加载当前壁纸源，失败时回退 Bing。
-5. 绑定全局鼠标/键盘事件。
-6. 空闲阶段预热完整设置面板和命令面板。
+- L1 角落面板，用于快速壁纸/上传入口。
+- L2 完整设置模态窗口。
 
-完整设置面板 `js/settings-panel.js` 和命令面板 `js/command-palette.js` 都是懒加载：用户打开或空闲预热时才注入脚本。
+设置面板、语言面板或设置模态窗口打开时，全局交互不应误触其他表面。尤其：
 
-### 运行环境检测
+- 设置/语言/模态表面活动时，双击和中键不应打开命令面板。
+- document click 应关闭合适的表面，但不能破坏表面内部控件。
+- `Escape` 根据当前上下文关闭设置/命令面板表面。
 
-扩展模式判定：`chrome.runtime.id` 存在。
+## 搜索运行时
 
-当前实现差异：
+- `newtab.js` 拥有搜索历史 UI、键盘导航和实际搜索执行。
+- 扩展模式优先使用 `chrome.search.query`。
+- 网页模式使用显式搜索引擎 URL。
+- 回车行为从设置读取：默认当前页，配置后可新标签页。
 
-- 扩展模式隐藏搜索引擎选择行，搜索图标显示静态放大镜且不可点击，搜索执行使用 `chrome.search.query()` 调用浏览器默认搜索。
-- 网页模式显示搜索引擎选择，点击搜索图标循环切换 Google/Bing/Baidu/DuckDuckGo，并使用保存的搜索 URL 模板跳转。
+## 壁纸运行时
 
-### 键盘快捷键
+- `newtab.js` 根据 `WallpaperData.getActiveSource()` 决定加载哪个来源。
+- 即使当前不是 Bing，也可以后台刷新 Bing；但除非当前来源就是 Bing，否则不能切换可见模式。
+- RSS/API 刷新检查必须遵守配置间隔和 state 时间戳。
+- 来源失败时应使用缓存内容或回退 Bing，不能让两个壁纸层都空白。
 
-全局 keydown 分发：
+## 命令面板运行时
 
-| 快捷键 | 行为 |
-|--------|------|
-| Escape | 若命令面板打开，先交给命令面板；否则关闭设置/语言/模态面板并隐藏角落按钮 |
-| 主命令面板快捷键 | 默认 `ctrl+k`，打开普通命令面板 |
-| 隐藏命令面板快捷键 | 默认 `ctrl+shift+k`，打开隐藏命令面板 |
-| Ctrl/Cmd+Shift+W | 切换设置模态窗口：已打开则关闭，否则打开 |
-| Enter（搜索框聚焦） | 执行搜索 |
+- 命令面板在启动后懒预热。
+- 普通快捷键默认 `ctrl+k`；隐藏空间快捷键默认 `ctrl+shift+k`。
+- 鼠标快捷方式是 document 双击和中键，但设置表面活动时必须被阻止。
 
-命令面板打开时，键盘导航优先交给 `window.Palette.handleKeyNav(e)`。如果普通/隐藏面板已打开，再尝试打开另一种模式，由命令面板内部显示 2 秒提示而不是切换模式。
+## 全局事件边界
 
-### 鼠标行为
-
-**右上角热区：** 鼠标进入距右边 180px、顶部 130px 的区域时，设置和语言按钮显示；离开后延迟 400ms 隐藏。设置或语言面板打开时不隐藏。
-
-**搜索栏：** `always` 模式始终可见；`hover` 模式下搜索栏本身保留透明可命中的区域，鼠标进入该区域或获得 `.visible` 时显示，移开 150ms 后隐藏；`never` 模式不可见且不可聚焦。
-
-**壁纸点击：** 只有搜索栏是 `always` 模式时，点击非 UI 区域才会聚焦搜索框。`hover` 和 `never` 不通过壁纸点击聚焦。
-
-**命令面板鼠标入口：** 双击页面空白区域打开普通面板；鼠标中键点击打开隐藏面板。
-
-### 面板协调
-
-| 面板 | 打开方式 | 关系 |
-|------|---------|------|
-| 一级设置面板 | 角落齿轮按钮 | 与语言面板互斥；完整设置打开时关闭 |
-| 语言面板 | 角落语言按钮 | 与一级设置面板互斥 |
-| 设置模态窗口 | Ctrl/Cmd+Shift+W 或一级面板入口 | 独立遮罩；打开时由完整设置模块管理 |
-| 命令面板 | 快捷键 / 双击 / 中键 | 独立覆盖层；打开时不主动关闭设置或语言面板 |
-
-关闭函数必须幂等。点击面板外区域关闭对应面板；点击面板内部不能透传成外部关闭。
-
-### 空闲预热
-
-`schedulePanelWarmup()` 在 `requestIdleCallback` 中预热完整设置和命令面板；没有 `requestIdleCallback` 时用延迟 `setTimeout`。预热失败应被吞掉，不影响主页面。
-
-## 约束清单
-
-- 启动路径优先保证壁纸首帧，非关键模块用懒加载或空闲加载。
-- 全局鼠标移动使用 `requestAnimationFrame` 节流，避免每次 mousemove 同步改 DOM。
-- 只通过 `SettingsPanel`/`SettingsPanelFull`/`Palette` 暴露的 API 协调面板。
-- 不在 `newtab.js` 中直接实现完整设置面板或命令面板业务逻辑。
-- `window.reloadWallpaper` 是设置面板在删除/应用/重置后触发壁纸重载的入口。
+- 避免无视 modal/panel/input 状态的宽泛全局 handler。
+- 文本输入、自定义 select、按钮、设置模态内容、语言面板和命令面板内容应消费自己的交互。
+- 优先用小 helper 判断表面状态，避免条件散落在各处。
