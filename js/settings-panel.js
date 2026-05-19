@@ -892,21 +892,69 @@
         return true;
     }
 
-    function refreshPendingSourceConfigAfterSave(source) {
+    function setPendingSourceHealth(source, health) {
+        var workOrder = currentWallpaperWorkOrder();
         source = normalizeDraftSource(source);
-        if (normalizeDraftSource(currentWallpaperWorkOrder().pendingSource) !== source) return;
-        switchWallpaperWorkOrderSource(source);
+        if (normalizeDraftSource(workOrder.pendingSource) !== source) return false;
+        workOrder.health = {
+            state: health.state || 'Dirty',
+            reasonKey: health.reasonKey || pendingConfigReasonKey(source),
+            message: health.message || ''
+        };
+        refreshWallpaperApplyFooter();
+        return true;
+    }
+
+    function syncPendingRssSourceTest(sourceId, test) {
+        var updated = updatePendingSourceConfig('rss', function (pending) {
+            (pending.sources || []).forEach(function (item) {
+                if (item && item.id === sourceId) item.test = clonePlain(test);
+            });
+        });
+        if (updated) currentWallpaperDraft().providers.rss.config = clonePlain(currentWallpaperWorkOrder().pendingConfig);
+        return updated;
+    }
+
+    function syncPendingApiSourceTest(apiType, sourceId, test) {
+        var updated = updatePendingSourceConfig('api', function (pending) {
+            var list = apiType === 'json' ? pending.jsonSources : pending.imageSources;
+            (list || []).forEach(function (item) {
+                if (item && item.id === sourceId) item.test = clonePlain(test);
+            });
+        });
+        if (updated) currentWallpaperDraft().providers.api.config = clonePlain(currentWallpaperWorkOrder().pendingConfig);
+        return updated;
     }
 
     function switchWallpaperWorkOrderSource(source) {
         return createWallpaperWorkOrder(normalizeDraftSource(source));
     }
 
+    function refreshWallpaperWorkOrderBaselineOnly() {
+        if (!wallpaperWorkOrder) return;
+        var saved = D.loadWallpaper();
+        var source = normalizeDraftSource(saved.activeSource);
+        wallpaperWorkOrder.baseline = {
+            pendingSource: source,
+            pendingConfig: providerConfigForSource(saved, source)
+        };
+        validateWallpaperWorkOrder();
+    }
+
     function validateWallpaperWorkOrder() {
         var Apply = window.WallpaperApply;
+        var workOrder = currentWallpaperWorkOrder();
         wallpaperWorkOrderStatus = Apply && Apply.validateWorkOrder ?
-            Apply.validateWorkOrder(currentWallpaperWorkOrder()) :
+            Apply.validateWorkOrder(workOrder) :
             { state: 'Blocked', valid: false, reasonKey: 'wallpaperApplyFailed', message: '' };
+        if (workOrder.health && workOrder.health.state === 'Error') {
+            wallpaperWorkOrderStatus = {
+                state: 'Blocked',
+                valid: false,
+                reasonKey: workOrder.health.reasonKey || 'wallpaperStatusTestFailed',
+                message: workOrder.health.message || ''
+            };
+        }
         return wallpaperWorkOrderStatus;
     }
 
@@ -2146,17 +2194,35 @@
     }
 
     function saveRssListConfig(config) {
-        config = D.normalizeRssConfig ? D.normalizeRssConfig(config) : config;
-        D.saveRssConfig(config);
+        var savedConfig = D.loadRssConfig ? clonePlain(D.loadRssConfig()) : providerConfigForSource(D.loadWallpaper(), 'rss');
+        savedConfig.sources = clonePlain(config.sources || []);
+        savedConfig.activeSourceId = config.activeSourceId || '';
+        savedConfig = D.normalizeRssConfig ? D.normalizeRssConfig(savedConfig) : savedConfig;
+        D.saveRssConfig(savedConfig);
         currentWallpaperDraft().providers.rss.config = clonePlain(config);
-        refreshPendingSourceConfigAfterSave('rss');
+        updatePendingSourceConfig('rss', function (pending) {
+            pending.sources = clonePlain(config.sources || []);
+            pending.activeSourceId = config.activeSourceId || '';
+        });
     }
 
     function saveApiListConfig(config) {
-        config = D.normalizeApiConfig ? D.normalizeApiConfig(config) : config;
-        D.saveApiConfig(config);
+        var savedConfig = D.loadApiConfig ? clonePlain(D.loadApiConfig()) : providerConfigForSource(D.loadWallpaper(), 'api');
+        savedConfig.apiType = config.apiType === 'json' ? 'json' : 'image';
+        savedConfig.imageSources = clonePlain(config.imageSources || []);
+        savedConfig.jsonSources = clonePlain(config.jsonSources || []);
+        savedConfig.activeImageSourceId = config.activeImageSourceId || '';
+        savedConfig.activeJsonSourceId = config.activeJsonSourceId || '';
+        savedConfig = D.normalizeApiConfig ? D.normalizeApiConfig(savedConfig) : savedConfig;
+        D.saveApiConfig(savedConfig);
         currentWallpaperDraft().providers.api.config = clonePlain(config);
-        refreshPendingSourceConfigAfterSave('api');
+        updatePendingSourceConfig('api', function (pending) {
+            pending.apiType = config.apiType === 'json' ? 'json' : 'image';
+            pending.imageSources = clonePlain(config.imageSources || []);
+            pending.jsonSources = clonePlain(config.jsonSources || []);
+            pending.activeImageSourceId = config.activeImageSourceId || '';
+            pending.activeJsonSourceId = config.activeJsonSourceId || '';
+        });
     }
 
     function deletedRunningRssSource(sourceId) {
@@ -2173,6 +2239,7 @@
     function switchRunningWallpaperToBing() {
         D.setActiveSource('bing');
         currentMode = 'bing';
+        refreshWallpaperWorkOrderBaselineOnly();
         updateModeChip();
         if (window.reloadWallpaper) window.reloadWallpaper();
     }
@@ -2294,7 +2361,6 @@
             saveRssListConfig(config);
             if (wasRunningRssSource) {
                 switchRunningWallpaperToBing();
-                refreshPendingSourceConfigAfterSave('rss');
             }
             refreshWallpaperDraftTab();
             return;
@@ -2308,14 +2374,18 @@
             setRssTestButtonState(testButton, true);
             setRssStatus(tr('rssTesting'));
             showRssNotice(tr('rssTesting'), 'info');
+            setPendingSourceHealth('rss', { state: 'Testing', reasonKey: 'wallpaperStatusTesting', message: '' });
             F.testRssSource(source).then(function (result) {
-                source.test = {
+                var test = {
                     status: 'passed',
                     fieldHash: D.rssFieldHash(source),
                     testedAt: Date.now(),
                     imageUrl: result.first && result.first.imageUrl || '',
                     error: ''
                 };
+                source.test = test;
+                syncPendingRssSourceTest(source.id, test);
+                setPendingSourceHealth('rss', { state: 'Ready', reasonKey: 'wallpaperApplyReady', message: '' });
                 wallpaperDraftRssTestResult = result;
                 var message = tr('rssTestOk') + result.count;
                 setRssStatus(message);
@@ -2325,13 +2395,16 @@
                 if (passedDot) passedDot.classList.add('passed');
             }).catch(function (err) {
                 var message = rssErrorMessage(err);
-                source.test = {
+                var test = {
                     status: 'failed',
                     fieldHash: D.rssFieldHash(source),
                     testedAt: Date.now(),
                     imageUrl: '',
                     error: message
                 };
+                source.test = test;
+                syncPendingRssSourceTest(source.id, test);
+                setPendingSourceHealth('rss', { state: 'Error', reasonKey: 'wallpaperStatusTestFailed', message: message });
                 wallpaperDraftRssTestResult = null;
                 setRssStatus(message);
                 showRssNotice(message, 'error');
@@ -2451,7 +2524,6 @@
             saveApiListConfig(config);
             if (wasRunningApiSource) {
                 switchRunningWallpaperToBing();
-                refreshPendingSourceConfigAfterSave('api');
             }
             wallpaperDraftApiTestResult = null;
             refreshWallpaperDraftTab();
@@ -2508,14 +2580,18 @@
         button.disabled = true;
         button.classList.add('testing');
         showApiNotice(tr('rssTesting'), 'info');
+        setPendingSourceHealth('api', { state: 'Testing', reasonKey: 'wallpaperStatusTesting', message: '' });
         F.testApiSource(source, apiType).then(function (result) {
-            source.test = {
+            var test = {
                 status: 'passed',
                 fieldHash: D.apiFieldHash(source, apiType),
                 testedAt: Date.now(),
                 imageUrl: result.imageUrl || '',
                 error: ''
             };
+            source.test = test;
+            syncPendingApiSourceTest(apiType, source.id, test);
+            setPendingSourceHealth('api', { state: 'Ready', reasonKey: 'wallpaperApplyReady', message: '' });
             wallpaperDraftApiTestResult = result;
             showApiNotice(tr('apiTestOk'), 'success');
             refreshWallpaperApplyFooter();
@@ -2523,13 +2599,16 @@
             if (passedDot) passedDot.classList.add('passed');
         }).catch(function (err) {
             var message = apiErrorMessage(err);
-            source.test = {
+            var test = {
                 status: 'failed',
                 fieldHash: D.apiFieldHash(source, apiType),
                 testedAt: Date.now(),
                 imageUrl: '',
                 error: message
             };
+            source.test = test;
+            syncPendingApiSourceTest(apiType, source.id, test);
+            setPendingSourceHealth('api', { state: 'Error', reasonKey: 'wallpaperStatusTestFailed', message: message });
             wallpaperDraftApiTestResult = null;
             showApiNotice(message, 'error');
             refreshWallpaperApplyFooter();
