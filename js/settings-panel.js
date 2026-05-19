@@ -961,6 +961,14 @@
         wallpaperWorkOrderStatus = Apply && Apply.validateWorkOrder ?
             Apply.validateWorkOrder(workOrder) :
             { state: 'Blocked', valid: false, reasonKey: 'wallpaperApplyFailed', message: '' };
+        if (workOrder.health && workOrder.health.state === 'Applying') {
+            wallpaperWorkOrderStatus = {
+                state: 'Applying',
+                valid: false,
+                reasonKey: workOrder.health.reasonKey || 'wallpaperApplyReady',
+                message: workOrder.health.message || (tr('wallpaperApply') + '...')
+            };
+        }
         if (workOrder.health && workOrder.health.state === 'Error') {
             wallpaperWorkOrderStatus = {
                 state: 'Blocked',
@@ -1014,38 +1022,9 @@
         return source === 'local' ? 'upload' : source;
     }
 
-    function wallpaperDraftChanged() {
-        return !!wallpaperDraft && JSON.stringify(wallpaperDraft) !== wallpaperDraftOriginal;
-    }
-
-    function originalWallpaperDraft() {
-        if (!wallpaperDraftOriginal) return null;
-        try { return JSON.parse(wallpaperDraftOriginal); }
-        catch (e) { return null; }
-    }
-
-    function sourceListRemovalOnly(current, original) {
-        current = current || [];
-        original = original || [];
-        if (current.length >= original.length) return false;
-        return current.every(function (source) {
-            return original.some(function (item) {
-                return item && source && item.id === source.id && JSON.stringify(item) === JSON.stringify(source);
-            });
-        });
-    }
-
-    function sourceListUnchanged(current, original) {
-        return JSON.stringify(current || []) === JSON.stringify(original || []);
-    }
-
     function sourceListHasId(sources, id) {
         if (!id) return false;
         return (sources || []).some(function (source) { return source && source.id === id; });
-    }
-
-    function sourceById(sources, id) {
-        return (sources || []).filter(function (source) { return source && source.id === id; })[0] || null;
     }
 
     function activeRssSourceId(config) {
@@ -1063,148 +1042,6 @@
         return { apiType: apiType, sourceId: activeId || '' };
     }
 
-    function draftDeletedActiveRssSource(base) {
-        var draft = currentWallpaperDraft();
-        base = base || originalWallpaperDraft();
-        if (!base || normalizeDraftSource(base.activeSource) !== 'rss') return false;
-        var baseConfig = base.providers && base.providers.rss && base.providers.rss.config;
-        var draftConfig = draft.providers && draft.providers.rss && draft.providers.rss.config;
-        if (!baseConfig || !draftConfig) return false;
-        var activeId = activeRssSourceId(baseConfig);
-        return !!activeId && !sourceListHasId(draftConfig.sources, activeId);
-    }
-
-    function draftDeletedActiveApiSource(base) {
-        var draft = currentWallpaperDraft();
-        base = base || originalWallpaperDraft();
-        if (!base || normalizeDraftSource(base.activeSource) !== 'api') return false;
-        var baseConfig = base.providers && base.providers.api && base.providers.api.config;
-        var draftConfig = draft.providers && draft.providers.api && draft.providers.api.config;
-        if (!baseConfig || !draftConfig) return false;
-        var active = activeApiSourceIdentity(baseConfig);
-        var draftSources = active.apiType === 'json' ? draftConfig.jsonSources : draftConfig.imageSources;
-        return !!active.sourceId && !sourceListHasId(draftSources, active.sourceId);
-    }
-
-    function draftDeletedActiveProviderSource(base) {
-        return draftDeletedActiveRssSource(base) || draftDeletedActiveApiSource(base);
-    }
-
-    function rssSelectedSourceNeedsTest() {
-        var original = originalWallpaperDraft();
-        var draft = currentWallpaperDraft();
-        if (!original || normalizeDraftSource(original.activeSource) !== 'rss') return true;
-        if (draftDeletedActiveRssSource(original)) return false;
-        var originalConfig = original.providers && original.providers.rss && original.providers.rss.config;
-        var draftConfig = draft.providers && draft.providers.rss && draft.providers.rss.config;
-        if (!originalConfig || !draftConfig) return true;
-        var originalActiveId = activeRssSourceId(originalConfig);
-        var draftActiveId = activeRssSourceId(draftConfig);
-        if (!draftActiveId || draftActiveId !== originalActiveId) return true;
-        return JSON.stringify(sourceById(draftConfig.sources, draftActiveId)) !== JSON.stringify(sourceById(originalConfig.sources, originalActiveId));
-    }
-
-    function apiSelectedSourceNeedsTest() {
-        var original = originalWallpaperDraft();
-        var draft = currentWallpaperDraft();
-        if (!original || normalizeDraftSource(original.activeSource) !== 'api') return true;
-        if (draftDeletedActiveApiSource(original)) return false;
-        var originalConfig = original.providers && original.providers.api && original.providers.api.config;
-        var draftConfig = draft.providers && draft.providers.api && draft.providers.api.config;
-        if (!originalConfig || !draftConfig) return true;
-        var originalActive = activeApiSourceIdentity(originalConfig);
-        var draftActive = activeApiSourceIdentity(draftConfig);
-        if (!draftActive.sourceId || draftActive.apiType !== originalActive.apiType || draftActive.sourceId !== originalActive.sourceId) return true;
-        var draftSources = draftActive.apiType === 'json' ? draftConfig.jsonSources : draftConfig.imageSources;
-        var originalSources = originalActive.apiType === 'json' ? originalConfig.jsonSources : originalConfig.imageSources;
-        return JSON.stringify(sourceById(draftSources, draftActive.sourceId)) !== JSON.stringify(sourceById(originalSources, originalActive.sourceId));
-    }
-
-    function rssSourceRemovalOnly() {
-        var original = originalWallpaperDraft();
-        if (!original || !wallpaperDraft) return false;
-        var currentRestModel = clonePlain(wallpaperDraft);
-        var originalRestModel = clonePlain(original);
-        var currentConfig = currentRestModel.providers && currentRestModel.providers.rss && currentRestModel.providers.rss.config;
-        var originalConfig = originalRestModel.providers && originalRestModel.providers.rss && originalRestModel.providers.rss.config;
-        if (!currentConfig || !originalConfig) return false;
-        var currentSources = currentConfig.sources;
-        var originalSources = originalConfig.sources;
-        delete currentConfig.sources;
-        delete originalConfig.sources;
-        delete currentConfig.activeSourceId;
-        delete originalConfig.activeSourceId;
-        return JSON.stringify(currentRestModel) === JSON.stringify(originalRestModel) &&
-            sourceListRemovalOnly(currentSources, originalSources);
-    }
-
-    function apiSourceRemovalOnly() {
-        var original = originalWallpaperDraft();
-        if (!original || !wallpaperDraft) return false;
-        var currentRestModel = clonePlain(wallpaperDraft);
-        var originalRestModel = clonePlain(original);
-        var currentConfig = currentRestModel.providers && currentRestModel.providers.api && currentRestModel.providers.api.config;
-        var originalConfig = originalRestModel.providers && originalRestModel.providers.api && originalRestModel.providers.api.config;
-        if (!currentConfig || !originalConfig) return false;
-        var currentImageSources = currentConfig.imageSources;
-        var originalImageSources = originalConfig.imageSources;
-        var currentJsonSources = currentConfig.jsonSources;
-        var originalJsonSources = originalConfig.jsonSources;
-        ['imageSources', 'jsonSources', 'activeImageSourceId', 'activeJsonSourceId'].forEach(function (key) {
-            delete currentConfig[key];
-            delete originalConfig[key];
-        });
-        if (JSON.stringify(currentRestModel) !== JSON.stringify(originalRestModel)) return false;
-        var imageRemoved = sourceListRemovalOnly(currentImageSources, originalImageSources);
-        var jsonRemoved = sourceListRemovalOnly(currentJsonSources, originalJsonSources);
-        return (imageRemoved || sourceListUnchanged(currentImageSources, originalImageSources)) &&
-            (jsonRemoved || sourceListUnchanged(currentJsonSources, originalJsonSources)) &&
-            (imageRemoved || jsonRemoved);
-    }
-
-    function selectedDraftRssSource() {
-        var config = currentWallpaperDraft().providers.rss.config;
-        return config.sources.filter(function (source) { return source.id === config.activeSourceId; })[0] || config.sources[0] || null;
-    }
-
-    function selectedDraftApiSource() {
-        var config = currentWallpaperDraft().providers.api.config;
-        return D.activeApiSource ? D.activeApiSource(config) : null;
-    }
-
-    function validateWallpaperDraft() {
-        var draft = currentWallpaperDraft();
-        var source = D.compatMode ? D.compatMode(draft.activeSource) : draft.activeSource;
-        if (!wallpaperDraftChanged()) return { valid: false, reason: tr('wallpaperApplyNoChanges') };
-        if (source === 'bing' || source === 'local') return { valid: true, reason: '' };
-        if (source === 'folder') {
-            if (!WF || !WF.isSupported || !WF.isSupported()) return { valid: false, reason: tr('folderUnsupported') };
-            if (!wallpaperDraftFolderMount) return { valid: false, reason: tr('folderNeedsValidSelection') };
-            return { valid: true, reason: '' };
-        }
-        if (source === 'rss') {
-            if (draftDeletedActiveRssSource()) return { valid: true, reason: '' };
-            var rss = selectedDraftRssSource();
-            if (!rss) return { valid: false, reason: tr('rssNeedsSource') };
-            if (rssSourceRemovalOnly()) return { valid: true, reason: '' };
-            if (!rssSelectedSourceNeedsTest()) return { valid: true, reason: '' };
-            var rssHash = D.rssFieldHash(rss);
-            if (!D.isTestPassed(rss, rssHash)) return { valid: false, reason: tr('rssNeedsTest') };
-            return { valid: true, reason: '' };
-        }
-        if (source === 'api') {
-            if (draftDeletedActiveApiSource()) return { valid: true, reason: '' };
-            var api = selectedDraftApiSource();
-            if (!api) return { valid: false, reason: tr('apiNeedsSource') };
-            if (apiSourceRemovalOnly()) return { valid: true, reason: '' };
-            if (!apiSelectedSourceNeedsTest()) return { valid: true, reason: '' };
-            var apiType = draft.providers.api.config.apiType;
-            var apiHash = D.apiFieldHash(api, apiType);
-            if (!D.isTestPassed(api, apiHash)) return { valid: false, reason: tr('apiNeedsTest') };
-            return { valid: true, reason: '' };
-        }
-        return { valid: false, reason: tr('sourcePendingHint') };
-    }
 
     function wallpaperStatusText(status) {
         status = status || validateWallpaperWorkOrder();
@@ -1233,71 +1070,26 @@
         return D.normalizeSource ? D.normalizeSource(source) : (source === 'local' ? 'upload' : (source || 'bing'));
     }
 
-    function sourceNeedsDiscardPrompt(previousSource, nextSource) {
-        previousSource = normalizeDraftSource(previousSource);
-        nextSource = normalizeDraftSource(nextSource);
-        if (previousSource === nextSource) return false;
-        if (previousSource === 'bing') return false;
-        return D.hasSourceCache && D.hasSourceCache(previousSource);
+    function selectedWorkOrderApiSource(config) {
+        config = config || {};
+        var apiType = config.apiType === 'json' ? 'json' : 'image';
+        var list = apiType === 'json' ? (config.jsonSources || []) : (config.imageSources || []);
+        var activeId = apiType === 'json' ? config.activeJsonSourceId : config.activeImageSourceId;
+        return list.filter(function (source) { return source && source.id === activeId; })[0] || list[0] || null;
     }
 
-    function applyWallpaperDraft() {
-        var validation = validateWallpaperDraft();
-        if (!validation.valid) {
-            refreshWallpaperApplyFooter();
-            return;
-        }
-
-        var saved = D.loadWallpaper();
-        var draft = currentWallpaperDraft();
-        var previousSource = normalizeDraftSource(saved.activeSource);
-        var nextSource = normalizeDraftSource(draft.activeSource);
-        var activeProviderSourceDeleted = draftDeletedActiveProviderSource(saved);
-        var sourceRemovalWithoutRuntimeChange = !activeProviderSourceDeleted && (rssSourceRemovalOnly() || apiSourceRemovalOnly());
-        var applyBtn = document.getElementById('wallpaperApplyBtn');
-        if (applyBtn) applyBtn.disabled = true;
-
-        if (activeProviderSourceDeleted) {
-            if (!confirm(tr('wallpaperActiveSourceDeletedConfirm'))) {
-                if (applyBtn) applyBtn.disabled = false;
-                refreshWallpaperApplyFooter();
-                return;
-            }
-            draft.activeSource = 'bing';
-            nextSource = 'bing';
-        }
-
-        function reloadAfterApply() {
-            currentMode = D.compatMode ? D.compatMode(nextSource) : nextSource;
-            wallpaperDraftOriginal = JSON.stringify(draft);
-            if (window.reloadWallpaper) return window.reloadWallpaper();
-            return Promise.resolve();
-        }
-
-        function syncDraftRuntimeStateFromSaved() {
-            var latest = D.loadWallpaper();
-            draft.cache = clonePlain(latest.cache || draft.cache || {});
-            Object.keys(draft.providers || {}).forEach(function (key) {
-                if (latest.providers && latest.providers[key]) {
-                    draft.providers[key].state = clonePlain(latest.providers[key].state || {});
-                }
-            });
-        }
-
-        function saveDraftAfterApiCache() {
-            syncDraftRuntimeStateFromSaved();
-            D.saveWallpaper(draft);
-            return reloadAfterApply();
-        }
-
-        function saveDraftAfterFolderMount() {
-            var mount = wallpaperDraftFolderMount;
-            var folderId = mount.firstId;
+    function prepareFolderWorkOrder(workOrder) {
+        var mount = wallpaperDraftFolderMount;
+        if (!mount) return Promise.resolve(false);
+        var folderId = mount.firstId;
+        var initialBag = [mount.firstName].concat(mount.shuffleBag || []);
+        var thumbLookahead = buildFolderPreviewWindow(mount.files, '', initialBag, FOLDER_THUMB_LOOKAHEAD);
+        var previewWindow = mount.previewWindow || thumbLookahead.slice(0, FOLDER_GALLERY_LIMIT);
+        return D.saveFolderHandle(mount.handle).then(function () {
+            return D.saveFolderFiles(mount.files);
+        }).then(function () {
             var thumbs = D.loadThumbs();
             var meta = D.loadMeta();
-            var initialBag = [mount.firstName].concat(mount.shuffleBag || []);
-            var thumbLookahead = buildFolderPreviewWindow(mount.files, '', initialBag, FOLDER_THUMB_LOOKAHEAD);
-            var previewWindow = mount.previewWindow || thumbLookahead.slice(0, FOLDER_GALLERY_LIMIT);
             thumbs[folderId] = mount.thumb;
             meta[folderId] = {
                 source: 'folder',
@@ -1312,95 +1104,117 @@
             D.savePreview(mount.preview || mount.thumb);
             if (wallpaperBlur >= 5 && mount.preview && D.saveBlurThumb) D.saveBlurThumb(folderId, wallpaperBlur, mount.preview);
             pruneFolderThumbs(thumbLookahead);
-            return prewarmFolderThumbs(mount.handle, thumbLookahead, wallpaperBlur).then(function () {
-                return prewarmFolderLightCache(mount.handle, thumbLookahead);
-            }).then(function () {
-                pruneFolderThumbs(thumbLookahead);
-                pruneFolderLightCache(thumbLookahead);
-                draft.activeSource = 'folder';
-                draft.providers.folder.config = D.normalizeFolderConfig({
-                    pathLabel: mount.pathLabel || '',
-                    strategy: 'shuffle'
-                });
-                draft.providers.folder.state = D.normalizeFolderState({
-                    status: 'ready',
-                    indexedCount: mount.files.length,
-                    completed: mount.completed === true,
-                    lastScanAt: Date.now(),
-                    lastError: '',
-                    shuffleBag: initialBag,
-                    previewWindow: previewWindow,
-                    permissionStatus: 'granted',
-                    usingLightCache: false,
-                    lightCacheCount: previewWindow.length,
-                    lastPermissionCheckAt: Date.now(),
-                    currentName: ''
-                });
-                draft.cache.order = ['bing', folderId];
-                draft.cache.index = 1;
-                draft.cache.meta = D.loadMeta();
-                D.saveWallpaper(draft);
-                return reloadAfterApply();
+            return prewarmFolderThumbs(mount.handle, thumbLookahead, wallpaperBlur);
+        }).then(function () {
+            return prewarmFolderLightCache(mount.handle, thumbLookahead);
+        }).then(function () {
+            var now = Date.now();
+            var model = D.loadWallpaper();
+            if (!model.providers) model.providers = {};
+            if (!model.providers.folder) model.providers.folder = { config: {}, state: {} };
+            pruneFolderThumbs(thumbLookahead);
+            pruneFolderLightCache(thumbLookahead);
+            model.providers.folder.config = D.normalizeFolderConfig({
+                pathLabel: mount.pathLabel || '',
+                strategy: 'shuffle'
             });
-        }
-
-        function finishApply() {
-            if (nextSource === 'folder' && wallpaperDraftFolderMount) {
-                return D.saveFolderHandle(wallpaperDraftFolderMount.handle).then(function () {
-                    return D.saveFolderFiles(wallpaperDraftFolderMount.files);
-                }).then(saveDraftAfterFolderMount);
+            model.providers.folder.state = D.normalizeFolderState({
+                status: 'ready',
+                indexedCount: mount.files.length,
+                completed: mount.completed === true,
+                lastScanAt: now,
+                lastError: '',
+                shuffleBag: initialBag,
+                previewWindow: previewWindow,
+                permissionStatus: 'granted',
+                usingLightCache: false,
+                lightCacheCount: previewWindow.length,
+                lastPermissionCheckAt: now,
+                currentName: ''
+            });
+            model.cache = model.cache || {};
+            model.cache.order = ['bing', folderId];
+            model.cache.index = 1;
+            model.cache.meta = D.loadMeta();
+            workOrder.pendingConfig = clonePlain(model.providers.folder.config);
+            if (wallpaperDraft && wallpaperDraft.providers && wallpaperDraft.providers.folder) {
+                wallpaperDraft.providers.folder.config = clonePlain(model.providers.folder.config);
+                wallpaperDraft.providers.folder.state = clonePlain(model.providers.folder.state);
+                wallpaperDraft.cache = clonePlain(model.cache);
             }
-            if (nextSource === 'api' && wallpaperDraftApiTestResult) {
-                var apiConfig = draft.providers.api.config;
-                var apiSource = selectedDraftApiSource();
-                if (apiSource) {
-                    apiSource.test = {
-                        status: 'passed',
-                        fieldHash: D.apiFieldHash(apiSource, apiConfig.apiType),
-                        testedAt: Date.now(),
-                        imageUrl: wallpaperDraftApiTestResult.imageUrl || '',
-                        error: ''
-                    };
-                    return F.cacheApiResult(apiSource, apiConfig.apiType, wallpaperDraftApiTestResult).then(saveDraftAfterApiCache);
-                }
-            }
-            syncDraftRuntimeStateFromSaved();
-            D.saveWallpaper(draft);
-            return reloadAfterApply();
-        }
+            D.saveWallpaper(model);
+            return true;
+        });
+    }
 
-        if (sourceRemovalWithoutRuntimeChange) {
-            draft.activeSource = saved.activeSource;
-            syncDraftRuntimeStateFromSaved();
-            D.saveWallpaper(draft);
-            openWallpaperDraft();
-            invalidateWallpaperTab();
-            if (applyBtn) applyBtn.disabled = false;
+    function prepareApiWorkOrder(workOrder) {
+        if (!wallpaperDraftApiTestResult || !F || !F.cacheApiResult) return Promise.resolve(false);
+        var config = workOrder.pendingConfig || {};
+        var apiType = config.apiType === 'json' ? 'json' : 'image';
+        var apiSource = selectedWorkOrderApiSource(config);
+        if (!apiSource) return Promise.resolve(false);
+        apiSource.test = {
+            status: 'passed',
+            fieldHash: D.apiFieldHash(apiSource, apiType),
+            testedAt: Date.now(),
+            imageUrl: wallpaperDraftApiTestResult.imageUrl || '',
+            error: ''
+        };
+        return F.cacheApiResult(apiSource, apiType, wallpaperDraftApiTestResult).then(function () {
+            if (wallpaperDraft && wallpaperDraft.providers && wallpaperDraft.providers.api) {
+                wallpaperDraft.providers.api.config = clonePlain(workOrder.pendingConfig);
+            }
+            return true;
+        });
+    }
+
+    function prepareWallpaperWorkOrder(workOrder) {
+        var source = normalizeDraftSource(workOrder && workOrder.pendingSource);
+        if (source === 'folder') return prepareFolderWorkOrder(workOrder);
+        if (source === 'api') return prepareApiWorkOrder(workOrder);
+        return Promise.resolve(false);
+    }
+
+    function applyWallpaperDraft() {
+        var Apply = window.WallpaperApply;
+        var workOrder = currentWallpaperWorkOrder();
+        var validation = validateWallpaperWorkOrder();
+        if (!Apply || !Apply.apply || !validation.valid) {
+            refreshWallpaperApplyFooter();
             return;
         }
 
-        var applyPromise;
-        if (activeProviderSourceDeleted && previousSource !== 'bing') {
-            applyPromise = D.clearWallpaperSourceCache(previousSource).then(finishApply);
-        } else if (sourceNeedsDiscardPrompt(previousSource, nextSource)) {
-            if (!confirm(tr('wallpaperDiscardCacheConfirm'))) {
-                if (applyBtn) applyBtn.disabled = false;
-                refreshWallpaperApplyFooter();
+        var applyBtn = document.getElementById('wallpaperApplyBtn');
+        if (applyBtn) applyBtn.disabled = true;
+        workOrder.health = { state: 'Applying', reasonKey: 'wallpaperApplyReady', message: tr('wallpaperApply') + '...' };
+        refreshWallpaperApplyFooter();
+
+        return Apply.apply(workOrder, {
+            prepare: function () {
+                return prepareWallpaperWorkOrder(workOrder);
+            }
+        }).then(function (result) {
+            if (result && result.state === 'Applied') {
+                currentMode = D.compatMode ? D.compatMode(workOrder.pendingSource) : normalizeDraftSource(workOrder.pendingSource);
+                openWallpaperDraft();
+                refreshWallpaperWorkOrderBaseline();
+                invalidateWallpaperTab();
+                refreshGallery();
                 return;
             }
-            applyPromise = D.clearWallpaperSourceCache(previousSource).then(finishApply);
-        } else {
-            applyPromise = finishApply();
-        }
-
-        applyPromise.then(function () {
-            openWallpaperDraft();
-            invalidateWallpaperTab();
-            refreshGallery();
+            workOrder.health = {
+                state: 'Error',
+                reasonKey: result && result.reasonKey || 'wallpaperApplyFailed',
+                message: result && result.message || ''
+            };
+            refreshWallpaperApplyFooter();
         }).catch(function (err) {
-            var status = document.getElementById('wallpaperApplyStatus');
-            if (status) status.textContent = err && err.message ? err.message : String(err || tr('wallpaperApplyFailed'));
-            if (applyBtn) applyBtn.disabled = false;
+            workOrder.health = {
+                state: 'Error',
+                reasonKey: 'wallpaperApplyFailed',
+                message: err && err.message ? err.message : String(err || '')
+            };
+            refreshWallpaperApplyFooter();
         });
     }
 
