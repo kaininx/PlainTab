@@ -864,6 +864,40 @@
         return wallpaperWorkOrder;
     }
 
+    function pendingConfigForSource(source) {
+        var workOrder = currentWallpaperWorkOrder();
+        source = normalizeDraftSource(source);
+        if (normalizeDraftSource(workOrder.pendingSource) === source) return workOrder.pendingConfig;
+        return providerConfigForSource(D.loadWallpaper(), source);
+    }
+
+    function pendingConfigReasonKey(source) {
+        source = normalizeDraftSource(source);
+        var keys = {
+            rss: 'wallpaperStatusTestRss',
+            api: 'wallpaperStatusTestApi',
+            wallhaven: 'wallpaperStatusTestWallhaven',
+            folder: 'wallpaperStatusFolderMissing'
+        };
+        return keys[source] || 'wallpaperApplyReady';
+    }
+
+    function updatePendingSourceConfig(source, mutator) {
+        var workOrder = currentWallpaperWorkOrder();
+        source = normalizeDraftSource(source);
+        if (normalizeDraftSource(workOrder.pendingSource) !== source) return false;
+        mutator(workOrder.pendingConfig);
+        workOrder.health = { state: 'Dirty', reasonKey: pendingConfigReasonKey(source), message: '' };
+        refreshWallpaperApplyFooter();
+        return true;
+    }
+
+    function refreshPendingSourceConfigAfterSave(source) {
+        source = normalizeDraftSource(source);
+        if (normalizeDraftSource(currentWallpaperWorkOrder().pendingSource) !== source) return;
+        switchWallpaperWorkOrderSource(source);
+    }
+
     function switchWallpaperWorkOrderSource(source) {
         return createWallpaperWorkOrder(normalizeDraftSource(source));
     }
@@ -1315,7 +1349,7 @@
     }
 
     function buildRssConfigHTML() {
-        var config = currentWallpaperDraft().providers.rss.config;
+        var config = pendingConfigForSource('rss');
         var state = D.loadWallpaper().providers.rss.state || {};
         function selected(value, current) { return String(value) === String(current) ? ' selected' : ''; }
         var rows = config.sources.map(function (source) {
@@ -1363,7 +1397,7 @@
     }
 
     function buildApiConfigHTML() {
-        var config = currentWallpaperDraft().providers.api.config;
+        var config = pendingConfigForSource('api');
         var apiType = config.apiType === 'json' ? 'json' : 'image';
         var sources = apiType === 'json' ? config.jsonSources : config.imageSources;
         var activeId = apiType === 'json' ? config.activeJsonSourceId : config.activeImageSourceId;
@@ -1786,7 +1820,7 @@
         var el = document.getElementById('rssNotice');
         if (!el || el.dataset.validation !== 'true') return;
         showRssNotice('', 'info');
-        var config = currentWallpaperDraft().providers.rss.config;
+        var config = pendingConfigForSource('rss');
         setRssStatus(rssStatusText(config, D.loadWallpaper().providers.rss.state || {}));
     }
 
@@ -1912,7 +1946,7 @@
 
     function folderStatusText() {
         var draft = currentWallpaperDraft();
-        var config = draft.providers.folder.config || {};
+        var config = pendingConfigForSource('folder') || {};
         var state = draft.providers.folder.state || {};
         if (!WF || !WF.isSupported || !WF.isSupported()) return tr('folderUnsupported');
         if (wallpaperDraftFolderMount) {
@@ -1964,7 +1998,7 @@
     function buildFolderConfigHTML() {
         var supported = !!(WF && WF.isSupported && WF.isSupported());
         var draft = currentWallpaperDraft();
-        var config = draft.providers.folder.config || {};
+        var config = pendingConfigForSource('folder') || {};
         var state = draft.providers.folder.state || {};
         var canReauth = supported && !!config.pathLabel;
         var label = wallpaperDraftFolderMount ? wallpaperDraftFolderMount.pathLabel : (config.pathLabel || tr('noFolderSelected'));
@@ -2050,6 +2084,12 @@
                     lastPermissionCheckAt: Date.now(),
                     currentName: ''
                 });
+                wallpaperWorkOrder = {
+                    pendingSource: 'folder',
+                    pendingConfig: clonePlain(draft.providers.folder.config),
+                    baseline: currentWallpaperWorkOrder().baseline,
+                    health: { state: 'Ready', reasonKey: 'wallpaperApplyReady', message: '' }
+                };
                 showFolderNotice(tr('folderReady') + (mount.pathLabel || tr('sourceFolder')), 'success');
                 refreshWallpaperDraftTab();
             }).catch(function (err) {
@@ -2105,10 +2145,42 @@
         refreshWallpaperApplyFooter();
     }
 
+    function saveRssListConfig(config) {
+        config = D.normalizeRssConfig ? D.normalizeRssConfig(config) : config;
+        D.saveRssConfig(config);
+        currentWallpaperDraft().providers.rss.config = clonePlain(config);
+        refreshPendingSourceConfigAfterSave('rss');
+    }
+
+    function saveApiListConfig(config) {
+        config = D.normalizeApiConfig ? D.normalizeApiConfig(config) : config;
+        D.saveApiConfig(config);
+        currentWallpaperDraft().providers.api.config = clonePlain(config);
+        refreshPendingSourceConfigAfterSave('api');
+    }
+
+    function deletedRunningRssSource(sourceId) {
+        if (normalizeDraftSource(D.getActiveSource ? D.getActiveSource() : D.loadWallpaper().activeSource) !== 'rss') return false;
+        return activeRssSourceId(D.loadRssConfig ? D.loadRssConfig() : pendingConfigForSource('rss')) === sourceId;
+    }
+
+    function deletedRunningApiSource(apiType, sourceId) {
+        if (normalizeDraftSource(D.getActiveSource ? D.getActiveSource() : D.loadWallpaper().activeSource) !== 'api') return false;
+        var active = activeApiSourceIdentity(D.loadApiConfig ? D.loadApiConfig() : pendingConfigForSource('api'));
+        return active.apiType === apiType && active.sourceId === sourceId;
+    }
+
+    function switchRunningWallpaperToBing() {
+        D.setActiveSource('bing');
+        currentMode = 'bing';
+        updateModeChip();
+        if (window.reloadWallpaper) window.reloadWallpaper();
+    }
+
     function bindRssConfigEvents() {
         var root = modalContent.querySelector('.rss-config');
         if (!root) return;
-        var config = currentWallpaperDraft().providers.rss.config;
+        var config = pendingConfigForSource('rss');
         var interval = root.querySelector('#rssRefreshInterval');
         var displayMode = root.querySelector('#rssDisplayMode');
         var position = root.querySelector('#rssSummaryPosition');
@@ -2132,8 +2204,10 @@
 
         root.querySelectorAll('input[name="rssSource"]').forEach(function (radio) {
             radio.addEventListener('change', function () {
-                var next = currentWallpaperDraft().providers.rss.config;
+                var next = pendingConfigForSource('rss');
                 next.activeSourceId = radio.value;
+                currentWallpaperDraft().providers.rss.config.activeSourceId = radio.value;
+                updatePendingSourceConfig('rss', function (pending) { pending.activeSourceId = radio.value; });
                 root.querySelectorAll('.rss-source-row').forEach(function (row) {
                     row.classList.toggle('selected', row.dataset.rssSource === radio.value);
                 });
@@ -2145,11 +2219,18 @@
         [interval, displayMode, position, mode].forEach(function (el) {
             if (!el) return;
             el.addEventListener('change', function () {
-                var next = currentWallpaperDraft().providers.rss.config;
+                var next = pendingConfigForSource('rss');
                 if (el === interval) next.refreshIntervalMs = parseInt(el.value, 10) || 0;
                 if (el === displayMode) next.displayMode = el.value === 'latest' ? 'latest' : 'cycle';
                 if (el === position) next.summaryPosition = el.value;
                 if (el === mode) next.summaryMode = el.value;
+                currentWallpaperDraft().providers.rss.config = clonePlain(next);
+                updatePendingSourceConfig('rss', function (pending) {
+                    pending.refreshIntervalMs = next.refreshIntervalMs;
+                    pending.displayMode = next.displayMode;
+                    pending.summaryPosition = next.summaryPosition;
+                    pending.summaryMode = next.summaryMode;
+                });
                 refreshWallpaperApplyFooter();
             });
         });
@@ -2157,9 +2238,14 @@
         [showSummary, showLink].forEach(function (el) {
             if (!el) return;
             el.addEventListener('change', function () {
-                var next = currentWallpaperDraft().providers.rss.config;
+                var next = pendingConfigForSource('rss');
                 if (el === showSummary) next.showSummary = el.checked;
                 if (el === showLink) next.showLink = el.checked;
+                currentWallpaperDraft().providers.rss.config = clonePlain(next);
+                updatePendingSourceConfig('rss', function (pending) {
+                    pending.showSummary = next.showSummary;
+                    pending.showLink = next.showLink;
+                });
                 refreshWallpaperApplyFooter();
             });
         });
@@ -2177,7 +2263,7 @@
 
     function onRssConfigClick(e) {
         var target = e.target;
-        var config = currentWallpaperDraft().providers.rss.config;
+        var config = pendingConfigForSource('rss');
         if (target.id === 'rssAddBtn') {
             var name = document.getElementById('rssNameInput').value.trim();
             var url = document.getElementById('rssUrlInput').value.trim();
@@ -2192,6 +2278,7 @@
                 test: { status: 'untested', fieldHash: '', testedAt: 0, imageUrl: '', error: '' }
             });
             config.activeSourceId = id;
+            saveRssListConfig(config);
             refreshWallpaperDraftTab();
             return;
         }
@@ -2200,8 +2287,15 @@
         var source = config.sources.filter(function (item) { return item.id === row.dataset.rssSource; })[0];
         if (!source) return;
         if (target.dataset.action === 'delete-rss') {
+            var wasRunningRssSource = deletedRunningRssSource(source.id);
+            if (wasRunningRssSource && !confirm(tr('wallpaperActiveSourceDeletedConfirm'))) return;
             config.sources = config.sources.filter(function (item) { return item.id !== source.id; });
             if (!config.sources.some(function (item) { return item.id === config.activeSourceId; })) config.activeSourceId = config.sources[0] ? config.sources[0].id : '';
+            saveRssListConfig(config);
+            if (wasRunningRssSource) {
+                switchRunningWallpaperToBing();
+                refreshPendingSourceConfigAfterSave('rss');
+            }
             refreshWallpaperDraftTab();
             return;
         }
@@ -2274,15 +2368,22 @@
     }
 
     function onApiConfigChange(e) {
-        var config = currentWallpaperDraft().providers.api.config;
+        var config = pendingConfigForSource('api');
         if (e.target.id === 'apiRefreshInterval') {
             config.refreshIntervalMs = parseInt(e.target.value, 10);
+            currentWallpaperDraft().providers.api.config.refreshIntervalMs = config.refreshIntervalMs;
+            updatePendingSourceConfig('api', function (pending) { pending.refreshIntervalMs = config.refreshIntervalMs; });
             refreshWallpaperApplyFooter();
             return;
         }
         if (e.target.name === 'apiSource') {
             if (config.apiType === 'json') config.activeJsonSourceId = e.target.value;
             else config.activeImageSourceId = e.target.value;
+            currentWallpaperDraft().providers.api.config = clonePlain(config);
+            updatePendingSourceConfig('api', function (pending) {
+                pending.activeJsonSourceId = config.activeJsonSourceId;
+                pending.activeImageSourceId = config.activeImageSourceId;
+            });
             wallpaperDraftApiTestResult = null;
             refreshWallpaperDraftTab();
         }
@@ -2290,12 +2391,14 @@
 
     function onApiConfigClick(e) {
         var target = e.target;
-        var config = currentWallpaperDraft().providers.api.config;
+        var config = pendingConfigForSource('api');
         var apiType = config.apiType === 'json' ? 'json' : 'image';
         var root = target.closest('.api-config');
         var typeTab = target.closest('[data-api-type-tab]');
         if (typeTab) {
             config.apiType = typeTab.dataset.apiTypeTab === 'json' ? 'json' : 'image';
+            currentWallpaperDraft().providers.api.config.apiType = config.apiType;
+            updatePendingSourceConfig('api', function (pending) { pending.apiType = config.apiType; });
             wallpaperDraftApiTestResult = null;
             refreshWallpaperDraftTab();
             return;
@@ -2303,6 +2406,8 @@
         var refreshBtn = target.closest('[data-api-refresh-interval]');
         if (refreshBtn && root) {
             config.refreshIntervalMs = parseInt(refreshBtn.dataset.apiRefreshInterval, 10);
+            currentWallpaperDraft().providers.api.config.refreshIntervalMs = config.refreshIntervalMs;
+            updatePendingSourceConfig('api', function (pending) { pending.refreshIntervalMs = config.refreshIntervalMs; });
             root.querySelectorAll('[data-api-refresh-interval]').forEach(function (button) {
                 button.classList.toggle('active', button === refreshBtn);
             });
@@ -2327,6 +2432,7 @@
             list.push(source);
             if (apiType === 'json') config.activeJsonSourceId = id;
             else config.activeImageSourceId = id;
+            saveApiListConfig(config);
             wallpaperDraftApiTestResult = null;
             refreshWallpaperDraftTab();
             return;
@@ -2337,9 +2443,16 @@
         var sourceForRow = listForRow.filter(function (item) { return item.id === row.dataset.apiSource; })[0];
         if (!sourceForRow) return;
         if (target.dataset.action === 'delete-api') {
+            var wasRunningApiSource = deletedRunningApiSource(row.dataset.apiType, sourceForRow.id);
+            if (wasRunningApiSource && !confirm(tr('wallpaperActiveSourceDeletedConfirm'))) return;
             listForRow.splice(listForRow.indexOf(sourceForRow), 1);
             if (row.dataset.apiType === 'json') config.activeJsonSourceId = listForRow[0] ? listForRow[0].id : '';
             else config.activeImageSourceId = listForRow[0] ? listForRow[0].id : '';
+            saveApiListConfig(config);
+            if (wasRunningApiSource) {
+                switchRunningWallpaperToBing();
+                refreshPendingSourceConfigAfterSave('api');
+            }
             wallpaperDraftApiTestResult = null;
             refreshWallpaperDraftTab();
             return;
