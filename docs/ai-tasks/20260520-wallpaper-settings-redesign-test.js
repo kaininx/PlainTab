@@ -83,6 +83,11 @@ async function testRssRequiresMatchingPassedTest() {
   assert.strictEqual(result.state, 'Blocked');
   assert.strictEqual(result.reasonKey, 'wallpaperStatusTestRss');
 
+  source.test = { status: 'passed', fieldHash: 'rss:stale-hash', testedAt: 1 };
+  result = Apply.validateWorkOrder(workOrder);
+  assert.strictEqual(result.state, 'Blocked');
+  assert.strictEqual(result.reasonKey, 'wallpaperStatusTestRss');
+
   source.test = { status: 'passed', fieldHash: storage.api.rssFieldHash(source), testedAt: 1 };
   result = Apply.validateWorkOrder(workOrder);
   assert.strictEqual(result.state, 'Ready');
