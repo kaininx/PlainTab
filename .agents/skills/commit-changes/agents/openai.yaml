@@ -1,0 +1,7 @@
+interface:
+  display_name: "Commit PlainTab Changes"
+  short_description: "Create clean Conventional Commits without staging unrelated work"
+  default_prompt: "Use $commit-changes to prepare and commit the current PlainTab changes."
+
+policy:
+  allow_implicit_invocation: true
