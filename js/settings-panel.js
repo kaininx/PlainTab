@@ -350,6 +350,17 @@
         return page;
     }
 
+    function refreshGeneratedTabPages() {
+        if (!modalContent) return;
+        closeCustomSelects();
+        Object.keys(_tabPages).forEach(function (tabName) {
+            _tabPages[tabName].remove();
+            delete _tabPages[tabName];
+            _tabEventBound[tabName] = false;
+        });
+        if (isModalOpen) renderTabContent();
+    }
+
     function getSourceLabel(source) {
         var map = {
             bing:tr('sourceBing'),
@@ -1918,12 +1929,7 @@
         loadSettings();
         updateLangUI();
         refreshGallery();
-        Object.keys(_tabPages).forEach(function (tabName) {
-            if (tabName === activeTab) return;
-            _tabPages[tabName].remove();
-            delete _tabPages[tabName];
-            _tabEventBound[tabName] = false;
-        });
+        refreshGeneratedTabPages();
         if (window.Palette && window.Palette.refresh) window.Palette.refresh();
         if (window.reloadWallpaper) window.reloadWallpaper();
     }
@@ -3454,6 +3460,7 @@
             currentLang = lang;
             if (!I18N[currentLang]) currentLang = 'en';
             updateLangUI();
+            refreshGeneratedTabPages();
         },
         setWallpaperInfo: refreshGallery,
         getEngineIndex: function () { return engineIndex; },
