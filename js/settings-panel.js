@@ -1109,10 +1109,16 @@
         return { valid: false, reason: tr('sourcePendingHint') };
     }
 
+    function wallpaperStatusText(status) {
+        status = status || validateWallpaperWorkOrder();
+        if (status.message) return status.message;
+        return tr(status.reasonKey || 'wallpaperApplyNoChanges');
+    }
+
     function wallpaperApplyFooterHTML() {
-        var validation = validateWallpaperDraft();
+        var validation = validateWallpaperWorkOrder();
         return '<div class="wallpaper-apply-footer">' +
-            '<div class="wallpaper-apply-status" id="wallpaperApplyStatus">' + escapeHtml(validation.reason || tr('wallpaperApplyReady')) + '</div>' +
+            '<div class="wallpaper-apply-status" id="wallpaperApplyStatus">' + escapeHtml(wallpaperStatusText(validation)) + '</div>' +
             '<button id="wallpaperApplyBtn" class="primary-action" type="button"' + (validation.valid ? '' : ' disabled') + '>' + tr('wallpaperApply') + '</button>' +
             '</div>';
     }
@@ -1121,8 +1127,8 @@
         var status = document.getElementById('wallpaperApplyStatus');
         var button = document.getElementById('wallpaperApplyBtn');
         if (!status || !button) return;
-        var validation = validateWallpaperDraft();
-        status.textContent = validation.reason || tr('wallpaperApplyReady');
+        var validation = validateWallpaperWorkOrder();
+        status.textContent = wallpaperStatusText(validation);
         button.disabled = !validation.valid;
     }
 
@@ -1621,6 +1627,8 @@
 
     function buildWallpaperHTML() {
         if (!wallpaperDraft) openWallpaperDraft();
+        var workOrder = currentWallpaperWorkOrder();
+        var activeSource = normalizeDraftSource(workOrder.pendingSource);
         var sources = [
             { id: 'bing',   name: getSourceLabel('bing'),   desc:tr('sourceBingDesc')},
             { id: 'upload', name: getSourceLabel('upload'), desc:tr('sourceUploadDesc')},
@@ -1629,8 +1637,7 @@
             { id: 'api',    name: getSourceLabel('api'),    desc:tr('sourceApiDesc')}
         ];
 
-        var draftSource = draftActiveSource();
-        var activeSource = draftSource === 'local' ? 'upload' : draftSource;
+        var runningSource = normalizeDraftSource(D.getActiveSource ? D.getActiveSource() : D.loadWallpaper().activeSource);
         var openSource = draftOpenSource();
         var configs = {
             bing:   '<p>' + tr('bingConfigHint') + '</p>',
@@ -1650,7 +1657,8 @@
         var drawers = sources.map(function (s) {
             var expandedClass = s.id === openSource ? ' active' : '';
             var selectedClass = s.id === activeSource ? ' selected' : '';
-            return '<div class="source-drawer' + expandedClass + selectedClass + '" data-source="' + s.id + '">' +
+            var runningClass = s.id === runningSource ? ' running' : '';
+            return '<div class="source-drawer' + expandedClass + selectedClass + runningClass + '" data-source="' + s.id + '">' +
                 '<div class="source-drawer-header">' +
                 '<button class="source-selector ' + s.id + '" type="button" role="radio" aria-checked="' + (s.id === activeSource ? 'true' : 'false') + '" data-source-option="' + s.id + '" aria-label="' + escapeHtml(s.name) + '"><span></span></button>' +
                 '<span class="source-drawer-dot ' + s.id + '"></span>' +
@@ -1714,9 +1722,9 @@
             button.addEventListener('click', function (e) {
                 e.stopPropagation();
                 var source = normalizeDraftSource(button.dataset.sourceOption);
-                var draft = currentWallpaperDraft();
-                draft.activeSource = source === 'local' ? 'upload' : source;
-                wallpaperDraftOpenSource = draft.activeSource;
+                var openDrawer = modalContent.querySelector('.source-drawer.active');
+                switchWallpaperWorkOrderSource(source);
+                wallpaperDraftOpenSource = openDrawer ? openDrawer.dataset.source : 'none';
                 refreshWallpaperDraftTab();
             });
         });
