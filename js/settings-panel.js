@@ -172,6 +172,8 @@
     var wallpaperDraftRssTestResult = null;
     var wallpaperDraftFolderMount = null;
     var wallpaperDraftOpenSource = '';
+    var wallpaperWorkOrder = null;
+    var wallpaperWorkOrderStatus = { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
     var rssNoticeTimer = null;
     var rssNoticeToken = 0;
     var apiNoticeTimer = null;
@@ -833,6 +835,59 @@
         return wallpaperDraft;
     }
 
+    function providerConfigForSource(model, source) {
+        source = normalizeDraftSource(source);
+        if (!model || !model.providers || !model.providers[source]) return {};
+        return clonePlain(model.providers[source].config || {});
+    }
+
+    function createWallpaperWorkOrder(source) {
+        var saved = D.loadWallpaper();
+        source = normalizeDraftSource(source || saved.activeSource);
+        var config = providerConfigForSource(saved, source);
+        wallpaperWorkOrder = {
+            pendingSource: source,
+            pendingConfig: clonePlain(config),
+            baseline: {
+                pendingSource: source,
+                pendingConfig: clonePlain(config)
+            },
+            health: { state: 'Clean', reasonKey: 'wallpaperApplyNoChanges', message: '' }
+        };
+        return wallpaperWorkOrder;
+    }
+
+    function currentWallpaperWorkOrder() {
+        if (!wallpaperWorkOrder) return createWallpaperWorkOrder(D.getActiveSource ? D.getActiveSource() : 'bing');
+        return wallpaperWorkOrder;
+    }
+
+    function switchWallpaperWorkOrderSource(source) {
+        return createWallpaperWorkOrder(normalizeDraftSource(source));
+    }
+
+    function validateWallpaperWorkOrder() {
+        var Apply = window.WallpaperApply;
+        wallpaperWorkOrderStatus = Apply && Apply.validateWorkOrder ?
+            Apply.validateWorkOrder(currentWallpaperWorkOrder()) :
+            { state: 'Blocked', valid: false, reasonKey: 'wallpaperApplyFailed', message: '' };
+        return wallpaperWorkOrderStatus;
+    }
+
+    function refreshWallpaperWorkOrderBaseline() {
+        if (!wallpaperWorkOrder) return;
+        var saved = D.loadWallpaper();
+        var source = normalizeDraftSource(wallpaperWorkOrder.pendingSource);
+        var config = providerConfigForSource(saved, source);
+        wallpaperWorkOrder.baseline = {
+            pendingSource: source,
+            pendingConfig: clonePlain(config)
+        };
+        wallpaperWorkOrder.pendingConfig = clonePlain(config);
+        wallpaperWorkOrder.health = { state: 'Clean', reasonKey: 'wallpaperApplyNoChanges', message: '' };
+        validateWallpaperWorkOrder();
+    }
+
     function clearWallpaperDraft() {
         wallpaperDraft = null;
         wallpaperDraftOriginal = '';
@@ -840,6 +895,8 @@
         wallpaperDraftRssTestResult = null;
         wallpaperDraftFolderMount = null;
         wallpaperDraftOpenSource = '';
+        wallpaperWorkOrder = null;
+        wallpaperWorkOrderStatus = { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
     }
 
     function currentWallpaperDraft() {
