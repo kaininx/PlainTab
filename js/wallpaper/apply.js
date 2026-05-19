@@ -101,13 +101,6 @@
             if (api.test && api.test.status === 'failed' && api.test.error) return blocked('wallpaperStatusTestFailed', api.test.error);
             return blocked('wallpaperStatusTestApi');
         }
-        if (source === 'wallhaven') {
-            if (D && D.isTestPassed && D.wallhavenFieldHash && D.isTestPassed(config, D.wallhavenFieldHash(config))) {
-                return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
-            }
-            if (config.test && config.test.status === 'failed' && config.test.error) return blocked('wallpaperStatusTestFailed', config.test.error);
-            return blocked('wallpaperStatusTestWallhaven');
-        }
         return blocked('sourcePendingHint');
     }
 
