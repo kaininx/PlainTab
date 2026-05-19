@@ -1078,6 +1078,86 @@
         return list.filter(function (source) { return source && source.id === activeId; })[0] || list[0] || null;
     }
 
+    function snapshotWallpaperStorage() {
+        return {
+            wallpaper: clonePlain(D.loadWallpaper()),
+            thumbs: clonePlain(D.loadThumbs()),
+            blurThumbs: D.loadBlurThumbs ? clonePlain(D.loadBlurThumbs()) : {},
+            preview: D.loadPreview ? D.loadPreview() : null
+        };
+    }
+
+    function restoreWallpaperStorage(snapshot) {
+        snapshot = snapshot || {};
+        if (snapshot.wallpaper) D.saveWallpaper(clonePlain(snapshot.wallpaper));
+        if (snapshot.thumbs) D.saveThumbs(clonePlain(snapshot.thumbs));
+        if (D.saveBlurThumbs && snapshot.blurThumbs) D.saveBlurThumbs(clonePlain(snapshot.blurThumbs));
+        if (D.savePreview) D.savePreview(snapshot.preview || null);
+    }
+
+    function restoreIdbValue(key, value) {
+        if (typeof value === 'undefined') return D.idbDelete(key);
+        return D.idbPut(key, value);
+    }
+
+    function snapshotFolderPrepareStorage(names) {
+        var snapshot = snapshotWallpaperStorage();
+        snapshot.lightCache = {};
+        return Promise.all([
+            D.idbGet(D.DB.FOLDER_HANDLE),
+            D.idbGet(D.DB.FOLDER_FILES),
+            Promise.all((names || []).map(function (name) {
+                return D.loadFolderLightCache(name).then(function (record) {
+                    snapshot.lightCache[name] = record;
+                });
+            }))
+        ]).then(function (values) {
+            snapshot.folderHandle = values[0];
+            snapshot.folderFiles = values[1];
+            return snapshot;
+        });
+    }
+
+    function restoreFolderPrepareStorage(snapshot) {
+        var lightCache = snapshot.lightCache || {};
+        var lightRestores = Object.keys(lightCache).map(function (name) {
+            if (typeof lightCache[name] === 'undefined') return D.deleteFolderLightCache(name);
+            return D.saveFolderLightCache(name, lightCache[name]);
+        });
+        var restoreFolderData = restoreIdbValue(D.DB.FOLDER_HANDLE, snapshot.folderHandle).then(function () {
+            return restoreIdbValue(D.DB.FOLDER_FILES, snapshot.folderFiles);
+        }).then(function () {
+            return Promise.all(lightRestores);
+        });
+        if (typeof snapshot.folderHandle !== 'undefined' || typeof snapshot.folderFiles !== 'undefined') {
+            return restoreFolderData.then(function () {
+                restoreWallpaperStorage(snapshot);
+                return true;
+            });
+        }
+        restoreWallpaperStorage(snapshot);
+        return restoreFolderData;
+    }
+
+    function snapshotApiPrepareStorage() {
+        var snapshot = snapshotWallpaperStorage();
+        return D.idbGet(D.DB.API_BLOB).then(function (record) {
+            snapshot.apiBlob = record;
+            return snapshot;
+        });
+    }
+
+    function restoreApiPrepareStorage(snapshot) {
+        if (typeof snapshot.apiBlob !== 'undefined') {
+            return D.idbPut(D.DB.API_BLOB, snapshot.apiBlob).then(function () {
+                restoreWallpaperStorage(snapshot);
+                return true;
+            });
+        }
+        restoreWallpaperStorage(snapshot);
+        return D.idbDelete(D.DB.API_BLOB);
+    }
+
     function prepareFolderWorkOrder(workOrder) {
         var mount = wallpaperDraftFolderMount;
         if (!mount) return Promise.resolve(false);
@@ -1085,7 +1165,11 @@
         var initialBag = [mount.firstName].concat(mount.shuffleBag || []);
         var thumbLookahead = buildFolderPreviewWindow(mount.files, '', initialBag, FOLDER_THUMB_LOOKAHEAD);
         var previewWindow = mount.previewWindow || thumbLookahead.slice(0, FOLDER_GALLERY_LIMIT);
-        return D.saveFolderHandle(mount.handle).then(function () {
+        var prepareSnapshot = null;
+        return snapshotFolderPrepareStorage(thumbLookahead).then(function (snapshot) {
+            prepareSnapshot = snapshot;
+            return D.saveFolderHandle(mount.handle);
+        }).then(function () {
             return D.saveFolderFiles(mount.files);
         }).then(function () {
             var thumbs = D.loadThumbs();
@@ -1113,7 +1197,6 @@
             if (!model.providers) model.providers = {};
             if (!model.providers.folder) model.providers.folder = { config: {}, state: {} };
             pruneFolderThumbs(thumbLookahead);
-            pruneFolderLightCache(thumbLookahead);
             model.providers.folder.config = D.normalizeFolderConfig({
                 pathLabel: mount.pathLabel || '',
                 strategy: 'shuffle'
@@ -1143,7 +1226,12 @@
                 wallpaperDraft.cache = clonePlain(model.cache);
             }
             D.saveWallpaper(model);
-            return true;
+            return {
+                prepared: true,
+                rollback: function () {
+                    return restoreFolderPrepareStorage(prepareSnapshot);
+                }
+            };
         });
     }
 
@@ -1160,11 +1248,20 @@
             imageUrl: wallpaperDraftApiTestResult.imageUrl || '',
             error: ''
         };
-        return F.cacheApiResult(apiSource, apiType, wallpaperDraftApiTestResult).then(function () {
+        var prepareSnapshot = null;
+        return snapshotApiPrepareStorage().then(function (snapshot) {
+            prepareSnapshot = snapshot;
+            return F.cacheApiResult(apiSource, apiType, wallpaperDraftApiTestResult);
+        }).then(function () {
             if (wallpaperDraft && wallpaperDraft.providers && wallpaperDraft.providers.api) {
                 wallpaperDraft.providers.api.config = clonePlain(workOrder.pendingConfig);
             }
-            return true;
+            return {
+                prepared: true,
+                rollback: function () {
+                    return restoreApiPrepareStorage(prepareSnapshot);
+                }
+            };
         });
     }
 

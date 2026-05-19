@@ -113,6 +113,15 @@
         return (hooks.prepare || defaultPrepare)(workOrder);
     }
 
+    function rollbackPrepared(prepared) {
+        if (!prepared || typeof prepared.rollback !== 'function') return Promise.resolve(false);
+        try {
+            return Promise.resolve(prepared.rollback());
+        } catch (e) {
+            return Promise.reject(e);
+        }
+    }
+
     function commitWorkOrder(workOrder) {
         var source = normalizeSource(workOrder.pendingSource);
         var model = clonePlain(currentWallpaper());
@@ -156,7 +165,9 @@
         var previousModel = clonePlain(currentWallpaper());
         var previousSource = normalizeSource(previousModel.activeSource);
         var nextSource = normalizeSource(workOrder.pendingSource);
-        return prepareWorkOrder(workOrder, hooks).then(function () {
+        var preparedResult = null;
+        return prepareWorkOrder(workOrder, hooks).then(function (prepared) {
+            preparedResult = prepared;
             return commitWorkOrder(workOrder);
         }).then(function () {
             return reloadWallpaper().catch(function (err) {
@@ -171,7 +182,13 @@
         }).then(function () {
             return { state: 'Applied', valid: true, reasonKey: 'wallpaperApplyNoChanges', message: '' };
         }).catch(function (err) {
-            return { state: 'Error', valid: false, reasonKey: 'wallpaperApplyFailed', message: err && err.message ? err.message : String(err || '') };
+            return rollbackPrepared(preparedResult).then(function () {
+                return { state: 'Error', valid: false, reasonKey: 'wallpaperApplyFailed', message: err && err.message ? err.message : String(err || '') };
+            }, function (rollbackErr) {
+                var message = err && err.message ? err.message : String(err || '');
+                var rollbackMessage = rollbackErr && rollbackErr.message ? rollbackErr.message : String(rollbackErr || '');
+                return { state: 'Error', valid: false, reasonKey: 'wallpaperApplyFailed', message: message + (rollbackMessage ? ('; rollback failed: ' + rollbackMessage) : '') };
+            });
         });
     }
 
