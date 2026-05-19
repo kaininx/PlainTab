@@ -61,10 +61,18 @@
         return (I18N[currentLang] && I18N[currentLang][key]) || (I18N['en'] && I18N['en'][key]) || key;
     }
 
+    function loadLocale(lang) {
+        if (window.PlainTabI18N && window.PlainTabI18N.loadLocale) {
+            return window.PlainTabI18N.loadLocale(lang);
+        }
+        return Promise.resolve(I18N[lang] ? lang : 'en');
+    }
+
     function detectLang() {
         var browserLang = 'en';
         if (typeof chrome !== 'undefined' && chrome.i18n) browserLang = chrome.i18n.getUILanguage();
         else browserLang = navigator.language || 'en';
+        if (window.PlainTabI18N && window.PlainTabI18N.resolveLocale) return window.PlainTabI18N.resolveLocale(browserLang);
         if (I18N[browserLang]) return browserLang;
         var main = browserLang.split('-')[0];
         var found = null;
@@ -185,13 +193,25 @@
                 var btn = document.createElement('button');
                 btn.className = 'lang-option';
                 btn.addEventListener('click', function () {
-                    if (lang.code !== currentLang) {
-                        D.saveLocale(lang.code);
-                        currentLang = lang.code;
-                        updateLangUI();
-                        if (window.onLangChange) window.onLangChange(lang.code);
+                    if (lang.code === currentLang) {
+                        closeLangPanel();
+                        return;
                     }
-                    closeLangPanel();
+                    btn.disabled = true;
+                    loadLocale(lang.code).then(function (loadedLang) {
+                        D.saveLocale(loadedLang);
+                        currentLang = loadedLang;
+                        updateLangUI();
+                        if (window.onLangChange) window.onLangChange(loadedLang);
+                        closeLangPanel();
+                    }).catch(function () {
+                        D.saveLocale('en');
+                        currentLang = 'en';
+                        updateLangUI();
+                        closeLangPanel();
+                    }).then(function () {
+                        btn.disabled = false;
+                    });
                 });
                 langOptions.appendChild(btn);
                 langBtns[lang.code] = btn;
@@ -3790,10 +3810,12 @@
         setCurrentMode: function (m) { currentMode = m; },
         getCurrentLang: function () { return currentLang; },
         setCurrentLang: function (lang) {
-            currentLang = lang;
-            if (!I18N[currentLang]) currentLang = 'en';
-            updateLangUI();
-            refreshGeneratedTabPages();
+            return loadLocale(lang).then(function (loadedLang) {
+                currentLang = loadedLang;
+                updateLangUI();
+                refreshGeneratedTabPages();
+                return currentLang;
+            });
         },
         setWallpaperInfo: refreshGallery,
         getEngineIndex: function () { return engineIndex; },

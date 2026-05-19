@@ -51,10 +51,18 @@
         return (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]) || key;
     }
 
+    function loadLocale(lang) {
+        if (window.PlainTabI18N && window.PlainTabI18N.loadLocale) {
+            return window.PlainTabI18N.loadLocale(lang);
+        }
+        return Promise.resolve(I18N[lang] ? lang : 'en');
+    }
+
     function detectLang() {
         var browserLang = 'en';
         if (typeof chrome !== 'undefined' && chrome.i18n) browserLang = chrome.i18n.getUILanguage();
         else browserLang = navigator.language || 'en';
+        if (window.PlainTabI18N && window.PlainTabI18N.resolveLocale) return window.PlainTabI18N.resolveLocale(browserLang);
         if (I18N[browserLang]) return browserLang;
         var main = browserLang.split('-')[0];
         var found = null;
@@ -260,14 +268,24 @@
             btn.textContent = lang.name;
             btn.addEventListener('click', function () {
                 if (currentLang === lang.code) return;
-                currentLang = lang.code;
-                D.saveLocale(currentLang);
-                if (window.SettingsPanelFull && window.SettingsPanelFull.setCurrentLang) {
-                    window.SettingsPanelFull.setCurrentLang(currentLang);
-                }
-                updateLangUI();
-                if (window.onLangChange) window.onLangChange(currentLang);
-                closeLangPanel();
+                btn.disabled = true;
+                loadLocale(lang.code).then(function (loadedLang) {
+                    currentLang = loadedLang;
+                    D.saveLocale(currentLang);
+                    if (window.SettingsPanelFull && window.SettingsPanelFull.setCurrentLang) {
+                        window.SettingsPanelFull.setCurrentLang(currentLang);
+                    }
+                    updateLangUI();
+                    if (window.onLangChange) window.onLangChange(currentLang);
+                    closeLangPanel();
+                }).catch(function () {
+                    currentLang = 'en';
+                    D.saveLocale(currentLang);
+                    updateLangUI();
+                    closeLangPanel();
+                }).then(function () {
+                    btn.disabled = false;
+                });
             });
             langOptions.appendChild(btn);
             langBtns.push(btn);
