@@ -55,6 +55,11 @@
         return { state: 'Blocked', valid: false, reasonKey: reasonKey, message: message || '' };
     }
 
+    function hasUploadAssets() {
+        if (D && D.hasSourceCache) return D.hasSourceCache('upload');
+        return !!(D && D.hasUploadAssets && D.hasUploadAssets());
+    }
+
     function validateWorkOrder(workOrder) {
         if (!workOrder) return blocked('wallpaperStatusNoPendingSource');
         var source = normalizeSource(workOrder.pendingSource);
@@ -68,7 +73,7 @@
         }
         if (source === 'bing') return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
         if (source === 'upload') {
-            if (D && D.hasUploadAssets && D.hasUploadAssets()) return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
+            if (hasUploadAssets()) return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
             return blocked('wallpaperStatusUploadMissing');
         }
         if (source === 'folder') {
@@ -122,8 +127,10 @@
         if (!model.providers[source]) model.providers[source] = { config: {}, state: {} };
         model.providers[source].config = clonePlain(workOrder.pendingConfig || {});
         model.activeSource = source;
-        D.saveWallpaper(model);
-        return Promise.resolve(model);
+        return Promise.resolve(D.saveWallpaper(model)).then(function (saved) {
+            if (saved === false) throw new Error('wallpaper save failed');
+            return model;
+        });
     }
 
     function cleanupPreviousSource(previousSource, nextSource) {
@@ -140,16 +147,30 @@
         return Promise.resolve(false);
     }
 
+    function restoreWallpaper(model) {
+        if (!D || !D.saveWallpaper || !model) return Promise.resolve(false);
+        try {
+            return Promise.resolve(D.saveWallpaper(clonePlain(model)));
+        } catch (e) {
+            return Promise.resolve(false);
+        }
+    }
+
     function apply(workOrder, hooks) {
         hooks = hooks || {};
         var validation = validateWorkOrder(workOrder);
         if (!validation.valid) return Promise.resolve(validation);
-        var previousSource = normalizeSource(currentWallpaper().activeSource);
+        var previousModel = clonePlain(currentWallpaper());
+        var previousSource = normalizeSource(previousModel.activeSource);
         var nextSource = normalizeSource(workOrder.pendingSource);
         return prepareWorkOrder(workOrder, hooks).then(function () {
             return commitWorkOrder(workOrder);
         }).then(function () {
-            return reloadWallpaper();
+            return reloadWallpaper().catch(function (err) {
+                return restoreWallpaper(previousModel).then(function () {
+                    throw err;
+                });
+            });
         }).then(function () {
             return cleanupPreviousSource(previousSource, nextSource).catch(function (err) {
                 return { cleanupError: err && err.message ? err.message : String(err || '') };

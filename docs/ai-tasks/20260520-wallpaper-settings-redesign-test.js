@@ -12,6 +12,7 @@ function createStorage(initialWallpaper, options = {}) {
       },
       saveWallpaper(next) {
         calls.push(['saveWallpaper', next.activeSource]);
+        if (options.saveFails) return false;
         wallpaper = JSON.parse(JSON.stringify(next));
         return true;
       },
@@ -23,6 +24,10 @@ function createStorage(initialWallpaper, options = {}) {
       },
       hasUploadAssets() {
         return options.hasUploadAssets === true;
+      },
+      hasSourceCache(source) {
+        calls.push(['hasSourceCache', source]);
+        return source === 'upload' && options.hasSourceCacheUpload === true;
       },
       cleanupSourceCache(source) {
         calls.push(['cleanupSourceCache', source]);
@@ -93,6 +98,18 @@ async function testRssRequiresMatchingPassedTest() {
   assert.strictEqual(result.state, 'Ready');
 }
 
+async function testUploadReadyUsesSourceCache() {
+  const storage = createStorage(baseWallpaper('bing'), { hasSourceCacheUpload: true });
+  const Apply = loadApplyModule(storage);
+  const result = Apply.validateWorkOrder({
+    pendingSource: 'upload',
+    pendingConfig: { activeMedia: 'image' },
+    baseline: {}
+  });
+  assert.strictEqual(result.state, 'Ready');
+  assert.deepStrictEqual(storage.calls, [['hasSourceCache', 'upload']]);
+}
+
 async function testApplyPreparesBeforeCleanup() {
   const storage = createStorage(baseWallpaper('upload'));
   const Apply = loadApplyModule(storage, {
@@ -118,6 +135,56 @@ async function testApplyPreparesBeforeCleanup() {
   assert.strictEqual(storage.api.loadWallpaper().activeSource, 'rss');
 }
 
+async function testCommitFailureSkipsReloadAndCleanup() {
+  const storage = createStorage(baseWallpaper('upload'), { saveFails: true });
+  const Apply = loadApplyModule(storage, {
+    reloadWallpaper: () => {
+      storage.calls.push(['reloadWallpaper']);
+      return Promise.resolve(true);
+    }
+  });
+  const source = { id: 'rss-1', name: 'Feed', url: 'https://example.com/feed.xml' };
+  source.test = { status: 'passed', fieldHash: storage.api.rssFieldHash(source), testedAt: 1 };
+  const result = await Apply.apply({
+    pendingSource: 'rss',
+    pendingConfig: { activeSourceId: 'rss-1', sources: [source] },
+    baseline: {}
+  }, {
+    prepare() {
+      storage.calls.push(['prepare', 'rss']);
+      return Promise.resolve({ prepared: true });
+    }
+  });
+  assert.strictEqual(result.state, 'Error');
+  assert.strictEqual(storage.api.loadWallpaper().activeSource, 'upload');
+  assert.deepStrictEqual(storage.calls, [['prepare', 'rss'], ['saveWallpaper', 'rss']]);
+}
+
+async function testReloadFailureSkipsCleanupAndRollsBack() {
+  const storage = createStorage(baseWallpaper('upload'));
+  const Apply = loadApplyModule(storage, {
+    reloadWallpaper: () => {
+      storage.calls.push(['reloadWallpaper']);
+      return Promise.reject(new Error('reload failed'));
+    }
+  });
+  const source = { id: 'rss-1', name: 'Feed', url: 'https://example.com/feed.xml' };
+  source.test = { status: 'passed', fieldHash: storage.api.rssFieldHash(source), testedAt: 1 };
+  const result = await Apply.apply({
+    pendingSource: 'rss',
+    pendingConfig: { activeSourceId: 'rss-1', sources: [source] },
+    baseline: {}
+  }, {
+    prepare() {
+      storage.calls.push(['prepare', 'rss']);
+      return Promise.resolve({ prepared: true });
+    }
+  });
+  assert.strictEqual(result.state, 'Error');
+  assert.strictEqual(storage.api.loadWallpaper().activeSource, 'upload');
+  assert.deepStrictEqual(storage.calls, [['prepare', 'rss'], ['saveWallpaper', 'rss'], ['reloadWallpaper'], ['saveWallpaper', 'upload']]);
+}
+
 async function testPrepareFailureKeepsOldSourceAndCache() {
   const storage = createStorage(baseWallpaper('bing'));
   const Apply = loadApplyModule(storage);
@@ -139,7 +206,10 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
 
 (async function run() {
   await testRssRequiresMatchingPassedTest();
+  await testUploadReadyUsesSourceCache();
   await testApplyPreparesBeforeCleanup();
+  await testCommitFailureSkipsReloadAndCleanup();
+  await testReloadFailureSkipsCleanupAndRollsBack();
   await testPrepareFailureKeepsOldSourceAndCache();
   console.log('wallpaper settings redesign tests passed');
 })().catch((err) => {
