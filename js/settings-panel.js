@@ -172,6 +172,7 @@
     var wallpaperDraftRssTestResult = null;
     var wallpaperDraftFolderMount = null;
     var wallpaperDraftOpenSource = '';
+    var wallpaperDraftApiOpenType = '';
     var wallpaperWorkOrder = null;
     var wallpaperWorkOrderStatus = { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
     var rssNoticeTimer = null;
@@ -832,6 +833,7 @@
         wallpaperDraftRssTestResult = null;
         wallpaperDraftFolderMount = null;
         wallpaperDraftOpenSource = normalizeDraftSource(wallpaperDraft.activeSource);
+        wallpaperDraftApiOpenType = wallpaperDraft.providers.api.config.apiType === 'json' ? 'json' : 'image';
         return wallpaperDraft;
     }
 
@@ -880,6 +882,18 @@
             folder: 'wallpaperStatusFolderMissing'
         };
         return keys[source] || 'wallpaperApplyReady';
+    }
+
+    function updatePendingBaselineConfig(source, mutator) {
+        var workOrder = currentWallpaperWorkOrder();
+        source = normalizeDraftSource(source);
+        if (normalizeDraftSource(workOrder.pendingSource) !== source) return false;
+        if (!workOrder.baseline) return false;
+        if (normalizeDraftSource(workOrder.baseline.pendingSource) !== source) return false;
+        if (!workOrder.baseline.pendingConfig) workOrder.baseline.pendingConfig = {};
+        mutator(workOrder.baseline.pendingConfig);
+        refreshWallpaperApplyFooter();
+        return true;
     }
 
     function updatePendingSourceConfig(source, mutator) {
@@ -980,6 +994,7 @@
         wallpaperDraftRssTestResult = null;
         wallpaperDraftFolderMount = null;
         wallpaperDraftOpenSource = '';
+        wallpaperDraftApiOpenType = '';
         wallpaperWorkOrder = null;
         wallpaperWorkOrderStatus = { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
     }
@@ -1446,7 +1461,7 @@
 
     function buildApiConfigHTML() {
         var config = pendingConfigForSource('api');
-        var apiType = config.apiType === 'json' ? 'json' : 'image';
+        var apiType = apiEditorOpenType(config);
         var sources = apiType === 'json' ? config.jsonSources : config.imageSources;
         var activeId = apiType === 'json' ? config.activeJsonSourceId : config.activeImageSourceId;
         var rows = sources.map(function (source) { return apiSourceRowHTML(source, apiType, activeId); }).join('');
@@ -1470,6 +1485,11 @@
             settingItem(tr('rssRefreshInterval'), '', refreshControl, 'setting-compact') +
             '</div>' +
             '</div>';
+    }
+
+    function apiEditorOpenType(config) {
+        if (wallpaperDraftApiOpenType === 'json' || wallpaperDraftApiOpenType === 'image') return wallpaperDraftApiOpenType;
+        return config && config.apiType === 'json' ? 'json' : 'image';
     }
 
     function buildSearchHTML() {
@@ -2204,11 +2224,14 @@
             pending.sources = clonePlain(config.sources || []);
             pending.activeSourceId = config.activeSourceId || '';
         });
+        updatePendingBaselineConfig('rss', function (baseline) {
+            baseline.sources = clonePlain(config.sources || []);
+            baseline.activeSourceId = config.activeSourceId || '';
+        });
     }
 
     function saveApiListConfig(config) {
         var savedConfig = D.loadApiConfig ? clonePlain(D.loadApiConfig()) : providerConfigForSource(D.loadWallpaper(), 'api');
-        savedConfig.apiType = config.apiType === 'json' ? 'json' : 'image';
         savedConfig.imageSources = clonePlain(config.imageSources || []);
         savedConfig.jsonSources = clonePlain(config.jsonSources || []);
         savedConfig.activeImageSourceId = config.activeImageSourceId || '';
@@ -2217,11 +2240,16 @@
         D.saveApiConfig(savedConfig);
         currentWallpaperDraft().providers.api.config = clonePlain(config);
         updatePendingSourceConfig('api', function (pending) {
-            pending.apiType = config.apiType === 'json' ? 'json' : 'image';
             pending.imageSources = clonePlain(config.imageSources || []);
             pending.jsonSources = clonePlain(config.jsonSources || []);
             pending.activeImageSourceId = config.activeImageSourceId || '';
             pending.activeJsonSourceId = config.activeJsonSourceId || '';
+        });
+        updatePendingBaselineConfig('api', function (baseline) {
+            baseline.imageSources = clonePlain(config.imageSources || []);
+            baseline.jsonSources = clonePlain(config.jsonSources || []);
+            baseline.activeImageSourceId = config.activeImageSourceId || '';
+            baseline.activeJsonSourceId = config.activeJsonSourceId || '';
         });
     }
 
@@ -2450,7 +2478,7 @@
             return;
         }
         if (e.target.name === 'apiSource') {
-            if (config.apiType === 'json') config.activeJsonSourceId = e.target.value;
+            if (apiEditorOpenType(config) === 'json') config.activeJsonSourceId = e.target.value;
             else config.activeImageSourceId = e.target.value;
             currentWallpaperDraft().providers.api.config = clonePlain(config);
             updatePendingSourceConfig('api', function (pending) {
@@ -2465,13 +2493,15 @@
     function onApiConfigClick(e) {
         var target = e.target;
         var config = pendingConfigForSource('api');
-        var apiType = config.apiType === 'json' ? 'json' : 'image';
+        var apiType = apiEditorOpenType(config);
         var root = target.closest('.api-config');
         var typeTab = target.closest('[data-api-type-tab]');
         if (typeTab) {
-            config.apiType = typeTab.dataset.apiTypeTab === 'json' ? 'json' : 'image';
-            currentWallpaperDraft().providers.api.config.apiType = config.apiType;
-            updatePendingSourceConfig('api', function (pending) { pending.apiType = config.apiType; });
+            var nextType = typeTab.dataset.apiTypeTab === 'json' ? 'json' : 'image';
+            wallpaperDraftApiOpenType = nextType;
+            if (updatePendingSourceConfig('api', function (pending) { pending.apiType = nextType; })) {
+                currentWallpaperDraft().providers.api.config = clonePlain(currentWallpaperWorkOrder().pendingConfig);
+            }
             wallpaperDraftApiTestResult = null;
             refreshWallpaperDraftTab();
             return;
