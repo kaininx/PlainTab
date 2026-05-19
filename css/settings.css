@@ -1977,30 +1977,26 @@ input[type="file"] {
 }
 
 .api-type-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: inline-grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 6px;
+    width: 100%;
+    padding: 3px;
+    border: 1px solid rgba(var(--stroke-rgb), 0.38);
+    border-radius: 10px;
+    background: rgba(var(--surface-base-rgb), 0.16);
 }
 
 .api-type-tabs button {
     justify-content: center;
-}
-
-.api-type-tabs button span {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    border: 1px solid rgba(var(--on-surface-muted-rgb), 0.62);
+    min-height: 32px;
+    border-color: transparent;
+    background: transparent;
 }
 
 .api-type-tabs button.active {
     border-color: rgba(168, 85, 247, 0.48);
     background: rgba(168, 85, 247, 0.12);
-}
-
-.api-type-tabs button.active span {
-    border-color: #c084fc;
-    background: #a855f7;
 }
 
 .api-source-list {
@@ -2076,17 +2072,19 @@ input[type="file"] {
     white-space: nowrap;
 }
 
+.api-add-panel {
+    display: grid;
+    gap: 9px;
+}
+
 .api-add-row {
     display: grid;
     grid-template-columns: minmax(96px, 0.45fr) minmax(150px, 1fr) auto;
     gap: 8px;
 }
 
-.api-config[data-api-type="json"] .api-add-row {
-    grid-template-columns: minmax(88px, 0.42fr) minmax(140px, 0.9fr) minmax(120px, 0.7fr) auto;
-}
-
-.api-add-row input {
+.api-add-row input,
+.api-json-path-row input {
     min-width: 0;
     min-height: 34px;
     padding: 8px 11px;
@@ -2098,14 +2096,41 @@ input[type="file"] {
 }
 
 .api-add-row input:hover,
-.api-add-row input:focus-visible {
+.api-add-row input:focus-visible,
+.api-json-path-row input:hover,
+.api-json-path-row input:focus-visible {
     border-color: var(--control-border-hover);
     background: rgba(var(--surface-base-rgb), 0.32);
 }
 
-.api-add-row input:focus-visible {
+.api-add-row input:focus-visible,
+.api-json-path-row input:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.14);
+}
+
+.api-json-path-row {
+    display: grid;
+    grid-template-columns: minmax(104px, 0.32fr) minmax(180px, 1fr);
+    align-items: center;
+    gap: 6px 10px;
+    padding: 9px 10px;
+    border: 1px solid rgba(168, 85, 247, 0.18);
+    border-radius: 8px;
+    background: rgba(168, 85, 247, 0.055);
+}
+
+.api-json-path-row label {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.api-json-path-row small {
+    grid-column: 2;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.4;
 }
 
 .api-options {
@@ -2214,6 +2239,46 @@ input[type="file"] {
 .reset-defaults-btn:hover {
     background: rgba(239, 68, 68, 0.08);
     border-color: rgba(239, 68, 68, 0.20);
+    color: #f87171;
+}
+
+/* ========== 恢复页按钮 ========== */
+.restore-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 190px;
+    max-width: 100%;
+    min-height: 38px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--control-border);
+    background: rgba(var(--surface-base-rgb), 0.18);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.restore-action:hover {
+    background: rgba(var(--surface-base-rgb), 0.28);
+    border-color: rgba(var(--stroke-rgb), 0.58);
+    color: var(--text-primary);
+}
+
+.restore-action.danger {
+    border-color: rgba(239, 68, 68, 0.24);
+    background: rgba(239, 68, 68, 0.06);
+    color: rgba(248, 113, 113, 0.92);
+}
+
+.restore-action.danger:hover {
+    border-color: rgba(239, 68, 68, 0.38);
+    background: rgba(239, 68, 68, 0.11);
     color: #f87171;
 }
 
@@ -2554,6 +2619,10 @@ input[type="file"] {
         flex-wrap: wrap;
     }
 
+    .restore-action {
+        width: 100%;
+    }
+
     .setting-item select,
     .custom-select,
     .setting-item input[type="text"],
@@ -2599,8 +2668,12 @@ input[type="file"] {
     .rss-add-row,
     .api-source-row,
     .api-add-row,
-    .api-config[data-api-type="json"] .api-add-row {
+    .api-json-path-row {
         grid-template-columns: 1fr;
+    }
+
+    .api-json-path-row small {
+        grid-column: auto;
     }
 
     .folder-current {

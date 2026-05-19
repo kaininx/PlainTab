@@ -26,6 +26,9 @@
     var BUILTIN_GITHUB = { id: 'builtin-github', name: 'GitHub', url: 'https://github.com', freq: 0, added: 0 };
     var BUILTIN_GITHUB_ICON = 'https://icons.duckduckgo.com/ip3/github.com.ico';
     var SHORTCUT_EXPORT_TYPE = 'plaintab-command-shortcuts';
+    var TITLE_FETCH_TIMEOUT_MS = 8000;
+    var COMMAND_TERMINAL_TITLE_TIMEOUT_MS = 2500;
+    var TITLE_READ_DELAY_MS = 120;
 
     var CP_COMMANDS_NORMAL = ['add', 'edit', 'delete', 'hide', 'recent', 'import', 'export', 'reset', 'clear', 'restore', 'help'];
     var CP_COMMANDS_HIDDEN = ['add', 'edit', 'delete', 'unhide', 'recent', 'import', 'export', 'reset', 'clear', 'restore', 'help'];
@@ -248,6 +251,13 @@
         if (!url.match(/^https?:\/\//)) url = 'https://' + url;
         if (!url.match(/^https:\/\/[^\s\/]+\.[^\s\/]+/)) return '';
         return url;
+    }
+
+    function timeoutSignal(ms) {
+        if (AbortSignal.timeout) return AbortSignal.timeout(ms);
+        var controller = new AbortController();
+        setTimeout(function () { controller.abort(); }, ms);
+        return controller.signal;
     }
 
     function urlHostLabel(url) {
@@ -1077,23 +1087,10 @@
         return title || smartUrlName(fallbackUrl);
     }
 
-    function fetchTitleForCommandTerminal(url, callback) {
+    function withPageTitlePermission(url, onGranted, onDenied) {
         var isExt = typeof chrome !== 'undefined' && chrome.permissions && !!chrome.runtime && !!chrome.runtime.id;
-        var settled = false;
-        var timer = setTimeout(function () { finish(null); }, 2500);
-        var finish = function (title) {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timer);
-            callback(cleanCommandTerminalTitle(title, url));
-        };
-        var doFetch = function () {
-            var fetcher = isExt ? fetchPageTitleInTempTab : fetchPageTitle;
-            fetcher(url, finish);
-        };
-
         if (!isExt) {
-            doFetch();
+            onGranted(false);
             return;
         }
 
@@ -1101,27 +1098,45 @@
         try {
             origin = new URL(url).origin + '/*';
         } catch (e) {
-            finish(null);
+            onDenied();
             return;
         }
 
         chrome.permissions.contains({ origins: [origin] }, function (hasPermission) {
             if (hasPermission) {
-                doFetch();
+                onGranted(true);
                 return;
             }
             if (!chrome.permissions.request) {
-                finish(null);
+                onDenied();
                 return;
             }
             chrome.permissions.request({ origins: [origin] }, function (granted) {
-                if (granted) {
-                    doFetch();
-                    return;
-                }
-                finish(null);
+                if (granted) onGranted(true);
+                else onDenied();
             });
         });
+    }
+
+    function fetchPageTitleAuto(url, callback) {
+        withPageTitlePermission(url, function (useTempTab) {
+            var fetcher = useTempTab ? fetchPageTitleInTempTab : fetchPageTitle;
+            fetcher(url, callback);
+        }, function () {
+            callback(null);
+        });
+    }
+
+    function fetchTitleForCommandTerminal(url, callback) {
+        var settled = false;
+        var timer = setTimeout(function () { finish(null); }, COMMAND_TERMINAL_TITLE_TIMEOUT_MS);
+        var finish = function (title) {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            callback(cleanCommandTerminalTitle(title, url));
+        };
+        fetchPageTitleAuto(url, finish);
     }
 
     function createCommandTerminalShortcut(name, url) {
@@ -2502,7 +2517,7 @@
 
     function fetchPageTitle(url, callback) {
         try {
-            fetch(url, { method: 'GET', mode: 'cors' }).then(function (res) {
+            fetch(url, { method: 'GET', mode: 'cors', signal: timeoutSignal(TITLE_FETCH_TIMEOUT_MS) }).then(function (res) {
                 if (!res.ok) { callback(null); return; }
                 return res.text();
             }).then(function (html) {
@@ -2549,7 +2564,7 @@
 
         function onUpdated(updatedTabId, changeInfo) {
             if (updatedTabId !== tabId || !changeInfo || changeInfo.status !== 'complete') return;
-            setTimeout(readTitle, 120);
+            setTimeout(readTitle, TITLE_READ_DELAY_MS);
         }
 
         try {
@@ -2567,8 +2582,8 @@
                     return;
                 }
                 chrome.tabs.onUpdated.addListener(onUpdated);
-                if (tab && tab.status === 'complete') setTimeout(readTitle, 120);
-                timer = setTimeout(readTitle, 8000);
+                if (tab && tab.status === 'complete') setTimeout(readTitle, TITLE_READ_DELAY_MS);
+                timer = setTimeout(readTitle, TITLE_FETCH_TIMEOUT_MS);
             });
         } catch (e) {
             finish(null);
@@ -2596,52 +2611,15 @@
         if (fetchErrorEl) fetchErrorEl.style.display = 'none';
         if (urlEl) urlEl.classList.remove('error');
 
-        var isExt = typeof chrome !== 'undefined' && chrome.permissions && !!chrome.runtime && !!chrome.runtime.id;
-        var doFetch = function () {
-            btn.classList.add('loading');
-            btn.disabled = true;
-            nameEl.placeholder = t('fetchingTitle');
-            var fetcher = isExt ? fetchPageTitleInTempTab : fetchPageTitle;
-            fetcher(url, function (title) {
-                btn.classList.remove('loading');
-                btn.disabled = false;
-                nameEl.placeholder = t('shortcutName');
-                if (title) {
-                    nameEl.value = title;
-                } else {
-                    nameEl.value = smartUrlName(url);
-                }
-                nameEl.focus();
-            });
-        };
-
-        if (!isExt) {
-            doFetch();
-            return;
-        }
-
-        var origin;
-        try {
-            origin = new URL(url).origin + '/*';
-        } catch (e) {
-            nameEl.value = smartUrlName(url);
+        btn.classList.add('loading');
+        btn.disabled = true;
+        nameEl.placeholder = t('fetchingTitle');
+        fetchPageTitleAuto(url, function (title) {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            nameEl.placeholder = t('shortcutName');
+            nameEl.value = title || smartUrlName(url);
             nameEl.focus();
-            return;
-        }
-
-        chrome.permissions.contains({ origins: [origin] }, function (hasPermission) {
-            if (hasPermission) {
-                doFetch();
-                return;
-            }
-            chrome.permissions.request({ origins: [origin] }, function (granted) {
-                if (granted) {
-                    doFetch();
-                    return;
-                }
-                nameEl.value = smartUrlName(url);
-                nameEl.focus();
-            });
         });
     }
 
