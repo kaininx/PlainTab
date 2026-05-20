@@ -61,6 +61,8 @@ Soporte y comentarios
 
 Registro de cambios
 
+• v3.2.1 · Añade soporte para fondos Wallhaven y de vídeo, mejora la configuración y aplicación segura de fondos, refina el panel de comandos y los temas, y corrige estabilidad en fondos, ajustes e i18n.
+
 • v3.2.0 · Gran actualización de funciones y rendimiento: añade panel de comandos, fondos RSS/API/carpeta local, colores de tema de fondo con WASM, importación/exportación de configuración e historial de búsqueda; migra el almacenamiento al modelo v3.2, endurece permisos y respaldo de búsqueda, y modulariza/optimiza inicio, fondos, galería y ajustes.
 
 • v3.1.4 · Refactorizada la nomenclatura de constantes de almacenamiento y unificada la migración IDB en transacción bifásica para ordenación recuperable ante fallos; optimizada la omisión de migración para nuevos usuarios; añadida deduplicación en carga por lotes con límite de 12 imágenes

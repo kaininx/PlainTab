@@ -1,4 +1,6 @@
 Journal des mises à jour
+• v3.2.1 · Ajoute les fonds Wallhaven et vidéo, affine la configuration et l’application sécurisée des fonds, améliore la palette de commandes et les thèmes, et corrige la stabilité des fonds, réglages et i18n.
+
 • v3.2.0 · Grande mise à jour des fonctionnalités et des performances : ajout du panneau de commande, des fonds d'écran RSS/API/dossier local, des couleurs de thème WASM, de l'import/export de configuration et de l'historique de recherche ; migration vers le modèle de stockage v3.2, permissions et repli de recherche resserrés, optimisation modulaire du démarrage, des fonds, de la galerie et des réglages.
 
 • v3.1.4 · Refonte du nommage des constantes de stockage et fusion de la migration IDB en transaction biphasée pour un ordonnancement résilient aux pannes ; optimisation du saut de migration pour les nouveaux utilisateurs ; ajout de la déduplication par lot avec limite de 12 images

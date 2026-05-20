@@ -8,6 +8,6 @@
 - `20-wallpaper.md`：壁纸和来源缓存行为。
 - `js/wallpaper/data.js`：实现层事实来源。
 
-PlainTab 3.2.0 使用 `LS_VERSION = 3`，除非任务明确新增此要求，否则不承诺兼容更早的实验性 schema。
+PlainTab 3.2.1 使用 `LS_VERSION = 3`，除非任务明确新增此要求，否则不承诺兼容更早的实验性 schema。
 
 不要把历史存储假设复制到新代码里。

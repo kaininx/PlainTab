@@ -1,6 +1,6 @@
 ---
 name: bump-version
-description: Use when preparing a PlainTab release or bumping the PlainTab version, triggered by phrases like "更新版本", "bump version", "upgrade to vX.Y.Z", "发布新版本". Updates manifest.json, localized short changelogs, store-listing files, docs/RELEASE_NOTES.md, docs/GITHUB_RELEASE.md, and any affected project documentation according to the current PlainTab docs structure.
+description: Use when preparing a PlainTab release or bumping the PlainTab version, triggered by phrases like "更新版本", "bump version", "upgrade to vX.Y.Z", "发布新版本". Updates manifest.json, runtime UI/version constants, localized changelogs, store listings, release notes, validation notes, and current project docs.
 ---
 
 # Bump PlainTab Version
@@ -20,7 +20,7 @@ Do not recreate removed files such as `docs/CHANGELOG.md`, `docs/release-note.md
 
 Ask for missing essentials only:
 
-- Target version, for example `3.2.0`.
+- Target version, for example `3.2.1`.
 - Release summary in Chinese or English.
 - Important changes, grouped as user-facing bullets. Conventional commit lines may be used as source material, but do not expose commit tags in user-facing docs unless the user explicitly asks.
 
@@ -33,15 +33,25 @@ Before editing:
 - Read `manifest.json` and record the old version.
 - Check `git status --short` and preserve unrelated user changes.
 - Inspect existing entries in `docs/changelog-i18n/en.txt`, `docs/changelog-i18n/zh-CN.txt`, `docs/RELEASE_NOTES.md`, and `docs/GITHUB_RELEASE.md` for local tone and format.
-- Search for the old version before replacing it. Only update real release/version references, not historical examples unless the release task requires them.
+- Search for the old version before replacing it. Classify every hit as current runtime/config/test/docs or historical release/task archive before editing.
 
-## Step 2: Version Number
+## Step 2: Runtime Version Surfaces
 
-Update `manifest.json`:
+Update every current runtime or data version surface:
 
 ```json
 "version": "X.Y.Z"
 ```
+
+Also update:
+
+- `index.html`: first-level settings panel version text, currently `.l1-version`.
+- `js/settings-panel.js`: About tab version text, currently `.about-version`.
+- `js/wallpaper/data.js`: `BASELINE_APP_VERSION` when the release represents the current app/storage baseline.
+- Current validation harnesses or task notes that assert the active baseline, for example `docs/ai-tasks/*test.js`.
+- Current rule snapshots such as `.claude/rules/README.md`, `.claude/rules/10-storage.md`, and `.claude/rules/90-storage-history.md` when their baseline statements would otherwise become stale.
+
+Do not update old version numbers in historical release entries, old changelog entries, or dated task-plan prose unless they are active validation files or current factual guidance.
 
 Use semantic versioning language when helpful:
 
@@ -171,6 +181,7 @@ Update these only when the release changes their content:
 - `docs/technical/README_en.md` and `docs/technical/README_zh-CN.md`: technical docs.
 - `AGENTS.md` and `.claude/rules/`: project guidance, only when durable agent instructions change.
 - `.agents/skills/bump-version/SKILL.md`: this skill, only when release workflow or project structure changes.
+- `.agents/README.md`: shared skill index, when skill ownership or release coverage changes.
 
 README link rules:
 
@@ -187,23 +198,28 @@ Run checks before declaring the release prep done:
 
 ```powershell
 Select-String -Path manifest.json,README.md,docs\*.md,docs\technical\*.md,docs\changelog-i18n\*.txt,docs\store-listing\*.txt -Pattern "OLD_VERSION" -SimpleMatch
+git grep -n "OLD_VERSION" -- index.html js .claude .agents docs/ai-tasks
 ```
 
-Expected result: no stale old-version references except intentionally historical text.
+Expected result: no stale old-version references except intentionally historical text. Explain any remaining old-version hits and why they are historical.
 
 Also verify:
 
+- `manifest.json`, `index.html`, `js/settings-panel.js`, and `js/wallpaper/data.js` use the target version where they expose the current app version.
 - `docs/CHANGELOG.md` does not exist.
 - `docs/release-note.md` does not exist.
 - `docs/RELEASE_NOTES.md` exists.
 - `docs/GITHUB_RELEASE.md` exists.
 - At least `en` and `zh-CN` changelog/store-listing entries are correct; spot-check a few other languages when all 16 are updated.
+- JavaScript touched by the version bump parses, for example `node --check js\settings-panel.js` and `node --check js\wallpaper\data.js`.
 
 ## Current File Map
 
 | Purpose | Files |
 |---------|-------|
 | Extension version | `manifest.json` |
+| Runtime version display | `index.html`, `js/settings-panel.js` |
+| Storage/app baseline | `js/wallpaper/data.js`, `.claude/rules/10-storage.md`, `.claude/rules/README.md`, `.claude/rules/90-storage-history.md`, active `docs/ai-tasks/*test.js` assertions |
 | Main READMEs | `README.md`, `docs/README_zh-CN.md` |
 | Localized READMEs | `docs/README_*.md` |
 | Short changelogs | `docs/changelog-i18n/*.txt` |

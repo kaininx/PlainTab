@@ -22,7 +22,7 @@ const settingsCss = read('css/settings.css');
 const baseCss = read('css/base.css');
 
 function testStorageStartsAtV320Baseline() {
-  assert.ok(data.includes("BASELINE_APP_VERSION = '3.2.0'"), 'storage should document v3.2.0 as the migration baseline');
+  assert.ok(data.includes("BASELINE_APP_VERSION = '3.2.1'"), 'storage should document v3.2.1 as the migration baseline');
   assert.strictEqual(data.includes('LEGACY_KEYS'), false, 'legacy localStorage migration map should not stay in the hot data module');
   assert.strictEqual(data.includes('migrate_1_to_2'), false, 'v1 migration should be removed from the hot data module');
   assert.strictEqual(data.includes('migrate_2_to_3'), false, 'v2 migration should be removed from the hot data module');
@@ -78,9 +78,9 @@ function testWallpaperFilterStaysOffTheDefaultCompositePath() {
   assert.ok(show.includes('keepCurrentUrl'), 'blur preview should preserve the current full image URL for instant unblur');
   assert.ok(show.includes('currentDisplaySource'), 'blur preview should be able to derive from the currently visible wallpaper');
   const newtab = read('js/newtab.js');
-  const localStart = newtab.indexOf('function tryLoadLocalWallpaper');
-  const localEnd = newtab.indexOf('function tryLoadCachedBing', localStart);
-  assert.ok(localStart >= 0 && localEnd > localStart, 'local wallpaper loader should be inspectable');
+  const localStart = newtab.indexOf('function tryLoadLocalImages');
+  const localEnd = newtab.indexOf('function tryLoadLocalWallpaper', localStart);
+  assert.ok(localStart >= 0 && localEnd > localStart, 'local image wallpaper loader should be inspectable');
   const localBody = newtab.slice(localStart, localEnd);
   assert.ok(localBody.includes('D.blurThumbFor(id, blur)'), 'strong blur mode should check the prepared current blur preview');
   assert.ok(localBody.includes('S.showPreparedPreview(blurPreview, { keepCurrentUrl: true })'), 'strong blur mode should render prepared preview directly while preserving the original URL');
@@ -110,7 +110,7 @@ function testColdPaletteIsNotLoadedByIndex() {
   assert.ok(newtab.includes('requestIdleCallback'), 'panel warmup must use idle time instead of the first-paint path');
   assert.strictEqual(commandPalette.includes('.animate('), false, 'command palette open/close should use CSS transitions instead of allocating Web Animations per open');
   assert.ok(commandPalette.includes("cmdOverlay.classList.add('active')"), 'command palette should open through a CSS state class');
-  assert.ok(commandPalette.includes("cmdOverlay.classList.remove('active')"), 'command palette should close through a CSS state class');
+  assert.ok(commandPalette.includes("cmdOverlay.classList.remove('active', 'preparing')"), 'command palette should close through CSS state classes');
 }
 
 function testSettingsShortcutTabUsesDataModelWithoutPaletteScript() {
@@ -140,7 +140,7 @@ function testFullSettingsIsLoadedOnDemand() {
   assert.strictEqual(index.includes('js/settings.js'), false, 'legacy settings filename should not stay in index');
   assert.strictEqual(index.includes('js/settings-full.js'), false, 'legacy full-settings filename should not stay in index');
   assert.ok(settingsBootstrap.includes('function ensureFullSettings()'), 'settings bootstrap should expose a lazy full-settings loader');
-  assert.ok(settingsBootstrap.includes("script.src = 'js/settings-panel.js'"), 'settings bootstrap should load the full module lazily');
+  assert.ok(settingsBootstrap.includes("loadScript('js/settings-panel.js')"), 'settings bootstrap should load the full module lazily');
   assert.ok(settingsBootstrap.includes('window.SettingsPanel = {'), 'settings bootstrap should own window.SettingsPanel');
   assert.ok(settingsPanel.includes('window.SettingsPanelFull = {'), 'settings panel should export a secondary API');
   assert.strictEqual(settingsPanel.includes('window.SettingsPanel = {'), false, 'settings panel must not replace the startup SettingsPanel facade');
@@ -182,7 +182,8 @@ function testSearchVisibilityModesStayAuthoritative() {
   assert.ok(newtab.includes('function canFocusSearchFromWallpaper()'), 'newtab should keep wallpaper-click focus policy separate from hover reveal');
   assert.ok(newtab.includes("return SP.getSearchMode() === 'always';"), 'wallpaper clicks should only focus search in always-visible mode');
   assert.ok(newtab.includes('showSearch();'), 'search bar hover should still reveal the bar');
-  assert.ok(newtab.includes('if (canFocusSearchFromWallpaper()) searchInput.focus();'), 'wallpaper click should not reveal hover-mode search');
+  assert.ok(newtab.includes('if (canFocusSearchFromWallpaper()) {'), 'wallpaper click should gate focus through the wallpaper policy');
+  assert.ok(newtab.includes('searchInput.focus();'), 'wallpaper click should still be able to focus search when the policy allows it');
   assert.ok(searchCss.includes('.search-bar[data-visibility="hover"]'), 'hover mode should keep only the search bar hit area active');
   assert.ok(searchCss.includes('.search-bar[data-visibility="hover"]:hover'), 'hover mode should reveal through the native hover hit area');
   assert.ok(searchCss.includes('--search-hover-blur'), 'hover mode should avoid paying backdrop-filter cost while hidden');

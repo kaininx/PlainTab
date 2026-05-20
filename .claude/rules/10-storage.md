@@ -7,11 +7,11 @@
 ## 基线
 
 - `LS_VERSION = 3`
-- `BASELINE_APP_VERSION = 3.2.0`
+- `BASELINE_APP_VERSION = 3.2.1`
 - IndexedDB：`PlainTab`，版本 `1`，object store 为 `wallpaper`
 - 当前 schema 迁移很轻：`migrate()` 只确保 `ptab_schema_version` 至少为 `3`。
 
-PlainTab 3.2.0 不承诺兼容更早的实验性布局。除非任务明确要求，否则不要新增迁移代码。
+PlainTab 3.2.1 不承诺兼容更早的实验性布局。除非任务明确要求，否则不要新增迁移代码。
 
 ## 持久化 Key
 

@@ -100,7 +100,7 @@ async function testInitializesEmptyInstallAsCurrentSchema() {
   await context.WallpaperData.migrate();
   const ls = localStorage.dump();
 
-  assert.strictEqual(context.WallpaperData.BASELINE_APP_VERSION, '3.2.0');
+  assert.strictEqual(context.WallpaperData.BASELINE_APP_VERSION, '3.2.1');
   assert.strictEqual(ls.ptab_schema_version, '3');
   assert.strictEqual(context.WallpaperData.getActiveSource(), 'bing');
   assert.deepStrictEqual(context.WallpaperData.loadOrder(), []);
@@ -167,6 +167,7 @@ async function testPublicStorageConstantsExposeOnlyCurrentV3Keys() {
     'SHORTCUT_ICONS',
     'UI',
     'WALLPAPER',
+    'WALLPAPER_BLUR_THUMBS',
     'WALLPAPER_PREVIEW',
     'WALLPAPER_THUMBS',
   ].sort());
@@ -176,10 +177,12 @@ async function testPublicStorageConstantsExposeOnlyCurrentV3Keys() {
     'BING_BLOB',
     'FOLDER_FILES',
     'FOLDER_HANDLE',
+    'FOLDER_LIGHT_PREFIX',
     'NAME',
     'RSS_PREFIX',
     'STORE',
     'UPLOAD_PREFIX',
+    'WALLHAVEN_PREFIX',
   ].sort());
 }
 

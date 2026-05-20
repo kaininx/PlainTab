@@ -11,7 +11,7 @@ This directory contains the canonical shared skills for PlainTab.
 
 ## Current Skills
 
-- `bump-version`: updates the PlainTab version across manifest, README badges, changelogs, store listings, release notes, and project docs.
+- `bump-version`: updates the PlainTab version across manifest, runtime UI/version constants, changelogs, store listings, release notes, current validation notes, and project docs.
 - `commit-changes`: prepares clean Chinese Conventional Commits while preserving unrelated working tree changes.
 - `update-i18n`: maintains runtime UI translation keys, `js/i18n/*.js` language packs, and related validation.
 

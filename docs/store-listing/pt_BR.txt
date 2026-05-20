@@ -61,6 +61,8 @@ Suporte e feedback
 
 Registro de alterações
 
+• v3.2.1 · Adiciona suporte a papéis de parede Wallhaven e de vídeo, refina a configuração e aplicação segura de papéis de parede, melhora a paleta de comandos e os temas, e corrige estabilidade em papéis de parede, ajustes e i18n.
+
 • v3.2.0 · Grande atualização de recursos e desempenho: adiciona painel de comandos, papéis de parede RSS/API/pasta local, cores de tema do papel de parede via WASM, importação/exportação de configuração e histórico de busca; migra o armazenamento para o modelo v3.2, restringe permissões e fallback de busca, e modulariza/otimiza inicialização, papéis de parede, galeria e configurações.
 
 • v3.1.4 · Refatorada a nomenclatura de constantes de armazenamento e unificada a migração IDB em transação de duas fases para ordenação recuperável; otimizado o salto de migração para novos usuários; adicionada deduplicação em lote com limite de 12 imagens

@@ -4,6 +4,40 @@
 >
 > This file contains the detailed release notes for PlainTab, maintained in Chinese and English only. For one-line localized changelog summaries, see `docs/changelog-i18n/`.
 
+## v3.2.1
+
+### 中文
+
+**摘要**：这是一版围绕壁纸来源、设置体验和运行稳定性的补丁更新。PlainTab 新增 Wallhaven 与视频壁纸支持，并把壁纸来源的编辑、预览和应用流程整理得更安全、更清晰；同时继续打磨命令面板、主题取色、多语言加载和设置页懒加载体验。
+
+**更新内容**
+
+- 新增 Wallhaven 壁纸源，并适配设置流程，让用户可以通过更清晰的入口配置外部壁纸来源。
+- 支持上传视频壁纸，扩展本地壁纸素材类型，同时继续保持现有壁纸加载与回退路径。
+- 重设计上传壁纸的应用流程，引入更稳妥的待应用状态和回滚逻辑，避免失败的壁纸准备过程污染已保存配置。
+- 统一壁纸设置基础布局，清理旧的来源抽屉，让壁纸来源、状态提示和应用动作更容易理解。
+- 优化壁纸主题引擎与全局主题视觉层级，收敛主题色提取强度，减少颜色过度干扰界面的情况。
+- 改进命令面板、权限设置、快捷链接和 API 设置体验，让常用管理入口更顺手。
+- 拆分运行时语言包，并修复设置页语言刷新、缓存和懒加载竞态，提升多语言环境下的稳定性。
+- 增加构建最新 tag 版本 zip 包的脚本，方便后续发布打包。
+- 补充 AI 协作、i18n 维护、提交流程和壁纸设置改造相关文档，方便后续维护。
+
+### English
+
+**Summary**: This patch release focuses on wallpaper sources, settings polish, and runtime stability. PlainTab adds Wallhaven and video wallpaper support, makes wallpaper editing, previewing, and applying safer and clearer, and continues refining the command palette, theme colors, i18n loading, and settings lazy-loading behavior.
+
+**Details**
+
+- Added the Wallhaven wallpaper source and connected it to the settings flow for clearer external wallpaper configuration.
+- Added video wallpaper upload support, expanding local wallpaper material options while preserving the existing wallpaper load and fallback path.
+- Redesigned the uploaded wallpaper apply flow with safer pending state and rollback behavior, so failed wallpaper preparation does not pollute saved settings.
+- Unified the base wallpaper settings layout and removed the older source drawer, making wallpaper sources, status messages, and apply actions easier to follow.
+- Refined the wallpaper theme engine and global theme visual hierarchy, reducing overly strong extracted colors in the interface.
+- Improved the command palette, permission settings, shortcut management, and API settings experience.
+- Split runtime language packs and fixed settings language refresh, cache, and lazy-loading races for better i18n stability.
+- Added a release packaging helper for building a zip from the latest tag.
+- Added maintenance documentation for AI collaboration, i18n updates, commit flow, and the wallpaper settings redesign.
+
 ## v3.2.0
 
 ### 中文

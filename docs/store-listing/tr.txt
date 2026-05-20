@@ -61,6 +61,8 @@ Destek ve geri bildirim
 
 Güncelleme Geçmişi
 
+• v3.2.1 · Wallhaven ve video duvar kağıdı desteği eklendi, duvar kağıdı kurulumu ve güvenli uygulama akışı iyileştirildi, komut paleti/tema deneyimi geliştirildi ve duvar kağıdı, ayarlar, i18n kararlılığı düzeltildi.
+
 • v3.2.0 · Büyük özellik ve performans güncellemesi: komut paneli, RSS/API/yerel klasör duvar kâğıtları, WASM duvar kâğıdı tema renkleri, yapılandırma içe/dışa aktarma ve arama geçmişi eklendi; depolama v3.2 modeline taşındı, izinler ve arama fallback'i sıkılaştırıldı, başlangıç, duvar kâğıdı, galeri ve ayarlar yolları modülerleştirilip optimize edildi.
 
 • v3.1.4 · Depolama sabitleri yeniden adlandırıldı ve IDB geçişi çökme sonrası kurtarılabilir sıralama için iki aşamalı işlemde birleştirildi; yeni kullanıcı geçiş atlaması optimize edildi; toplu yüklemede tekilleştirme ve 12 görsel sınırı eklendi
