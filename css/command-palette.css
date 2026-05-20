@@ -512,16 +512,11 @@
     white-space: nowrap;
 }
 
-.cp-command-hint,
 .cp-hint,
 .cp-empty {
     color: var(--text-muted);
     font-size: 13px;
     text-align: center;
-}
-
-.cp-command-hint {
-    padding: 8px 0;
 }
 
 .cp-hint {
@@ -774,14 +769,6 @@
     grid-template-columns: repeat(5, 1fr);
     grid-auto-rows: auto;
     gap: 12px;
-}
-
-.cp-grid-paged-10 {
-    min-height: 208px;
-}
-
-.cp-grid-paged-15 {
-    min-height: 318px;
 }
 
 .cp-grid-rec {
@@ -1318,7 +1305,6 @@
 .cmd-palette.terminal-skin .cp-help-desc,
 .cmd-palette.terminal-skin .cp-clear-text,
 .cmd-palette.terminal-skin .cp-form-label,
-.cmd-palette.terminal-skin .cp-command-hint,
 .cmd-palette.terminal-skin .cp-hint,
 .cmd-palette.terminal-skin .cp-empty {
     color: var(--cp-terminal-muted);
@@ -1685,7 +1671,6 @@
     max-width: 180px;
 }
 
-.cmd-palette.shell-skin .cp-command-hint,
 .cmd-palette.shell-skin .cp-hint,
 .cmd-palette.shell-skin .cp-empty,
 .cmd-palette.shell-skin .cp-clear-text,
@@ -2461,14 +2446,6 @@
     .cp-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 10px;
-    }
-
-    .cp-grid-paged-10 {
-        min-height: 422px;
-    }
-
-    .cp-grid-paged-15 {
-        min-height: 530px;
     }
 
     .cp-item-url {

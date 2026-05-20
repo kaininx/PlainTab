@@ -235,11 +235,6 @@
         return /^http:\/\//i.test(String(value || '').trim());
     }
 
-    function currentLanguageCode() {
-        var panel = window.SettingsPanelFull || window.SettingsPanel;
-        return panel && panel.getCurrentLang ? panel.getCurrentLang() : '';
-    }
-
     function invalidUrlMessage(value, fallbackKey) {
         if (!isHttpUrl(value)) return t(fallbackKey);
         return t('httpsOnlyUrl');

@@ -1095,11 +1095,6 @@
         return wallpaperDraft;
     }
 
-    function draftActiveSource() {
-        var source = currentWallpaperDraft().activeSource;
-        return D.compatMode ? D.compatMode(source) : source;
-    }
-
     function setWallpaperDraftOpenSource(source) {
         if (source) normalizeDraftSource(source);
     }
@@ -4931,13 +4926,6 @@
         var source = displayMode();
         modeChipEl.textContent = getSourceLabel(source);
         modeChipEl.className = 'wp-mode-chip ' + source;
-    }
-
-    function removeGallery() {
-        revokeGalleryUrls();
-        var gallery = document.getElementById('wallpaperGallery');
-        if (gallery) gallery.style.display = 'none';
-        if (uploadBtn) uploadBtn.style.display = 'none';
     }
 
     function currentWallpaperThumb(source) {
