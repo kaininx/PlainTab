@@ -31,6 +31,22 @@ assert.ok(
     settings.includes('if (!ok) return { file: file, info: info, optimized: false, skippedOptimization: true };'),
   'declining the prompt should upload the original video'
 );
+assert.ok(
+  settings.includes('function startOptimizedVideoRecording'),
+  'video optimization should start recording only after a decoded frame is available'
+);
+const optimizeStart = settings.indexOf('function optimizeVideoFrameRate');
+const recordingStart = settings.indexOf('function startOptimizedVideoRecording', optimizeStart);
+const waitStart = settings.indexOf('function waitForOptimizedVideoFrame', optimizeStart);
+assert.ok(
+  optimizeStart >= 0 &&
+    recordingStart > optimizeStart &&
+    waitStart > recordingStart &&
+    settings.indexOf('recorder.start(1000)', recordingStart) < waitStart &&
+    settings.indexOf("video.addEventListener('loadeddata', onFirstFrame", waitStart) > waitStart &&
+    settings.indexOf('waitForOptimizedVideoFrame();', waitStart) > waitStart,
+  'compressed videos should wait for loadeddata before MediaRecorder starts so gallery thumbnails are not blank'
+);
 
 assert.ok(zh.includes('"uploadVideoHighFpsConfirm"'), 'zh-CN should include the high-fps confirmation copy');
 assert.ok(en.includes('"uploadVideoHighFpsConfirm"'), 'en should include the high-fps confirmation copy');

@@ -5776,6 +5776,8 @@
             var stream = null;
             var drawTimer = null;
             var progressTimer = null;
+            var startTimer = null;
+            var recordingStarted = false;
             var done = false;
 
             video.muted = true;
@@ -5795,6 +5797,7 @@
             function cleanup() {
                 clearInterval(drawTimer);
                 clearInterval(progressTimer);
+                clearTimeout(startTimer);
                 try { video.pause(); } catch (e) { }
                 video.removeAttribute('src');
                 try { video.load(); } catch (e) { }
@@ -5818,6 +5821,46 @@
             function drawFrame() {
                 if (!video.videoWidth || !video.videoHeight) return;
                 try { ctx.drawImage(video, 0, 0, canvas.width, canvas.height); } catch (e) { }
+            }
+
+            function startOptimizedVideoRecording() {
+                if (done || recordingStarted) return;
+                recordingStarted = true;
+                clearTimeout(startTimer);
+
+                drawFrame();
+                try {
+                    recorder.start(1000);
+                } catch (e) {
+                    fail(e);
+                    return;
+                }
+                drawTimer = setInterval(drawFrame, 1000 / UPLOAD_VIDEO_OPTIMIZE_FPS);
+                progressTimer = setInterval(notifyProgress, 500);
+                notifyProgress();
+
+                var playResult;
+                try { playResult = video.play(); } catch (e) { fail(e); return; }
+                if (playResult && typeof playResult.catch === 'function') playResult.catch(fail);
+            }
+
+            function waitForOptimizedVideoFrame() {
+                function onFirstFrame() {
+                    video.removeEventListener('loadeddata', onFirstFrame);
+                    startOptimizedVideoRecording();
+                }
+
+                if (video.readyState >= 2) {
+                    startOptimizedVideoRecording();
+                    return;
+                }
+
+                video.addEventListener('loadeddata', onFirstFrame, { once: true });
+                startTimer = setTimeout(function () {
+                    video.removeEventListener('loadeddata', onFirstFrame);
+                    if (video.readyState >= 2) startOptimizedVideoRecording();
+                    else fail(new Error('video optimization failed'));
+                }, 5000);
             }
 
             video.addEventListener('loadedmetadata', function () {
@@ -5848,15 +5891,7 @@
                     resolve(fileFromVideoBlob(blob, file, blob.type));
                 };
 
-                drawFrame();
-                recorder.start(1000);
-                drawTimer = setInterval(drawFrame, 1000 / UPLOAD_VIDEO_OPTIMIZE_FPS);
-                progressTimer = setInterval(notifyProgress, 500);
-                notifyProgress();
-
-                var playResult;
-                try { playResult = video.play(); } catch (e) { fail(e); return; }
-                if (playResult && typeof playResult.catch === 'function') playResult.catch(fail);
+                waitForOptimizedVideoFrame();
             }, { once: true });
 
             video.addEventListener('ended', function () {
