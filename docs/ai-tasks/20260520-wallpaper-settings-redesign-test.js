@@ -133,12 +133,37 @@ function testUnifiedWallpaperLayoutContract() {
   assert(settingsBootstrap.includes("loadScript('js/settings-wallpaper.js')"), 'settings bootstrap should lazy-load wallpaper settings after the full panel');
 }
 
+function testOldWallpaperAccordionRemoved() {
+  const settingsWallpaper = fs.readFileSync(path.join(repoRoot, 'js', 'settings-wallpaper.js'), 'utf8');
+  const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
+  const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  assert(!settingsWallpaper.includes('source-drawer'), 'new wallpaper module should not render old source drawers');
+  assert(!settingsPanel.includes('source-accordion'), 'settings-panel should not render old source accordion');
+  assert(!settingsPanel.includes('function draftOpenSource'), 'old accordion open-source helper should be removed');
+  assert(!settingsPanel.includes('source-drawer'), 'settings-panel should not retain old source drawer height logic');
+  assert(!css.includes('.source-drawer'), 'old source drawer CSS should be removed after migration');
+  assert(!css.includes('.source-accordion'), 'old source accordion CSS should be removed after migration');
+  assert(!css.includes('.source-selector'), 'old source selector CSS should be removed after migration');
+}
+
 async function testSourceTabSelectionDoesNotCommitActiveSource() {
   const settingsWallpaper = fs.readFileSync(path.join(repoRoot, 'js', 'settings-wallpaper.js'), 'utf8');
   assert(settingsWallpaper.includes('function selectWallpaperSource'), 'wallpaper module should have a source selection handler');
   assert(settingsWallpaper.includes('pendingSource'), 'source selection should update the pending work order through context');
   assert(!/selectWallpaperSource[\s\S]{0,900}setActiveSource/.test(settingsWallpaper), 'clicking a source tab must not write activeSource');
   assert(!/data-wallpaper-source-option[\s\S]{0,1400}saveWallpaper/.test(settingsWallpaper), 'source tab event binding must not commit wallpaper storage');
+}
+
+function testSourceLibraryEditsAutoSaveWithoutGlobalSave() {
+  const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
+  const settingsWallpaper = fs.readFileSync(path.join(repoRoot, 'js', 'settings-wallpaper.js'), 'utf8');
+  assert(!settingsWallpaper.includes('wallpaperSaveBtn'), 'wallpaper settings should not expose a global save button');
+  assert(settingsPanel.includes('saveRssListConfig(next);'), 'RSS selected row changes should save immediately');
+  assert(settingsPanel.includes('saveApiListConfig(config);'), 'API selected row changes should save immediately');
+  assert(settingsPanel.includes('rssInvalidUrl'), 'RSS invalid URLs should be blocked before saving');
+  assert(settingsPanel.includes('apiInvalidUrl'), 'API invalid URLs should be blocked before saving');
+  assert(settingsPanel.includes('deletedRunningRssSource'), 'deleting running RSS source should have an explicit confirmation path');
+  assert(settingsPanel.includes('deletedRunningApiSource'), 'deleting running API source should have an explicit confirmation path');
 }
 
 async function testRssRequiresMatchingPassedTest() {
@@ -397,6 +422,8 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
   testWallhavenSettingsUiContract();
   testUploadSettingsUiContract();
   testUnifiedWallpaperLayoutContract();
+  testOldWallpaperAccordionRemoved();
+  testSourceLibraryEditsAutoSaveWithoutGlobalSave();
   await testSourceTabSelectionDoesNotCommitActiveSource();
   await testRssRequiresMatchingPassedTest();
   await testUploadReadyUsesSourceCache();

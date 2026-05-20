@@ -172,7 +172,6 @@
     var wallpaperDraftRssTestResult = null;
     var wallpaperDraftWallhavenTestResult = null;
     var wallpaperDraftFolderMount = null;
-    var wallpaperDraftOpenSource = '';
     var wallpaperDraftApiOpenType = '';
     var wallpaperWorkOrder = null;
     var wallpaperWorkOrderStatus = { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
@@ -894,7 +893,6 @@
         wallpaperDraftRssTestResult = null;
         wallpaperDraftWallhavenTestResult = null;
         wallpaperDraftFolderMount = null;
-        wallpaperDraftOpenSource = 'none';
         wallpaperDraftApiOpenType = wallpaperDraft.providers.api.config.apiType === 'json' ? 'json' : 'image';
         return wallpaperDraft;
     }
@@ -1064,7 +1062,6 @@
         wallpaperDraftRssTestResult = null;
         wallpaperDraftWallhavenTestResult = null;
         wallpaperDraftFolderMount = null;
-        wallpaperDraftOpenSource = '';
         wallpaperDraftApiOpenType = '';
         wallpaperWorkOrder = null;
         wallpaperWorkOrderStatus = { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
@@ -1080,14 +1077,8 @@
         return D.compatMode ? D.compatMode(source) : source;
     }
 
-    function draftOpenSource() {
-        if (wallpaperDraftOpenSource === 'none') return '';
-        var source = normalizeDraftSource(wallpaperDraftOpenSource || draftActiveSource());
-        return source === 'local' ? 'upload' : source;
-    }
-
     function setWallpaperDraftOpenSource(source) {
-        wallpaperDraftOpenSource = normalizeDraftSource(source || 'none');
+        if (source) normalizeDraftSource(source);
     }
 
     function sourceListHasId(sources, id) {
@@ -2350,7 +2341,6 @@
                 e.stopPropagation();
                 var mode = button.dataset.uploadMode === 'video' ? 'video' : 'image';
                 switchWallpaperWorkOrderSource('upload');
-                wallpaperDraftOpenSource = 'upload';
                 updatePendingSourceConfig('upload', function (pending) {
                     pending.rotation = pending.rotation || 'sequential';
                     pending.activeMedia = mode;
@@ -3024,7 +3014,7 @@
         var colorDetails = root.querySelector('.wallhaven-color-details');
         if (colorDetails) {
             colorDetails.addEventListener('toggle', function () {
-                syncSourceDrawerHeight(root);
+                syncWallpaperDetailLayout(root);
             });
         }
     }
@@ -3061,16 +3051,9 @@
         if (window.showWallpaperDownloadNotice) window.showWallpaperDownloadNotice(kind, phase, progress);
     }
 
-    function syncSourceDrawerHeight(root) {
-        if (!root || !root.closest) return;
-        var drawer = root.closest('.source-drawer.active');
-        if (!drawer) return;
-        var body = drawer.querySelector('.source-drawer-body');
-        var inner = drawer.querySelector('.source-drawer-body-inner');
-        if (!body || !inner) return;
-        requestAnimationFrame(function () {
-            body.style.maxHeight = inner.scrollHeight + 'px';
-        });
+    function syncWallpaperDetailLayout(root) {
+        if (!root) return;
+        requestAnimationFrame(function () { });
     }
 
     function updateWallhavenUrl(root, config) {
@@ -3117,7 +3100,7 @@
         var details = root.querySelector('.wallhaven-color-details');
         if (!details || !details.open) return;
         details.open = false;
-        syncSourceDrawerHeight(root);
+        syncWallpaperDetailLayout(root);
     }
 
     function updateWallhavenCustomQueryUI(root, config) {
@@ -3128,11 +3111,11 @@
                 var preset = root.querySelector('#wallhavenPreset');
                 var anchor = preset && (preset.closest('.custom-select') || preset);
                 if (anchor) anchor.insertAdjacentHTML('afterend', wallhavenCustomQueryHTML(config));
-                syncSourceDrawerHeight(root);
+                syncWallpaperDetailLayout(root);
             }
         } else if (row) {
             row.remove();
-            syncSourceDrawerHeight(root);
+            syncWallpaperDetailLayout(root);
         }
     }
 
@@ -3146,12 +3129,12 @@
                 if (sortingItem) {
                     sortingItem.insertAdjacentHTML('afterend', wallhavenTopRangeHTML(config));
                     enhanceModalSelects(root);
-                    syncSourceDrawerHeight(root);
+                    syncWallpaperDetailLayout(root);
                 }
             }
         } else if (row) {
             row.remove();
-            syncSourceDrawerHeight(root);
+            syncWallpaperDetailLayout(root);
         }
     }
 
@@ -3164,12 +3147,12 @@
                 var sortingItem = sorting && sorting.closest('.setting-item');
                 if (sortingItem) {
                     sortingItem.insertAdjacentHTML('afterend', wallhavenSeedHTML(config));
-                    syncSourceDrawerHeight(root);
+                    syncWallpaperDetailLayout(root);
                 }
             }
         } else if (row) {
             row.remove();
-            syncSourceDrawerHeight(root);
+            syncWallpaperDetailLayout(root);
         }
     }
 
@@ -3178,14 +3161,12 @@
         var root = e.currentTarget;
         if (e.target.id === 'wallhavenPreset') {
             config.queryPreset = e.target.value;
-            wallpaperDraftOpenSource = 'wallhaven';
             updateWallhavenCustomQueryUI(root, config);
             touchWallhavenConfig(root, config);
             return;
         }
         if (e.target.id === 'wallhavenSorting') {
             config.sorting = e.target.value;
-            wallpaperDraftOpenSource = 'wallhaven';
             updateWallhavenTopRangeUI(root, config);
             updateWallhavenSeedUI(root, config);
             touchWallhavenConfig(root, config);
@@ -3256,7 +3237,7 @@
         el.textContent = message || '';
         el.dataset.type = type || 'info';
         el.hidden = !message;
-        syncSourceDrawerHeight(el.closest('.wallhaven-config'));
+        syncWallpaperDetailLayout(el.closest('.wallhaven-config'));
     }
 
     function wallhavenErrorMessage(err) {
@@ -3324,7 +3305,6 @@
     }
 
     function touchApiConfig(root, config) {
-        wallpaperDraftOpenSource = 'api';
         refreshWallpaperApplyFooter();
     }
 
