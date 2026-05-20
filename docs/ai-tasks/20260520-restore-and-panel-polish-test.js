@@ -50,8 +50,24 @@ const switchEnd = settingsCss.indexOf('.wallpaper-thumb', switchStart);
 assert.ok(switchStart >= 0 && switchEnd > switchStart, 'L1 upload gallery switch CSS should be inspectable');
 const switchCss = settingsCss.slice(switchStart, switchEnd);
 assert.ok(
-  switchCss.includes('#00f5ff') && switchCss.includes('#ff2bd6'),
-  'L1 upload gallery switch should use fixed cyberpunk neon colors'
+  switchCss.includes('--l1-neon-blue: #19e6ff;') &&
+    switchCss.includes('--l1-neon-rose: #ff3df2;'),
+  'L1 upload gallery switch should use only two fixed marker colors'
+);
+assert.ok(
+  settingsCss.includes('grid-template-columns: minmax(0, 1fr) 12px;'),
+  'L1 upload gallery switch rail should stay very narrow'
+);
+assert.ok(
+  switchCss.includes('--l1-marker-image-height: 36px;') &&
+    switchCss.includes('--l1-marker-video-height: 14px;') &&
+    switchCss.includes('--l1-marker-image-height: 14px;') &&
+    switchCss.includes('--l1-marker-video-height: 36px;'),
+  'L1 upload gallery switch should render two capsule markers with only the active marker taller'
+);
+assert.ok(
+  switchCss.includes('align-items: flex-end;') && switchCss.includes('margin-left: auto;'),
+  'L1 upload gallery switch capsules should sit closer to the outer edge'
 );
 assert.strictEqual(
   switchCss.includes('var(--settings-accent'),
@@ -59,8 +75,17 @@ assert.strictEqual(
   'L1 upload gallery switch should not inherit the theme accent color'
 );
 assert.ok(
-  switchCss.includes('width: 2px;'),
-  'L1 upload gallery switch neon indicators should stay thin'
+  switchCss.includes('width: 2px;') && switchCss.includes('border-radius: 999px;'),
+  'L1 upload gallery switch capsule markers should stay thin'
+);
+assert.ok(
+  switchCss.includes('opacity: 0.22;') && switchCss.includes('opacity: 0.62;'),
+  'L1 upload gallery switch should keep a low visual presence'
+);
+assert.strictEqual(
+  /l1-neon-(scan|entangle|nudge)|clip-path:\s*polygon|--l1-neon-acid|\.upload-gallery-switch::before/.test(switchCss),
+  false,
+  'L1 upload gallery switch should avoid extra effects or overlay markers beyond the two capsules'
 );
 assert.strictEqual(
   switchCss.includes('0 0 0 1px'),
