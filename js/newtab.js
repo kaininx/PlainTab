@@ -184,6 +184,13 @@
     }
 
     function downloadNoticeCopy(kind, phase, progress) {
+        if (kind === 'uploadVideo') {
+            if (phase === 'done') return t('wallpaperVideoProcessDone');
+            if (phase === 'error') return t('wallpaperVideoProcessError');
+            return formatText('wallpaperVideoProcessProgress', {
+                percent: progress && typeof progress.percent === 'number' ? progress.percent : 0
+            });
+        }
         var sourceName = kind === 'api' ? t('sourceApi') : (kind === 'wallhaven' ? t('sourceWallhaven') : t('sourceRss'));
         if (!sourceName || sourceName === 'sourceApi' || sourceName === 'sourceRss' || sourceName === 'sourceWallhaven') {
             sourceName = kind === 'api' ? 'API' : (kind === 'wallhaven' ? 'Wallhaven' : 'RSS');

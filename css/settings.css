@@ -300,33 +300,41 @@
 }
 
 .upload-gallery-switch {
+    --l1-neon-cyan: #00f5ff;
+    --l1-neon-pink: #ff2bd6;
+    --l1-neon-violet: #7c3cff;
     position: relative;
     display: grid;
     grid-template-rows: 1fr 1fr;
     gap: 2px;
     min-height: 62px;
-    padding: 4px 6px;
+    padding: 4px 8px;
     border-radius: 999px;
     border: 0;
-    background: transparent;
+    background:
+        linear-gradient(180deg, rgba(0, 245, 255, 0.05), rgba(255, 43, 214, 0.05)),
+        rgba(3, 6, 16, 0.14);
+    box-shadow: none;
 }
 
 .upload-gallery-switch::before {
     content: "";
     position: absolute;
-    left: 7px;
+    left: 8px;
     top: 6px;
-    width: 4px;
+    width: 2px;
     height: calc(50% - 7px);
     border-radius: 999px;
-    background: var(--settings-accent-muted);
-    box-shadow: none;
+    background: linear-gradient(180deg, var(--l1-neon-cyan), var(--l1-neon-pink));
+    box-shadow:
+        0 0 8px rgba(0, 245, 255, 0.72),
+        0 0 12px rgba(255, 43, 214, 0.48);
     transition: transform 0.26s ease-out, background 0.2s ease-out;
 }
 
 .upload-gallery-shell[data-view="video"] .upload-gallery-switch::before {
     transform: translateY(calc(100% + 2px));
-    background: var(--settings-accent-muted);
+    background: linear-gradient(180deg, var(--l1-neon-pink), var(--l1-neon-violet));
 }
 
 .upload-gallery-switch-btn {
@@ -343,20 +351,23 @@
 .upload-gallery-switch-btn::before {
     content: "";
     position: absolute;
-    left: 7px;
+    left: 8px;
     top: 8px;
     bottom: 8px;
-    width: 4px;
+    width: 2px;
     border-radius: 999px;
-    opacity: 0.24;
+    opacity: 0.42;
+    box-shadow: 0 0 7px currentColor;
 }
 
 .upload-gallery-switch-btn[data-upload-gallery-view="image"]::before {
-    background: var(--settings-accent-soft);
+    color: var(--l1-neon-cyan);
+    background: currentColor;
 }
 
 .upload-gallery-switch-btn[data-upload-gallery-view="video"]::before {
-    background: var(--settings-accent-soft);
+    color: var(--l1-neon-pink);
+    background: currentColor;
 }
 
 .upload-gallery-switch-btn.active::before {

@@ -106,6 +106,7 @@ function testWallhavenSettingsUiContract() {
 function testUploadSettingsUiContract() {
   const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
   const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  const newtab = fs.readFileSync(path.join(repoRoot, 'js', 'newtab.js'), 'utf8');
   assert(settingsPanel.includes('function buildUploadConfigHTML'), 'upload drawer should render explicit media choices');
   assert(settingsPanel.includes("data-upload-mode=\"image\""), 'upload drawer should expose an image mode choice');
   assert(settingsPanel.includes("data-upload-mode=\"video\""), 'upload drawer should expose a video mode choice');
@@ -115,6 +116,13 @@ function testUploadSettingsUiContract() {
   assert(settingsPanel.includes("tr('folderPermissionHint')"), 'folder drawer should explain browser permission lifetime and local-only access');
   assert(settingsPanel.includes('prepareUploadWorkOrder'), 'upload source should prepare files during apply');
   assert(settingsPanel.includes("mode = mode === 'video' ? 'video' : (mode === 'image' ? 'image' : uploadGalleryView());"), 'explicit image uploads should not fall back to the saved video gallery view');
+  assert(settingsPanel.includes('UPLOAD_VIDEO_OPTIMIZE_FPS = 30'), 'high-frame-rate upload videos should be capped to 30fps');
+  assert(settingsPanel.includes('estimateVideoFrameRate'), 'video upload should estimate selected video frame rate before saving');
+  assert(settingsPanel.includes('canvas.captureStream(UPLOAD_VIDEO_OPTIMIZE_FPS)'), 'video upload should generate the optimized copy without changing resolution');
+  assert(settingsPanel.includes("showRuntimeDownloadNotice('uploadVideo', 'loading'"), 'video optimization should report progress in the runtime wallpaper notice');
+  assert(newtab.includes("kind === 'uploadVideo'"), 'runtime wallpaper notice should render video optimization copy');
+  assert(settingsPanel.includes('prepareUploadVideoFile(video)'), 'upload apply flow should optimize high-frame-rate video before thumbnailing and saving');
+  assert(settingsPanel.includes('prepareUploadVideoFile(file)'), 'direct upload flow should optimize high-frame-rate video before displaying');
   assert(settingsPanel.includes("id: 'upload_image_empty'"), 'image gallery should render an empty placeholder when only video exists');
   assert(settingsPanel.includes("mediaType: 'image-empty'"), 'image gallery empty placeholder should be distinguishable from real image cards');
   assert(css.includes('[data-media-type="image-empty"]'), 'image gallery empty placeholder should not inherit the draggable upload cursor');

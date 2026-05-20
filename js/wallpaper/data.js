@@ -303,6 +303,7 @@
             builtinGithubAdded: true
         }
     };
+    var DEFAULT_GITHUB_ICON = 'https://icons.duckduckgo.com/ip3/github.com.ico';
 
     function clone(obj) {
         return JSON.parse(JSON.stringify(obj));
@@ -967,19 +968,7 @@
         var needsBuiltinGithub = !(raw.settings && raw.settings.builtinGithubAdded === true);
         _shortcutsCache = mergeDefaults(raw, DEFAULT_SHORTCUTS);
         if (needsBuiltinGithub) {
-            var hasGithub = (_shortcutsCache.items || []).some(function (item) {
-                return item && String(item.url || '').replace(/\/$/, '').toLowerCase() === 'https://github.com';
-            });
-            if (!hasGithub) {
-                _shortcutsCache.items.unshift({
-                    id: 'builtin-github',
-                    name: 'GitHub',
-                    url: 'https://github.com',
-                    freq: 0,
-                    added: 0
-                });
-            }
-            _shortcutsCache.settings.builtinGithubAdded = true;
+            ensureDefaultGithubShortcut(_shortcutsCache);
             writeJSON(KEYS.SHORTCUTS, _shortcutsCache);
         }
         return _shortcutsCache;
@@ -994,9 +983,46 @@
         return clone(DEFAULT_SHORTCUTS.settings);
     }
 
+    function isDefaultGithubShortcut(shortcut) {
+        return !!(shortcut && String(shortcut.url || '').replace(/\/$/, '').toLowerCase() === 'https://github.com');
+    }
+
+    function fallbackShortcutId(items, baseId) {
+        var used = {};
+        (items || []).forEach(function (item) { if (item && item.id) used[item.id] = true; });
+        if (!used[baseId]) return baseId;
+        var id;
+        do {
+            id = baseId + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        } while (used[id]);
+        return id;
+    }
+
+    function ensureDefaultGithubShortcut(model) {
+        model.items = Array.isArray(model.items) ? model.items : [];
+        model.hidden = Array.isArray(model.hidden) ? model.hidden : [];
+        var existing = model.items.filter(isDefaultGithubShortcut)[0];
+        if (!existing) {
+            var defaultItem = clone(DEFAULT_SHORTCUTS.items[0]);
+            defaultItem.id = fallbackShortcutId(model.items, defaultItem.id);
+            model.items.unshift(defaultItem);
+            existing = defaultItem;
+        }
+        model.hidden = model.hidden.filter(function (id) { return id !== existing.id; });
+        if (!model.settings) model.settings = {};
+        model.settings.builtinGithubAdded = true;
+        var icons = readJSON(KEYS.SHORTCUT_ICONS, {});
+        if (!icons[existing.id] || icons[existing.id] === 'LETTER:G') {
+            icons[existing.id] = DEFAULT_GITHUB_ICON;
+            writeJSON(KEYS.SHORTCUT_ICONS, icons);
+        }
+        return model;
+    }
+
     function resetShortcutSettings() {
         var model = loadShortcutsModel();
         model.settings = defaultShortcutSettings();
+        ensureDefaultGithubShortcut(model);
         return saveShortcutsModel(model);
     }
 

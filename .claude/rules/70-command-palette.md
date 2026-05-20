@@ -22,7 +22,7 @@
   - `paletteSkin`，`default`、`terminal`、`shell` 或 `command-terminal`
   - `builtinGithubAdded`
 
-快捷键/命令面板设置恢复默认时，只恢复 settings，不删除用户快捷链接；除非用户明确执行快捷链接数据操作。
+快捷键/命令面板设置恢复默认时，恢复 settings，并补回可见的内置 GitHub 快捷链接及图标；不要删除其他用户快捷链接，除非用户明确执行快捷链接数据操作。
 
 ## 打开和定位
 

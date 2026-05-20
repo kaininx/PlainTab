@@ -50,13 +50,15 @@
     var isPaletteOpen = false;
     var isHiddenMode = false;
     var cpSearchTerm = '';
-    var cpKeyIndex = 0;
+    var cpKeyIndex = -1;
+    var cpHasKeyboardSelection = false;
     var cpCurrentPage = 1;
     var cpItemsPerPage = 15;
     var cpViewMode = loadShortcutSettings().viewMode || 'list';
     var cpCurrentMode = 'list';
     var cpEditTarget = null;
     var paletteOpenFrame = 0;
+    var cpOverlayPointerStartedOnBackdrop = false;
     var cpCommandsCollapsed = loadCommandsCollapsed();
     var cpPlacement = loadPalettePlacement();
     var cpSkin = loadPaletteSkin();
@@ -2327,7 +2329,8 @@
         commandTerminalAsyncToken++;
         cpCurrentMode = 'list';
         cpCurrentPage = 1;
-        cpKeyIndex = 0;
+        cpKeyIndex = -1;
+        cpHasKeyboardSelection = false;
         renderShortcutList('');
         positionPalette(anchor);
         animatePaletteOpen();
@@ -2353,7 +2356,8 @@
         commandTerminalResult = null;
         commandTerminalPendingAction = null;
         commandTerminalAsyncToken++;
-        cpKeyIndex = 0;
+        cpKeyIndex = -1;
+        cpHasKeyboardSelection = false;
         cpCurrentPage = 1;
         cpCurrentMode = 'list';
         cpEditTarget = null;
@@ -2499,7 +2503,8 @@
         cpSearchInput.value = '';
         cpSearchTerm = '';
         cpCurrentPage = 1;
-        cpKeyIndex = 0;
+        cpKeyIndex = -1;
+        cpHasKeyboardSelection = false;
 
         if (cmd === 'add') {
             cpCurrentMode = 'add';
@@ -3132,11 +3137,17 @@
     function resetSelection(index) {
         var items = selectableItems();
         items.forEach(function (item) { item.classList.remove('key-hover'); });
+        cpHasKeyboardSelection = false;
         if (!items.length) {
-            cpKeyIndex = 0;
+            cpKeyIndex = -1;
             return;
         }
-        cpKeyIndex = Math.max(0, Math.min(typeof index === 'number' ? index : 0, items.length - 1));
+        if (typeof index !== 'number') {
+            cpKeyIndex = -1;
+            return;
+        }
+        cpKeyIndex = Math.max(0, Math.min(index, items.length - 1));
+        cpHasKeyboardSelection = true;
         highlightItems(-1, cpKeyIndex, items);
     }
 
@@ -3158,6 +3169,12 @@
     function moveSelection(key) {
         var items = selectableItems();
         if (!items.length) return;
+        if (!cpHasKeyboardSelection) {
+            cpKeyIndex = (key === 'ArrowUp' || key === 'ArrowLeft') ? items.length - 1 : 0;
+            cpHasKeyboardSelection = true;
+            highlightItems(-1, cpKeyIndex, items);
+            return;
+        }
         var prevIdx = cpKeyIndex;
         var columns = cpViewMode === 'icon' ? gridColumnCount() : 1;
         var delta = 0;
@@ -3175,6 +3192,7 @@
             return;
         }
         cpKeyIndex = Math.max(0, Math.min(nextIdx, items.length - 1));
+        cpHasKeyboardSelection = true;
         highlightItems(prevIdx, cpKeyIndex, items);
     }
 
@@ -3198,6 +3216,7 @@
     }
 
     function activateSelectedItem() {
+        if (!cpHasKeyboardSelection) return;
         var items = selectableItems();
         var el = items[cpKeyIndex];
         if (!el) return;
@@ -3222,8 +3241,13 @@
     // ================================================================
 
     function bindPaletteEvents() {
+        cmdOverlay.addEventListener('pointerdown', function (e) {
+            cpOverlayPointerStartedOnBackdrop = e.target === cmdOverlay;
+        });
+
         cmdOverlay.addEventListener('click', function (e) {
-            if (e.target === cmdOverlay) closePalette();
+            if (e.target === cmdOverlay && cpOverlayPointerStartedOnBackdrop) closePalette();
+            cpOverlayPointerStartedOnBackdrop = false;
         });
 
         cpSearchInput.addEventListener('input', function () { handleSearchInput(); });

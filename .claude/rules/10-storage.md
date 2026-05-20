@@ -82,7 +82,7 @@ PlainTab 3.2.1 不承诺兼容更早的实验性布局。除非任务明确要�
 
 - `resetWallpaperDefaults()` 回到 Bing，尽量保留 Bing 缓存/预览，并删除 upload/folder/RSS/Wallhaven/API 的数据和引用。
 - `defaultUISection(section)` 返回界面、搜索、壁纸等默认分区。
-- `resetShortcutSettings()` 只恢复命令面板设置，不删除快捷链接。
+- `resetShortcutSettings()` 恢复命令面板设置，并补回可见的内置 GitHub 快捷链接及图标；不要删除其他用户快捷链接。
 - `exportUserData()` 导出 PlainTab 备份外壳，包含语言、壁纸模型、缩略图、预览、UI、快捷链接和快捷图标。
 - `importUserData()` 接受备份外壳或原始 data 对象，只写入提供的分区，然后清理内存缓存。
 
