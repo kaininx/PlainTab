@@ -21,8 +21,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="Screenshot PlainTab 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="Screenshot PlainTab 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="Screenshot PlainTab 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="Screenshot PlainTab 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="Screenshot PlainTab 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="Screenshot PlainTab 4" />
 </div>
 
 ## Che cos'è PlainTab
@@ -102,6 +105,11 @@ La barra di ricerca permette di regolare posizione, dimensione, raggio, traspare
 | Backup e ripristino | Import, export e backup cifrati |
 | Interfaccia multilingue | Include 16 pacchetti lingua |
 | Traccia di collaborazione IA | Note e documenti dello sviluppo assistito da IA |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="Screenshot delle impostazioni di PlainTab 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="Screenshot delle impostazioni di PlainTab 2" />
+</div>
 
 ## Per sviluppatori
 

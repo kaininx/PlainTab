@@ -21,8 +21,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab स्क्रीनशॉट 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab स्क्रीनशॉट 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="PlainTab स्क्रीनशॉट 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="PlainTab स्क्रीनशॉट 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="PlainTab स्क्रीनशॉट 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="PlainTab स्क्रीनशॉट 4" />
 </div>
 
 ## PlainTab क्या है
@@ -102,6 +105,11 @@ PlainTab इस अनुभव पर ध्यान देता है क�
 | बैकअप और पुनर्स्थापन | आयात, निर्यात और एन्क्रिप्टेड बैकअप |
 | बहुभाषी UI | 16 भाषा पैक शामिल |
 | AI सहयोग रिकॉर्ड | AI-सहायता प्राप्त विकास के नोट्स और दस्तावेज़ |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="PlainTab सेटिंग्स स्क्रीनशॉट 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="PlainTab सेटिंग्स स्क्रीनशॉट 2" />
+</div>
 
 ## डेवलपर्स के लिए
 

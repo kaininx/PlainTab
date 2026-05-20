@@ -21,8 +21,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab スクリーンショット 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab スクリーンショット 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="PlainTab スクリーンショット 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="PlainTab スクリーンショット 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="PlainTab スクリーンショット 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="PlainTab スクリーンショット 4" />
 </div>
 
 ## PlainTab とは
@@ -102,6 +105,11 @@ Bing 日替わり壁紙、Wallhaven、アップロード画像、ローカルフ
 | バックアップと復元 | インポート、エクスポート、暗号化バックアップ |
 | 多言語 UI | 16 言語パックを同梱 |
 | AI 協作の記録 | AI 支援開発のメモとドキュメントを保持 |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="PlainTab 設定スクリーンショット 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="PlainTab 設定スクリーンショット 2" />
+</div>
 
 ## 開発者向け
 

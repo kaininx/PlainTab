@@ -31,8 +31,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab 截圖 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab 截圖 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="PlainTab 截圖 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="PlainTab 截圖 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="PlainTab 截圖 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="PlainTab 截圖 4" />
 </div>
 
 ## PlainTab 是什麼
@@ -112,6 +115,11 @@ PlainTab 很在意打開新分頁時「馬上有畫面」的感覺。它會在 `
 | 備份與還原 | 支援匯入、匯出和加密備份流程 |
 | 多語言介面 | 內建 16 種介面語言 |
 | AI 協作記錄 | 保留 AI 輔助開發過程中的文件和任務記錄 |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="PlainTab 設定截圖 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="PlainTab 設定截圖 2" />
+</div>
 
 ## 給開發者
 

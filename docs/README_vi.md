@@ -21,8 +21,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="Ảnh chụp PlainTab 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="Ảnh chụp PlainTab 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="Ảnh chụp PlainTab 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="Ảnh chụp PlainTab 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="Ảnh chụp PlainTab 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="Ảnh chụp PlainTab 4" />
 </div>
 
 ## PlainTab là gì
@@ -102,6 +105,11 @@ Thanh tìm kiếm hỗ trợ vị trí, kích thước, bo góc, độ trong su�
 | Sao lưu và khôi phục | Nhập, xuất và sao lưu mã hóa |
 | Giao diện đa ngôn ngữ | Bao gồm 16 gói ngôn ngữ |
 | Dấu vết cộng tác AI | Ghi chú và tài liệu từ quá trình phát triển với AI |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="Ảnh chụp cài đặt PlainTab 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="Ảnh chụp cài đặt PlainTab 2" />
+</div>
 
 ## Dành cho nhà phát triển
 

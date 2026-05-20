@@ -21,8 +21,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="Скриншот PlainTab 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="Скриншот PlainTab 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="Скриншот PlainTab 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="Скриншот PlainTab 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="Скриншот PlainTab 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="Скриншот PlainTab 4" />
 </div>
 
 ## Что такое PlainTab
@@ -102,6 +105,11 @@ PlainTab старается показать изображение сразу �
 | Резервные копии | Импорт, экспорт и зашифрованные копии |
 | Многоязычный интерфейс | Включает 16 языковых пакетов |
 | След AI-сотрудничества | Документы и заметки разработки с участием AI |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="Скриншот настроек PlainTab 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="Скриншот настроек PlainTab 2" />
+</div>
 
 ## Для разработчиков
 

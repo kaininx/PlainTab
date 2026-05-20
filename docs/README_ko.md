@@ -21,8 +21,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab 스크린샷 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab 스크린샷 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="PlainTab 스크린샷 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="PlainTab 스크린샷 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="PlainTab 스크린샷 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="PlainTab 스크린샷 4" />
 </div>
 
 ## PlainTab 소개
@@ -102,6 +105,11 @@ Bing 일일 배경화면, Wallhaven, 업로드 이미지, 로컬 폴더, RSS, �
 | 백업과 복원 | 가져오기, 내보내기, 암호화 백업 지원 |
 | 다국어 UI | 16개 언어 팩 포함 |
 | AI 협업 기록 | AI 지원 개발 과정의 문서와 메모 보관 |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="PlainTab 설정 스크린샷 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="PlainTab 설정 스크린샷 2" />
+</div>
 
 ## 개발자용
 

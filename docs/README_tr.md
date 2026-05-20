@@ -21,8 +21,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab ekran görüntüsü 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab ekran görüntüsü 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="PlainTab ekran görüntüsü 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="PlainTab ekran görüntüsü 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="PlainTab ekran görüntüsü 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="PlainTab ekran görüntüsü 4" />
 </div>
 
 ## PlainTab nedir?
@@ -102,6 +105,11 @@ Arama çubuğunun konumu, boyutu, köşesi, şeffaflığı, görünürlüğü, g
 | Yedekleme | İçe/dışa aktarma ve şifreli yedekler |
 | Çok dilli arayüz | 16 dil paketi içerir |
 | Yapay zekâ iş birliği izi | AI destekli geliştirme notları ve belgeleri |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="PlainTab ayarlar ekran görüntüsü 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="PlainTab ayarlar ekran görüntüsü 2" />
+</div>
 
 ## Geliştiriciler için
 

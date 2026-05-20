@@ -21,8 +21,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="لقطة شاشة PlainTab 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="لقطة شاشة PlainTab 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="لقطة شاشة PlainTab 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="لقطة شاشة PlainTab 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="لقطة شاشة PlainTab 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="لقطة شاشة PlainTab 4" />
 </div>
 
 ## ما هو PlainTab
@@ -102,6 +105,11 @@ git clone https://github.com/kaininx/PlainTab.git
 | النسخ الاحتياطي والاستعادة | استيراد، تصدير، ونسخ احتياطي مشفّر |
 | واجهة متعددة اللغات | تتضمن 16 حزمة لغة |
 | أثر تعاون AI | ملاحظات ووثائق من التطوير بمساعدة AI |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="لقطة شاشة إعدادات PlainTab 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="لقطة شاشة إعدادات PlainTab 2" />
+</div>
 
 ## للمطورين
 

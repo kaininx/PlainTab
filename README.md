@@ -64,8 +64,11 @@
 </p>
 
 <div align="center">
-  <img src="imgs/chrome_01.jpg" width="45%" alt="PlainTab screenshot 1" />
-  <img src="imgs/chrome_02.jpg" width="45%" alt="PlainTab screenshot 2" />
+  <img src="imgs/chrome_01.png" width="45%" alt="PlainTab screenshot 1" />
+  <img src="imgs/chrome_02.png" width="45%" alt="PlainTab screenshot 2" />
+  <br>
+  <img src="imgs/chrome_03.png" width="45%" alt="PlainTab screenshot 3" />
+  <img src="imgs/chrome_04.png" width="45%" alt="PlainTab screenshot 4" />
 </div>
 
 ## What is PlainTab
@@ -147,6 +150,11 @@ The search bar supports position, size, radius, transparency, visibility mode, s
 | Backup and restore | Supports import, export, and encrypted backup flows |
 | Multi-language UI | Includes 16 localized interface packs |
 | AI collaboration trail | Includes notes and docs from AI-assisted development work |
+
+<div align="center">
+  <img src="imgs/chrome_05.png" width="45%" alt="PlainTab screenshot 5" />
+  <img src="imgs/chrome_06.png" width="45%" alt="PlainTab screenshot 6" />
+</div>
 
 ## For Developers
 

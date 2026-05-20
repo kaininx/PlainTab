@@ -29,8 +29,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab 截图 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab 截图 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="PlainTab 截图 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="PlainTab 截图 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="PlainTab 截图 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="PlainTab 截图 4" />
 </div>
 
 ## PlainTab 是什么
@@ -110,6 +113,11 @@ PlainTab 很在意“打开新标签页时马上有画面”的体验。它会�
 | 备份与恢复 | 支持导入、导出和加密备份流程 |
 | 多语言界面 | 内置 16 种界面语言 |
 | AI 协作记录 | 保留 AI 辅助开发过程中的文档和任务记录 |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="PlainTab 设置截图 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="PlainTab 设置截图 2" />
+</div>
 
 ## 给开发者
 

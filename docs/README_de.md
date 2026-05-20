@@ -29,8 +29,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab Screenshot 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab Screenshot 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="PlainTab Screenshot 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="PlainTab Screenshot 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="PlainTab Screenshot 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="PlainTab Screenshot 4" />
 </div>
 
 ## Was ist PlainTab?
@@ -110,6 +113,11 @@ Die Suchleiste unterstützt Position, Größe, Radius, Transparenz, Sichtbarkeit
 | Backup und Wiederherstellung | Import, Export und verschlüsselte Backups |
 | Mehrsprachige Oberfläche | Enthält 16 Sprachpakete |
 | KI-Kollaborationsspur | Notizen und Dokumente aus KI-unterstützter Entwicklung |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="PlainTab Screenshot der Einstellungen 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="PlainTab Screenshot der Einstellungen 2" />
+</div>
 
 ## Für Entwickler
 

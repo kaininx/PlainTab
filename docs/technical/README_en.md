@@ -21,8 +21,8 @@
 </p>
 
 <div align="center">
-  <img src="../../imgs/chrome_01.jpg" width="45%" alt="PlainTab screenshot 1" />
-  <img src="../../imgs/chrome_02.jpg" width="45%" alt="PlainTab screenshot 2" />
+  <img src="../../imgs/chrome_01.png" width="45%" alt="PlainTab screenshot 1" />
+  <img src="../../imgs/chrome_02.png" width="45%" alt="PlainTab screenshot 2" />
 </div>
 
 ## Before Reading

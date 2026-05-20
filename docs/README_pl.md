@@ -21,8 +21,11 @@
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="Zrzut ekranu PlainTab 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="Zrzut ekranu PlainTab 2" />
+  <img src="../imgs/chrome_01.png" width="45%" alt="Zrzut ekranu PlainTab 1" />
+  <img src="../imgs/chrome_02.png" width="45%" alt="Zrzut ekranu PlainTab 2" />
+  <br>
+  <img src="../imgs/chrome_03.png" width="45%" alt="Zrzut ekranu PlainTab 3" />
+  <img src="../imgs/chrome_04.png" width="45%" alt="Zrzut ekranu PlainTab 4" />
 </div>
 
 ## Czym jest PlainTab
@@ -102,6 +105,11 @@ Pasek wyszukiwania obsługuje położenie, rozmiar, zaokrąglenie, przezroczysto
 | Kopia i przywracanie | Import, eksport i szyfrowane kopie |
 | Wielojęzyczny interfejs | Zawiera 16 pakietów językowych |
 | Ślad współpracy z AI | Notatki i dokumenty z rozwoju wspieranego przez AI |
+
+<div align="center">
+  <img src="../imgs/chrome_05.png" width="45%" alt="Zrzut ekranu ustawień PlainTab 1" />
+  <img src="../imgs/chrome_06.png" width="45%" alt="Zrzut ekranu ustawień PlainTab 2" />
+</div>
 
 ## Dla deweloperów
 
