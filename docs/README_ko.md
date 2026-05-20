@@ -1,263 +1,196 @@
-<p align="center">
+﻿<p align="center">
   <img src="../icon/icon2048.png" alt="PlainTab Logo" width="92">
 </p>
 
 <h1 align="center">PlainTab</h1>
 
 <p align="center">
-  예쁘고, 빠르고, 조용한 새 탭.
+  Chrome과 Edge를 위한 빠르고 조용한, 배경화면 중심의 새 탭 페이지입니다.
 </p>
 
 <p align="center">
-  <a href="../README.md">English</a>
-  ·
-  <a href="README_zh-CN.md">简体中文</a>
-  ·
-  <a href="README_zh-TW.md">繁體中文</a>
-  ·
-  <a href="README_hi.md">हिन्दी</a>
-  ·
-  <a href="README_es.md">Español</a>
-  ·
-  <a href="README_ar.md">العربية</a>
-  ·
-  <a href="README_fr.md">Français</a>
-  ·
-  <a href="README_pt_BR.md">Português</a>
-  ·
-  <a href="README_ru.md">Русский</a>
-  ·
-  <a href="README_de.md">Deutsch</a>
-  ·
-  <a href="README_ja.md">日本語</a>
-  ·
-  <a href="README_it.md">Italiano</a>
-  ·
-  <a href="README_tr.md">Türkçe</a>
-  ·
-  <a href="README_vi.md">Tiếng Việt</a>
-  ·
-  한국어
-  ·
-  <a href="README_pl.md">Polski</a>
-</p>
-
-<p align="center">
-  <a href="technical/README_en.md">기술 문서</a>
-  ·
-  <a href="changelog-i18n/ko.txt">변경 로그</a>
-  ·
-  <a href="https://plaintab.kaininx.workers.dev">온라인 데모</a>
-  ·
-  <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome 웹 스토어</a>
+  <a href="../README.md">English</a> · <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome 웹 스토어</a> · <a href="https://plaintab.kaininx.workers.dev">라이브 데모</a> · <a href="technical/README_en.md">기술 노트</a> · <a href="changelog-i18n/ko.txt">변경 내역</a>
 </p>
 
 <p align="center">
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/version-3.2.1-111827?style=flat-square" alt="Version 3.2.1">
   <img src="https://img.shields.io/badge/Manifest-V3-4285f4?style=flat-square&logo=googlechrome" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/AI-Collaboration-7c3aed?style=flat-square" alt="AI Collaboration">
-  <img src="https://img.shields.io/badge/No-Build_Step-00a884?style=flat-square" alt="No Build Step">
+  <img src="https://img.shields.io/badge/No_Build_Step-00a884?style=flat-square" alt="빌드 불필요">
+  <img src="https://img.shields.io/badge/Vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=111827" alt="Vanilla JavaScript">
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab screenshot 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab screenshot 2" />
+  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab 스크린샷 1" />
+  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab 스크린샷 2" />
 </div>
 
-## 이것은 무엇인가요
+## PlainTab 소개
 
-PlainTab 은 브라우저 새 탭입니다.
+PlainTab은 Chrome과 Edge의 새 탭을 바꾸는 Manifest V3 확장 프로그램입니다. 기본 새 탭 대신 깔끔한 배경화면, 조정 가능한 검색창, 필요할 때만 꺼내 쓰는 바로가기를 제공합니다.
 
-하는 일은 간단합니다. 새 탭을 열면 먼저 아름다운 배경화면이 보이고, 그다음 바로 검색하거나 URL을 입력하거나 자신의 바로가기 링크를 열 수 있습니다.
+뉴스 피드, 홍보 카드, 계정 시스템, 위젯으로 가득한 대시보드 없이 차분한 시작 페이지를 원하는 사람을 위한 도구입니다. 새 탭을 열고, 배경화면을 보고, 검색하거나 URL을 입력한 뒤 하던 일을 계속하면 됩니다.
 
-뉴스 피드도, 화면 가득한 위젯도, 날씨도, 인사말도, 할 일 목록도 없습니다. 당신의 주의를 다른 곳으로 끌고 가지도 않습니다. 깨끗한 책상과 비슷합니다. 필요할 때는 거기 있고, 필요하지 않을 때는 방해하지 않습니다.
+같은 페이지는 `index.html`을 직접 열어 독립 웹 페이지로도 실행할 수 있어, 프로젝트를 시험하고 읽고 수정하기 쉽습니다.
 
-## 왜 시도해볼 가치가 있나요
+## 사용해 보기
 
-### 열자마자 화면이 나타납니다
+### 설치
 
-PlainTab에서 가장 먼저 느껴지는 것은 속도입니다.
+[Chrome 웹 스토어에서 PlainTab 설치](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 
-많은 새 탭은 열 때 먼저 빈 화면이 번쩍이고, 잠시 기다려야 이미지가 나타납니다. PlainTab은 그런 느낌을 최대한 없앱니다. 한 번이라도 사용해서 브라우저에 캐시가 있다면, 다음에 열 때 배경화면은 마치 처음부터 거기 있었던 것처럼 매우 빠르게 나타납니다.
-
-이것은 매개변수에 적힌 '성능 최적화'가 아니라, 실제로 느낄 수 있는 부드러움입니다.
-
-### 첫인상이 아주 편안합니다
-
-기본 인터페이스는 매우 절제되어 있습니다. 배경화면, 검색창, 몇 개의 작은 버튼뿐.
-
-열자마자 정보를 쏟아붓지도 않고, 브라우저 첫 페이지를 또 다른 작업대로 만들지도 않습니다. 그 아름다움은 '적음'에서 오는 것이지, '쌓음'에서 오는 것이 아닙니다.
-
-### 배경화면을 다양하게 즐길 수 있습니다
-
-Bing 오늘의 배경화면을 그대로 써도 되고, 자신의 이미지를 올려도 되고, PC 속 배경화면 폴더를 선택해도 됩니다.
-
-만지작거리는 걸 좋아한다면 RSS 이미지 소스를 연결하거나 자신의 이미지 API를 연결할 수도 있습니다. 간단하게 쓰는 것도 쉽고, 깊이 파고들 여지도 있습니다.
-
-### 검색이 아주 손에 익습니다
-
-검색창은 원하는 위치에 둘 수 있고, 크기, 둥근 정도, 투명도, 표시 방식도 조절할 수 있습니다.
-
-항상 표시되게 할 수도 있고, 평소에는 숨겼다가 필요할 때만 나타나게 할 수도 있습니다. 보기에는 가볍지만, 매일 쓰기에는 아주 편리합니다.
-
-### 바로가기 링크가 첫 페이지를 차지하지 않습니다
-
-많은 새 탭은 바로가기 링크를 화면 가득 깔아둡니다. PlainTab은 그러지 않습니다.
-
-바로가기 링크는 명령 팔레트 안에 넣어둡니다. 검색, 추가, 편집, 북마크 가져오기가 가능하고, 일부 링크는 숨김 공간에 넣을 수도 있습니다. 첫 페이지는 여전히 깨끗하지만, 기능은 줄어들지 않았습니다.
-
-### 설정은 충분히 많지만 시끄럽지 않습니다
-
-PlainTab에서는 배경화면, 검색창, 단축키, 백업, 언어, 인터페이스 세부 사항을 조절할 수 있습니다.
-
-하지만 그 설정들이 첫 페이지에 쌓여 있지는 않습니다. 평소에 보는 것은 조용한 새 탭. 조정하고 싶을 때 설정 패널을 열면 됩니다.
-
-## 이것은 AI 협업 프로젝트입니다
-
-PlainTab은 배우기에도 아주 적합합니다.
-
-데모 수준에서 멈춘 장난감 프로젝트가 아니라, 실제 인터페이스, 사용자 설정, 데이터 저장, 가져오기/내보내기, 다국어, 브라우저 확장 환경, 그리고 일반 웹 환경을 갖춘 완전한 새 탭 확장 프로그램입니다.
-
-이 프로젝트는 개발, 정리, 문서화, 그리고 반복 과정에서 AI 협업을 적극적으로 활용해 완성되었습니다. 훌륭한 학습 샘플로 삼을 수 있습니다:
-
-- AI가 실제 프로젝트 개발에 어떻게 참여하는지 보고 싶다.
-- 브라우저 확장 프로그램이 어떻게 만들어지는지 배우고 싶다.
-- 프론트엔드에 입문하고 싶지만, 처음부터 복잡한 프레임워크를 마주하고 싶지 않다.
-- 아이디어, 기능, 경험, 문서까지 꽤 완성도 높은 작은 프로젝트를 연구해보고 싶다.
-
-코드는 복잡한 빌드 도구에 의존하지 않으며, 파일을 열면 읽을 수 있고, 페이지를 열면 바로 실행됩니다. 초보자에게는 처음부터 여러 의존성을 설치하는 것보다 훨씬 친절합니다.
-
-## 누구에게 적합한가요
-
-PlainTab은 이런 분들에게 적합합니다:
-
-- 더 예쁜 새 탭으로 바꾸고 싶다.
-- 브라우저를 열자마자 정보 폭탄을 맞고 싶지 않다.
-- 오늘의 배경화면을 좋아하거나, 자신만의 배경화면 컬렉션이 있다.
-- 가볍지만 기능이 충실한 시작 페이지를 원한다.
-- 실제적이고 완전한, 배우기 좋은 AI 협업 프로젝트를 찾고 있다.
-- 브라우저 확장 프로그램이나 프론트엔드 프로젝트에 입문하고 싶다.
-
-## 하지 않을 일들
-
-PlainTab은 앞으로도 절제된 태도를 유지할 것입니다. 많은 사람이 익숙한 기능이라도, 이 프로젝트에 반드시 맞는 것은 아닙니다.
-
-아마 지원하지 않을 것들:
-
-- 뉴스 피드, 인기 순위, 추천 콘텐츠.
-- 첫 화면 광고, 프로모션 카드, 스폰서 자리.
-- 넓은 영역의 날씨, 달력, 할 일 패널.
-- 동영상 자동 재생이나 동적 배경.
-- 계정 시스템, 소셜 기능, 클라우드 콘텐츠 스트림.
-- 첫 페이지를 수십 개의 바로가기로 가득 채우는 것.
-- Safari 버전. 추가적인 출시 및 유지보수 비용이 필요하며, 지금의 개인 프로젝트로서는 아직 현실적이지 않습니다.
-
-이 기능들이 나쁜 것이 아니라, 그것들이 PlainTab을 다른 무언가로 바꿔버리기 때문입니다.
-
-새 탭을 여는 것이 그저 조금 조용해지고 싶거나, 무언가 검색하고 싶거나, 배경화면 한 번 보고 싶은 것뿐이라면, PlainTab은 분명 당신 편에 설 것입니다.
-
-## 앞으로 할지도 모를 일들
-
-PlainTab을 앞으로 이런 방향으로 키워가고 싶습니다:
-
-- 더 안정적인 배경화면 소스.
-- 더 편안한 설정 경험.
-- 더 이해하기 쉬운 학습 문서.
-- 초보자가 읽기 쉬운 코드 설명.
-- 더 완전한 AI 협업 개발 기록.
-- Firefox 지원 가능성.
-
-Firefox 지원은 지금 당장 약속드릴 수는 없습니다. 브라우저 확장 환경, 권한, API 동작이 Chrome / Edge와 다를 수 있기 때문입니다. 하지만 미래에 조건이 맞는다면, PlainTab을 Chromium 계열 브라우저에만 머물게 하고 싶지는 않습니다.
-
-마침 Firefox 확장, 브라우저 호환성, 혹은 AI 보조 개발에 관심이 있다면, 함께 연구해보시는 것도 환영합니다. 이 프로젝트는 쓰면서 배우기에 아주 좋습니다.
-
-## 기능 한눈에 보기
-
-| 기능 | 설명 |
-|------|------|
-| 새 탭 교체 | 설치 후 브라우저 새 탭을接管합니다 |
-| 온라인 시작 페이지 | 그대로 웹 페이지로도 사용 가능합니다 |
-| 오늘의 배경화면 | Bing 오늘의 배경화면 지원 |
-| 로컬 배경화면 | 이미지 업로드 및 로컬 폴더 선택 지원 |
-| RSS / API 배경화면 | 더 많은 이미지 소스를 연결할 수 있습니다 |
-| 검색창 | 위치, 크기, 스타일, 표시 방식 조절 가능 |
-| 검색 기록 | 최근 검색어를 저장하거나 끌 수 있습니다 |
-| 바로가기 링크 | 명령 팔레트로 관리, 첫 페이지를 차지하지 않음 |
-| 숨김 공간 | 보여주고 싶지 않은 링크를 따로 저장 |
-| 설정 패널 | 인터페이스, 배경화면, 단축키, 데이터 조정 |
-| 데이터 백업 | 내보내기, 가져오기, 암호화 백업 지원 |
-| 다국어 | 다국어 인터페이스 지원 |
-| AI 협업 | AI가 프로젝트 개발에 참여하는 모습을 배우기에 적합 |
-
-## 안정성 진단
-
-PlainTab은 배경화면 캐시 경로가 제한 없이 커지지 않는지 확인합니다. 최신 메모리 및 저장소 진단에서는 RSS 이미지가 IndexedDB 레코드 12개로 제한되고, API와 Bing은 각각 레코드 1개로 제한되며, 반복적인 배경화면 재로드도 강제 GC 후 안정적으로 유지되는 것을 확인했습니다.
-
-전체 보고서(영문): [Memory and storage diagnostic, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
-
-## 빠른 시작
-
-### 확장 프로그램 설치
-
-[Chrome Web Store에서 PlainTab 설치하기](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-
-### 온라인 체험
+### 라이브 데모
 
 [plaintab.kaininx.workers.dev](https://plaintab.kaininx.workers.dev)
 
-### 로컬에서 실행
+### 로컬 실행
 
 ```bash
 git clone https://github.com/kaininx/PlainTab.git
 ```
 
-확장 모드:
+확장 프로그램 모드:
 
-1. `chrome://extensions` 열기
-2. 개발자 모드 활성화
-3. "압축 해제된 확장 프로그램 로드" 선택
-4. PlainTab 프로젝트 디렉토리 선택
+1. `chrome://extensions`를 엽니다.
+2. 개발자 모드를 켭니다.
+3. "압축해제된 확장 프로그램을 로드합니다"를 선택합니다.
+4. PlainTab 프로젝트 폴더를 선택합니다.
 
 웹 모드:
 
-브라우저에서 직접 `index.html`을 엽니다.
+브라우저에서 `index.html`을 직접 엽니다.
 
-의존성 설치도, 빌드도 필요 없습니다.
+의존성, 패키지 매니저, 빌드 단계가 필요 없습니다.
+
+## PlainTab을 선택하는 이유
+
+### 먼저 보이는 배경화면
+
+PlainTab은 새 탭을 열었을 때 빈 흰 화면 대신 바로 배경화면이 보이는 느낌을 중요하게 다룹니다. 가벼운 시작 미리보기를 `localStorage`에 저장하고, 전체 배경 로딩, 캐시, 테마 색상 계산은 첫 렌더링 이후로 미룹니다.
+
+체감 속도는 단순한 성능 수치가 아니라 제품 경험의 일부입니다.
+
+### 기본값은 조용하게
+
+홈에는 배경화면, 검색, 몇 가지 제어만 남깁니다. 바로가기, 숨김 링크, 설정, 백업, 고급 배경 옵션은 모두 있지만 처음부터 화면을 채우지는 않습니다.
+
+### 유연한 배경 소스
+
+Bing 일일 배경화면, Wallhaven, 업로드 이미지, 로컬 폴더, RSS, 사용자 이미지 API, 비디오 배경을 사용할 수 있습니다. 매일 예쁜 이미지만 보고 싶을 때는 단순하게, 더 꾸미고 싶을 때는 유연하게 쓸 수 있습니다.
+
+### 검색과 바로가기는 깔끔하게
+
+검색창은 위치, 크기, 둥근 정도, 투명도, 표시 방식, 검색 기록, 검색 엔진 동작을 조정할 수 있습니다. 바로가기는 명령 팔레트에 있어 검색, 추가, 편집, 가져오기, 숨기기가 가능합니다.
+
+## 기능
+
+| 기능 | 설명 |
+|------|------|
+| 새 탭 교체 | 설치 후 브라우저의 새 탭을 대체합니다 |
+| 독립 웹 모드 | 확장 패키징 없이 `index.html`로 실행됩니다 |
+| 빠른 배경 시작 | 초기 미리보기로 흰 화면 깜빡임을 줄입니다 |
+| Bing 배경 | Bing 일일 배경화면 지원 |
+| Wallhaven 배경 | Wallhaven 탐색과 설정 지원 |
+| 로컬 배경 | 업로드, 갤러리, 로컬 폴더 선택 지원 |
+| RSS / API 배경 | 이미지 피드와 사용자 API 연결 |
+| 비디오 배경 | 비디오를 배경으로 사용 |
+| 검색창 | 위치, 크기, 스타일, 투명도, 표시 방식 조정 |
+| 검색 기록 | 최근 검색 저장 또는 비활성화 |
+| 명령 팔레트 | 홈을 어지럽히지 않고 바로가기 관리 |
+| 숨김 공간 | 보이지 않지만 접근 가능한 링크 저장 |
+| 설정 패널 | 인터페이스, 배경, 단축키, 데이터, 언어 관리 |
+| 백업과 복원 | 가져오기, 내보내기, 암호화 백업 지원 |
+| 다국어 UI | 16개 언어 팩 포함 |
+| AI 협업 기록 | AI 지원 개발 과정의 문서와 메모 보관 |
+
+## 개발자용
+
+PlainTab은 의도적으로 단순한 기술을 사용합니다.
+
+- Vanilla JavaScript, CSS, 브라우저 API.
+- `npm`, `package.json`, 프레임워크, 번들러 없음.
+- 확장 모드와 웹 모드가 하나의 코드베이스를 공유합니다.
+- Manifest V3 설정은 `manifest.json`에 있습니다.
+- 런타임 스크립트는 `index.html`에서 직접 로드됩니다.
+
+시작점으로 [기술 노트](technical/README_en.md), [릴리스 노트](RELEASE_NOTES.md), [메모리와 저장소 진단](ai-tasks/20260519-memory-storage-diagnostic-report.md), [AI agent 지침](../AGENTS.md)을 권합니다.
+
+시작 경로, 두 레이어 배경 렌더링, IndexedDB의 큰 데이터, localStorage 키 호환성, Chrome 웹 스토어 권한 기대치는 특히 조심해야 합니다.
 
 ## 프로젝트 구조
 
 ```text
 PlainTab/
-├── index.html              # 새 탭 및 웹 진입점
-├── manifest.json           # 브라우저 확장 프로그램 설정
-├── css/                    # 페이지 스타일
-├── js/                     # 페이지 로직
-├── js/wallpaper/           # 배경화면 관련 기능
-├── _locales/               # 확장 프로그램 다국어
-├── docs/                   # 문서
+├── index.html              # 새 탭과 웹 진입점
+├── manifest.json           # Chrome / Edge Manifest
+├── css/                    # 기능별 스타일
+├── js/                     # 런타임 모듈
+├── js/wallpaper/           # 배경, 소스, 테마 추출
+├── wasm/                   # 테마 엔진과 빌드 스크립트
+├── _locales/               # 확장 i18n 메시지
+├── docs/                   # 문서와 릴리스 노트
 ├── icon/                   # 아이콘
-└── imgs/                   # 스크린샷 및 스토어 소재
+└── imgs/                   # 스크린샷과 스토어 자산
 ```
+
+## PlainTab이 피하는 것
+
+PlainTab은 절제된 방향을 유지합니다. 뉴스 피드, 트렌드, 추천, 시작 광고, 스폰서 카드, 큰 날씨/달력/할 일 패널, 계정, 소셜 기능, 클라우드 콘텐츠 스트림, 홈을 채우는 수십 개의 바로가기, 자동 재생 홍보 콘텐츠는 현재 방향이 아닙니다.
+
+Safari 버전은 지금 계획되어 있지 않습니다. 개인 프로젝트로서 배포와 유지 비용이 현실적이지 않기 때문입니다.
+
+## AI 협업과 학습
+
+PlainTab은 코드, 문서, 리팩터링, 릴리스 준비, 진단에서 AI 협업을 많이 활용해 개발되었습니다. 장난감 데모가 아니라 실제 UI, 지속 설정, 가져오기/내보내기, 배경 저장, 다국어, 확장과 웹 실행 경로를 갖춘 프로젝트입니다.
+
+새 탭 확장 개발, 프레임워크 없는 작은 frontend 구성, AI 지원 개발 기록 방식, 제품의 절제가 기술 결정에 미치는 영향을 공부하기 좋습니다.
+
+## 로드맵
+
+더 안정적인 배경 소스, 더 부드러운 설정 흐름, 더 명확한 기술 문서, 더 완전한 AI 개발 기록, API와 유지 비용이 맞을 경우 Firefox 지원을 검토할 수 있습니다.
 
 ## 기여
 
-Issue나 PR을 환영합니다.
+브라우저 호환성, 배경 소스, 문서, 작은 UI 개선과 관련된 issue와 pull request를 환영합니다.
 
-PlainTab은 원래의 방향을 최대한 지켜나갈 것입니다: 깨끗하고, 빠르고, 조용하고, 배울 수 있게.
+시작, 배경, 저장소, 검색, 설정, 명령 팔레트를 바꾸기 전에는 [AGENTS.md](../AGENTS.md)와 `.claude/rules/`의 규칙을 읽어 주세요. 작고 집중된 변경을 선호합니다.
+
+## 언어
+
+<details>
+<summary>README 번역</summary>
+
+- [English](../README.md)
+- [简体中文](README_zh-CN.md)
+- [繁體中文](README_zh-TW.md)
+- [हिन्दी](README_hi.md)
+- [Español](README_es.md)
+- [العربية](README_ar.md)
+- [Français](README_fr.md)
+- [Português](README_pt_BR.md)
+- [Русский](README_ru.md)
+- [Deutsch](README_de.md)
+- [日本語](README_ja.md)
+- [Italiano](README_it.md)
+- [Türkçe](README_tr.md)
+- [Tiếng Việt](README_vi.md)
+- 한국어
+- [Polski](README_pl.md)
+
+</details>
 
 ## 관련 링크
 
-- [변경 로그](changelog-i18n/ko.txt)
+- [변경 내역](changelog-i18n/ko.txt)
 - [자세한 릴리스 노트](RELEASE_NOTES.md)
-- [English Technical Notes](technical/README_en.md)
-- [온라인 체험](https://plaintab.kaininx.workers.dev)
-- [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-- [GitHub 프로젝트 페이지](https://github.com/kaininx/PlainTab)
-
-- [메모리 및 저장소 진단](ai-tasks/20260519-memory-storage-diagnostic-report.md)
+- [기술 노트](technical/README_en.md)
+- [메모리와 저장소 진단](ai-tasks/20260519-memory-storage-diagnostic-report.md)
+- [라이브 데모](https://plaintab.kaininx.workers.dev)
+- [Chrome 웹 스토어](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
+- [GitHub](https://github.com/kaininx/PlainTab)
 
 ## 라이선스
 
-PlainTab은 [MIT License](../LICENSE)로 오픈소스 공개되어 있습니다.
+PlainTab은 [MIT License](../LICENSE)로 공개되어 있습니다.
 
-[Kaelri](https://github.com/kaininx)가 만들고 유지보수하고 있습니다.
+[Kaelri](https://github.com/kaininx)가 만들고 유지 관리합니다.

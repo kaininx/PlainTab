@@ -1,100 +1,89 @@
-PlainTab é uma nova guia bonita, rápida e silenciosa.
+PlainTab · Nova guia minimalista
 
-Por quê? Porque sua nova guia deveria mostrar primeiro um papel de parede agradável, não anúncios, notícias, tendências ou uma tela cheia de atalhos.
+Uma nova guia rápida, calma e centrada em papéis de parede.
 
-O PlainTab faz uma coisa simples: você abre uma nova guia, vê o papel de parede e então pesquisa, digita uma URL ou abre seus próprios atalhos. Ele não disputa sua atenção nem transforma a página inicial do navegador em mais um feed.
+Ao abrir uma nova guia, você deveria ver primeiro algo agradável: um papel de parede bonito, uma busca e seus links quando precisar. Não um feed de notícias, anúncios, tendências ou uma tela cheia de widgets.
 
-Por que escolher o PlainTab?
+PlainTab mantém a nova guia limpa, bonita e rápida. Pesquise, digite uma URL, abra atalhos, troque a fonte do papel de parede ou apenas aproveite a imagem por um instante.
 
-【Imagem imediatamente】
-• Carregamento local de papéis de parede extremamente rápido: o PlainTab salva localmente uma prévia leve e a carrega instantaneamente a cada nova guia, reduzindo piscadas de tela branca.
-• Papéis de parede em alta resolução trocam suavemente em segundo plano, enquanto a imagem existente permanece abaixo como fallback. Você não precisa esperar a rede para ver um fundo.
-• Papéis de parede diários do Bing têm cache e atualização; depois do primeiro uso, as próximas aberturas ficam mais fluidas.
+Por que usar o PlainTab?
 
-【Liberdade de papéis de parede】
-• Suporta papéis de parede diários do Bing e suas próprias imagens enviadas.
-• Permite selecionar uma pasta local de papéis de parede, ideal para quem já tem uma coleção.
-• Suporta fontes RSS de imagens e APIs personalizadas: simples quando você quer simplicidade, flexível quando quer experimentar.
-• Papéis de parede locais suportam até 12 imagens em rotação, com prévia de galeria 3×4 para excluir ou substituir a qualquer momento.
+[Papel de parede rápido]
 
-【Silencioso, mas não vazio】
-• A página inicial permanece contida: papel de parede, barra de busca e poucas entradas necessárias, sem encher a tela de widgets.
-• A barra de busca permite ajustar posição, tamanho, cantos arredondados, transparência e modo de exibição.
-• Ela pode ficar sempre visível, aparecer quando necessário ou permanecer oculta.
-• Atalhos são gerenciados no painel de comandos, com busca, adição, edição e importação de favoritos, sem cobrir o papel de parede.
-• O espaço oculto permite guardar links que você não quer exibir diretamente, mantendo a página limpa.
+PlainTab cuida do primeiro momento depois de abrir uma guia.
 
-【Privacidade em primeiro lugar】
-• Sem anúncios, sem rastreamento e sem coleta de dados de navegação.
-• Papéis de parede enviados localmente ficam no armazenamento local do navegador. Eles não são enviados, sincronizados nem passam por servidores de terceiros.
-• Configurações de busca e atalhos são pensadas para uso local. Sua nova guia deve pertencer a você.
+Ele salva localmente uma prévia leve do papel de parede para mostrar uma imagem o quanto antes. O carregamento completo, cache e cores do tema ficam para depois.
 
-【Leve e transparente】
-• Construído com JavaScript nativo, CSS e APIs do navegador, sem framework frontend, sem etapa de build e sem grandes dependências de runtime.
-• Funciona como extensão de nova guia para Chrome / Edge e também pode ser aberto diretamente como página web.
-• Totalmente open source, adequado para uso diário e para aprender desenvolvimento de extensões, frontend e engenharia assistida por IA.
+As transições usam duas camadas: a imagem atual continua visível enquanto a próxima carrega e aparece suavemente. Se uma fonte de rede falhar, PlainTab tenta manter o papel estável atual.
 
-O PlainTab é para você se quiser:
+[Fontes flexíveis]
 
-• Uma nova guia mais bonita sem ruído de feeds
-• Papéis de parede diários ou um lugar para gerenciar sua própria coleção
-• Busca, atalhos, importação de favoritos e backup sem bagunçar a página
-• Uma página inicial que não seja coberta por dezenas de atalhos
-• Uma extensão leve e transparente sem ferramentas de build complexas
-• Um projeto real e completo de extensão de navegador para aprender
+PlainTab suporta:
 
-O que o PlainTab não fará:
+• Papel de parede diário do Bing
+• Wallhaven
+• Imagens enviadas
+• Pastas locais
+• Feeds RSS de imagens
+• APIs de imagens personalizadas
+• Papéis de parede em vídeo
 
-• Sem feeds de notícias, listas de tendências ou recomendações
-• Sem anúncios, cartões patrocinados ou espaços promocionais
-• Sem sistema de contas, funções sociais ou fluxo de conteúdo em nuvem
-• Sem uma parede de atalhos cobrindo a página inicial
-• Sem vídeos em reprodução automática ou fundos animados
+Use Bing para algo simples, imagens locais para sua coleção, ou RSS, API e Wallhaven para uma configuração mais personalizada.
 
-Suporte e feedback
+[Página calma, ferramentas úteis]
 
-• Código aberto: https://github.com/kaininx/PlainTab
-• Demo online: https://plaintab.kaininx.workers.dev
-• Notas de lançamento detalhadas: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
-• Gostou do PlainTab? Uma avaliação na Chrome Web Store é sempre bem-vinda.
-• Dúvidas ou sugestões? Abra uma Issue no GitHub.
+PlainTab não cobre a página com atalhos nem transforma a nova guia em outro feed.
 
-Registro de alterações
+A página mantém o essencial: papel de parede, busca e poucos controles. Os atalhos ficam na paleta de comandos, onde você pode buscar, adicionar, editar, importar favoritos e ocultar links.
 
-• v3.2.1 · Adiciona suporte a papéis de parede Wallhaven e de vídeo, refina a configuração e aplicação segura de papéis de parede, melhora a paleta de comandos e os temas, e corrige estabilidade em papéis de parede, ajustes e i18n.
+A barra de busca permite ajustar posição, largura, raio, transparência, visibilidade, histórico e comportamento do mecanismo de busca.
 
-• v3.2.0 · Grande atualização de recursos e desempenho: adiciona painel de comandos, papéis de parede RSS/API/pasta local, cores de tema do papel de parede via WASM, importação/exportação de configuração e histórico de busca; migra o armazenamento para o modelo v3.2, restringe permissões e fallback de busca, e modulariza/otimiza inicialização, papéis de parede, galeria e configurações.
+[Configurações completas]
 
-• v3.1.4 · Refatorada a nomenclatura de constantes de armazenamento e unificada a migração IDB em transação de duas fases para ordenação recuperável; otimizado o salto de migração para novos usuários; adicionada deduplicação em lote com limite de 12 imagens
+As configurações ficam em um painel dedicado. Você pode ajustar fontes de papéis, busca, teclas de atalho, paleta de comandos, estilo, backup, idioma e mais.
 
-• v3.1.3 · Implementada migração de versão de armazenamento para localStorage e IndexedDB, unificada a nomenclatura de chaves, corrigida a lógica de persistência de miniaturas no modo local.
+[Privacidade e permissões]
 
-• v3.1.2 · _locales/pt renomeado para pt_BR para conformidade com a Chrome Web Store; formato do changelog unificado; arquivos em português renomeados para pt_BR.
+PlainTab não tem anúncios nem analytics de rastreamento.
 
-• v3.1.1 · Bing API alterada para modo de corrida Promise.any com timeout AbortController de 8 segundos; READMEs em 16 idiomas atualizados.
+Papéis enviados, atalhos, histórico e configurações ficam principalmente no armazenamento local do navegador. Não é necessário criar conta.
 
-• v3.1.0 · Galeria de papéis de parede locais: enviar, excluir e alternar várias imagens, seleção em lote; estilo dos painéis melhorado; localização ampliada; configuração CSP mais restrita.
+As permissões se relacionam à nova guia, busca, interação com a página e fontes opcionais de papéis online. RSS, APIs e Wallhaven podem precisar acessar suas fontes de imagem.
 
-• v3.0.5 · Proxy da Bing API atualizado, cache de papéis de parede otimizado, chaves localStorage unificadas, changelogs em 16 idiomas adicionados, logs e semântica de código melhorados.
+[Leve e aberto]
 
-• v3.0.4 · Corrigida falha de carregamento de papéis de parede causada por domínios Bing CDN ausentes na allowlist CSP de imagens.
+PlainTab usa JavaScript puro, CSS e APIs do navegador. Sem framework, sem etapa de build e sem dependência pesada.
 
-• v3.0.3 · Caminho de primeiro render otimizado, segurança CSP reforçada, código não usado removido, ícones e materiais promocionais adicionados.
+O projeto é open source e fácil de inspecionar. Serve para uso diário e para estudar uma extensão real de navegador.
 
-• v3.0.2 · Fundo adaptativo no modo escuro, estrutura de código ajustada, barra inferior multilíngue adicionada.
+PlainTab é para você se quer:
 
-• v3.0.1 · Chrome Search API integrada para cumprir os requisitos de finalidade única da Chrome Web Store.
+• Uma nova guia mais bonita sem feeds
+• Papéis diários ou sua própria coleção
+• Busca, atalhos, importação de favoritos e backups
+• Uma página sem dezenas de blocos
+• Uma extensão leve e transparente
 
-• v3.0.0 · Reescrita do núcleo: arquitetura de duas camadas reduz piscadas brancas em novas guias, com fundo de fallback.
+PlainTab não vai adicionar:
 
-• v2.2.7 · READMEs adicionados em inglês, japonês, coreano, russo e chinês simplificado; modo de busca padrão alterado para sempre visível.
+• Notícias, tendências ou recomendações
+• Anúncios ou cartões patrocinados
+• Contas, recursos sociais ou fluxos em nuvem
+• Dezenas de atalhos fixos na página
+• Vídeos promocionais ou feeds em autoplay
 
-• v2.2.6 · Carregamento de papéis de parede e cache de miniaturas otimizados, constantes da Bing API organizadas.
+Suporte
 
-• v2.2.5 · Pré-carregamento de papéis de parede e otimização do primeiro quadro adicionados para reduzir telas brancas.
+• Código: https://github.com/kaininx/PlainTab
+• Demo: https://plaintab.kaininx.workers.dev
+• Notas de versão: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
+• Se você gosta do PlainTab, uma avaliação ajuda muito.
+• Para problemas ou ideias, abra uma issue no GitHub.
 
-• v2.2.4 · Armazenamento de papéis de parede migrado de localStorage para IndexedDB.
+Atualizações recentes
 
-• v2.2.3 · Envio de papéis de parede locais adicionado e troca de mecanismo de busca melhorada.
+• v3.2.1: adiciona Wallhaven e papéis de vídeo, melhora segurança ao aplicar papéis, paleta de comandos, tema e estabilidade.
 
-• v1.2.0 · Primeira versão: sistema de papéis de parede, interface em 16 idiomas, localização Chrome i18n e licença MIT.
+• v3.2.0: adiciona paleta de comandos, papéis RSS/API/pasta local, cores de tema WASM, importação/exportação e histórico de busca.
+
+PlainTab seguirá limpo, rápido, calmo e fácil de aprender.

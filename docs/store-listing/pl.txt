@@ -1,100 +1,89 @@
-PlainTab to piękna, szybka i spokojna strona nowej karty.
+PlainTab · Minimalna nowa karta
 
-Dlaczego? Bo nowa karta powinna najpierw pokazać przyjemną tapetę, a nie reklamy, wiadomości, trendy czy ekran pełen skrótów.
+Szybka, spokojna i skupiona na tapetach strona nowej karty.
 
-PlainTab robi jedną prostą rzecz: otwierasz nową kartę, widzisz tapetę, a potem możesz wyszukać, wpisać URL albo otworzyć własne skróty. Nie walczy o uwagę i nie zmienia strony startowej przeglądarki w kolejny feed.
+Po otwarciu nowej karty najpierw powinna pojawić się przyjemna tapeta, wyszukiwarka i twoje linki wtedy, gdy ich potrzebujesz. Nie newsfeed, reklamy, trendy ani pulpit pełen widżetów.
 
-Dlaczego warto wybrać PlainTab?
+PlainTab utrzymuje nową kartę czystą, ładną i szybką. Szukaj, wpisuj URL, otwieraj skróty, zmieniaj źródła tapet albo po prostu spójrz na obraz i wróć do pracy.
 
-【Obraz od razu】
-• Bardzo szybkie lokalne ładowanie tapet: PlainTab zapisuje lokalnie lekką migawkę podglądu i ładuje ją natychmiast przy każdym otwarciu nowej karty, ograniczając białe mignięcia.
-• Tapety w wysokiej rozdzielczości płynnie zmieniają się w tle, a poprzedni obraz pozostaje pod spodem jako zabezpieczenie. Nie trzeba czekać na sieć, aby zobaczyć tło.
-• Tapety dnia Bing obsługują cache i aktualizacje; po pierwszym użyciu kolejne otwarcia są płynniejsze.
+Dlaczego PlainTab?
 
-【Wolność tapet】
-• Obsługuje tapety dnia Bing i własne przesłane obrazy.
-• Pozwala wybrać lokalny folder z tapetami, idealny dla osób z własną kolekcją.
-• Obsługuje źródła obrazów RSS i własne API: prosto, gdy chcesz prostoty, elastycznie, gdy chcesz eksperymentować.
-• Lokalne tapety obsługują do 12 obrazów w rotacji z podglądem galerii 3×4, gotowe do usunięcia lub wymiany w dowolnym momencie.
+[Tapeta od razu]
 
-【Spokojny, ale nie pusty】
-• Strona główna pozostaje oszczędna: tapeta, pasek wyszukiwania i kilka potrzebnych wejść, bez zalewu widżetów.
-• Pasek wyszukiwania pozwala regulować pozycję, rozmiar, zaokrąglenie, przezroczystość i widoczność.
-• Może być zawsze widoczny, pojawiać się tylko w razie potrzeby albo pozostać ukryty.
-• Skróty są zarządzane w palecie poleceń, z wyszukiwaniem, dodawaniem, edycją i importem zakładek, bez zasłaniania tapety.
-• Ukryta przestrzeń pozwala zapisywać linki, których nie chcesz pokazywać bezpośrednio, utrzymując stronę w czystości.
+PlainTab dba o pierwszy moment po otwarciu karty.
 
-【Prywatność przede wszystkim】
-• Brak reklam, brak śledzenia, brak zbierania danych przeglądania.
-• Lokalne tapety są zapisywane w lokalnym magazynie przeglądarki. Nie są przesyłane, synchronizowane ani kierowane przez serwery zewnętrzne.
-• Ustawienia wyszukiwania i skrótów są projektowane do użytku lokalnego. Nowa karta powinna należeć do Ciebie.
+Lekki podgląd tapety jest zapisywany lokalnie, aby przy kolejnym otwarciu obraz pojawił się jak najszybciej. Pełne ładowanie, cache i kolory motywu są wykonywane później.
 
-【Lekki i przejrzysty】
-• Zbudowany z natywnego JavaScriptu, CSS i API przeglądarki, bez frameworka frontendowego, bez kroku budowania i bez dużych zależności runtime.
-• Działa jako rozszerzenie nowej karty dla Chrome / Edge i może też działać bezpośrednio jako strona web.
-• W pełni open source, przydatny na co dzień i do nauki rozszerzeń przeglądarki, frontendu oraz pracy wspieranej przez AI.
+Przejścia używają dwóch warstw: obecny obraz zostaje widoczny, a następny ładuje się i łagodnie pojawia. Jeśli źródło sieciowe zawiedzie, PlainTab próbuje zachować stabilną tapetę.
 
-PlainTab jest dla Ciebie, jeśli chcesz:
+[Elastyczne źródła tapet]
 
-• Ładniejszej nowej karty bez szumu informacyjnych feedów
-• Tapet dnia albo miejsca do zarządzania własną kolekcją
-• Wyszukiwania, skrótów, importu zakładek i backupu bez bałaganu na stronie
-• Strony startowej niepokrytej dziesiątkami kafelków skrótów
-• Lekkiego, przejrzystego rozszerzenia bez złożonych narzędzi build
-• Prawdziwego, kompletnego projektu rozszerzenia przeglądarki do nauki
+PlainTab obsługuje:
 
-Czego PlainTab nie robi:
+• Codzienną tapetę Bing
+• Wallhaven
+• Wgrywane obrazy
+• Lokalne foldery
+• Feed RSS z obrazami
+• Własne API obrazów
+• Tapety wideo
 
-• Brak feedów wiadomości, list trendów i rekomendacji
-• Brak reklam, kart sponsorowanych i miejsc promocyjnych
-• Brak systemu kont, funkcji społecznościowych i strumienia treści w chmurze
-• Brak ściany skrótów zakrywającej stronę startową
-• Brak automatycznie odtwarzanych filmów i animowanych teł
+Użyj Bing dla prostoty, lokalnych obrazów dla swojej kolekcji albo RSS, API i Wallhaven dla bardziej osobistej konfiguracji.
 
-Wsparcie i opinie
+[Spokojna strona, przydatne narzędzia]
 
-• Open source: https://github.com/kaininx/PlainTab
-• Demo online: https://plaintab.kaininx.workers.dev
-• Szczegółowe informacje o wydaniu: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
-• Podoba Ci się PlainTab? Opinia w Chrome Web Store będzie bardzo cenna.
-• Masz pytania lub sugestie? Otwórz Issue na GitHubie.
+PlainTab nie zasłania strony skrótami i nie zamienia nowej karty w kolejny feed.
 
-Historia Aktualizacji
+Strona zachowuje minimum: tapeta, wyszukiwanie i kilka kontrolek. Skróty są w palecie poleceń, gdzie można je wyszukiwać, dodawać, edytować, importować zakładki i ukrywać linki.
 
-• v3.2.1 · Dodaje obsługę tapet Wallhaven i wideo, dopracowuje konfigurację oraz bezpieczne stosowanie tapet, ulepsza paletę poleceń i motywy oraz poprawia stabilność tapet, ustawień i i18n.
+Pasek wyszukiwania pozwala ustawić pozycję, szerokość, zaokrąglenie, przezroczystość, widoczność, historię i zachowanie wyszukiwarki.
 
-• v3.2.0 · Duża aktualizacja funkcji i wydajności: dodano paletę poleceń, tapety RSS/API/z lokalnego folderu, kolory motywu tapety w WASM, import/eksport konfiguracji i historię wyszukiwania; przeniesiono pamięć do modelu v3.2, zaostrzono uprawnienia i fallback wyszukiwania oraz zmodularyzowano i zoptymalizowano start, tapety, galerię i ustawienia.
+[Ustawienia bez bałaganu]
 
-• v3.1.4 · Zrefaktoryzowano nazewnictwo stałych pamięci i scalono migrację IDB w transakcję dwufazową z odpornością na awarie; zoptymalizowano pomijanie migracji dla nowych użytkowników; dodano deduplikację przy przesyłaniu wsadowym z limitem 12 obrazów
+Ustawienia są w osobnym panelu. Możesz zmienić źródła tapet, wyszukiwanie, skróty klawiszowe, paletę poleceń, styl, kopie zapasowe, język i więcej.
 
-• v3.1.3 · Zaimplementowano migrację wersji przechowywania dla localStorage i IndexedDB, ujednolicono nazewnictwo kluczy, naprawiono logikę trwałości miniatur w trybie lokalnym.
+[Prywatność i uprawnienia]
 
-• v3.1.2 · Zmieniono nazwę _locales/pt na pt_BR dla zgodności z Chrome Web Store; ujednolicono format changeloga; pliki portugalskie przemianowano na pt_BR.
+PlainTab nie ma reklam ani analityki śledzącej.
 
-• v3.1.1 · Bing API przełączono na tryb wyścigu Promise.any z 8-sekundowym timeoutem AbortController; zaktualizowano README w 16 językach.
+Wgrane tapety, skróty, historia wyszukiwania i konfiguracja są głównie przechowywane lokalnie w przeglądarce. Konto nie jest potrzebne.
 
-• v3.1.0 · Galeria lokalnych tapet: przesyłanie, usuwanie i rotacja wielu tapet, wybór wsadowy; ulepszony styl paneli; rozszerzona lokalizacja; zaostrzona konfiguracja CSP.
+Uprawnienia dotyczą nowej karty, wyszukiwania, interakcji ze stroną i opcjonalnych źródeł tapet online. RSS, API i Wallhaven mogą wymagać dostępu do swoich źródeł obrazów.
 
-• v3.0.5 · Zaktualizowano proxy Bing API, zoptymalizowano cache tapet, ujednolicono klucze localStorage, dodano changelogi w 16 językach, ulepszono logi i semantykę kodu.
+[Lekki i otwarty]
 
-• v3.0.4 · Naprawiono problemy z ładowaniem tapet spowodowane brakiem domen Bing CDN w liście obrazów CSP.
+PlainTab używa vanilla JavaScript, CSS i API przeglądarki. Nie ma frameworka, builda ani ciężkiej zależności runtime.
 
-• v3.0.3 · Zoptymalizowano ścieżkę pierwszego renderowania, wzmocniono bezpieczeństwo CSP, usunięto nieużywany kod, dodano ikony i materiały promocyjne.
+Projekt jest open source i łatwy do sprawdzenia. Nadaje się do codziennego użytku i nauki na prawdziwym rozszerzeniu.
 
-• v3.0.2 · Adaptacyjne tło trybu ciemnego, dostosowana struktura kodu, dodana wielojęzyczna stopka.
+PlainTab jest dla ciebie, jeśli chcesz:
 
-• v3.0.1 · Zintegrowano Chrome Search API, aby spełnić wymogi jednego celu Chrome Web Store.
+• Ładniejszej nowej karty bez feedów
+• Codziennych tapet albo własnej kolekcji
+• Wyszukiwania, skrótów, importu zakładek i kopii
+• Strony bez dziesiątek kafelków
+• Lekkiego i przejrzystego rozszerzenia
 
-• v3.0.0 · Przepisanie rdzenia: architektura dwuwarstwowa zmniejsza białe mignięcia nowych kart, dodano tło awaryjne.
+PlainTab nie doda:
 
-• v2.2.7 · Dodano README po angielsku, japońsku, koreańsku, rosyjsku i chińsku uproszczonym; domyślny tryb wyszukiwania zmieniono na zawsze widoczny.
+• Newsfeedów, trendów lub rekomendacji
+• Reklam albo sponsorowanych kart
+• Kont, funkcji społecznościowych lub chmury treści
+• Dziesiątek przypiętych skrótów
+• Autoodtwarzanych filmów promocyjnych lub feedów
 
-• v2.2.6 · Zoptymalizowano ładowanie tapet i cache miniatur, uporządkowano stałe Bing API.
+Wsparcie
 
-• v2.2.5 · Dodano wstępne ładowanie tapet i optymalizację pierwszej klatki, aby ograniczyć białe ekrany.
+• Kod: https://github.com/kaininx/PlainTab
+• Demo: https://plaintab.kaininx.workers.dev
+• Release notes: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
+• Jeśli lubisz PlainTab, opinia w sklepie bardzo pomaga.
+• Problemy i pomysły zgłaszaj przez GitHub issue.
 
-• v2.2.4 · Przeniesiono przechowywanie tapet z localStorage do IndexedDB.
+Ostatnie aktualizacje
 
-• v2.2.3 · Dodano przesyłanie lokalnych tapet i ulepszono przełączanie wyszukiwarki.
+• v3.2.1: Wallhaven i tapety wideo, bezpieczniejsze stosowanie ustawień tapet, lepsza paleta poleceń, motyw i stabilność.
 
-• v1.2.0 · Pierwsze wydanie: system tapet, interfejs w 16 językach, lokalizacja Chrome i18n i licencja MIT.
+• v3.2.0: paleta poleceń, tapety RSS/API/folder lokalny, kolory motywu WASM, import/export i historia wyszukiwania.
+
+PlainTab pozostanie czysty, szybki, spokojny i łatwy do nauki.

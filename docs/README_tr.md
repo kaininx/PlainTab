@@ -1,263 +1,196 @@
-<p align="center">
+﻿<p align="center">
   <img src="../icon/icon2048.png" alt="PlainTab Logo" width="92">
 </p>
 
 <h1 align="center">PlainTab</h1>
 
 <p align="center">
-  Güzel, hızlı ve sessiz bir yeni sekme sayfası.
+  Chrome ve Edge için hızlı, sakin ve duvar kâğıdı odaklı yeni sekme sayfası.
 </p>
 
 <p align="center">
-  <a href="../README.md">English</a>
-  ·
-  <a href="README_zh-CN.md">简体中文</a>
-  ·
-  <a href="README_zh-TW.md">繁體中文</a>
-  ·
-  <a href="README_hi.md">हिन्दी</a>
-  ·
-  <a href="README_es.md">Español</a>
-  ·
-  <a href="README_ar.md">العربية</a>
-  ·
-  <a href="README_fr.md">Français</a>
-  ·
-  <a href="README_pt_BR.md">Português</a>
-  ·
-  <a href="README_ru.md">Русский</a>
-  ·
-  <a href="README_de.md">Deutsch</a>
-  ·
-  <a href="README_ja.md">日本語</a>
-  ·
-  <a href="README_it.md">Italiano</a>
-  ·
-  Türkçe
-  ·
-  <a href="README_vi.md">Tiếng Việt</a>
-  ·
-  <a href="README_ko.md">한국어</a>
-  ·
-  <a href="README_pl.md">Polski</a>
+  <a href="../README.md">English</a> · <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome Web Store</a> · <a href="https://plaintab.kaininx.workers.dev">Canlı demo</a> · <a href="technical/README_en.md">Teknik notlar</a> · <a href="changelog-i18n/tr.txt">Değişiklik günlüğü</a>
 </p>
 
 <p align="center">
-  <a href="technical/README_en.md">Teknik Belgeler</a>
-  ·
-  <a href="changelog-i18n/tr.txt">Değişiklik Günlüğü</a>
-  ·
-  <a href="https://plaintab.kaininx.workers.dev">Canlı Demo</a>
-  ·
-  <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome Web Store</a>
-</p>
-
-<p align="center">
-  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT License"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT Lisansı"></a>
+  <img src="https://img.shields.io/badge/version-3.2.1-111827?style=flat-square" alt="Sürüm 3.2.1">
   <img src="https://img.shields.io/badge/Manifest-V3-4285f4?style=flat-square&logo=googlechrome" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/AI-Collaboration-7c3aed?style=flat-square" alt="AI Collaboration">
-  <img src="https://img.shields.io/badge/No-Build_Step-00a884?style=flat-square" alt="No Build Step">
+  <img src="https://img.shields.io/badge/No_Build_Step-00a884?style=flat-square" alt="Derleme yok">
+  <img src="https://img.shields.io/badge/Vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=111827" alt="Vanilla JavaScript">
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab screenshot 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab screenshot 2" />
+  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab ekran görüntüsü 1" />
+  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab ekran görüntüsü 2" />
 </div>
 
-## Bu nedir
+## PlainTab nedir?
 
-PlainTab bir tarayıcı yeni sekme sayfasıdır.
+PlainTab, Chrome ve Edge için Manifest V3 tabanlı bir yeni sekme uzantısıdır. Varsayılan yeni sekmeyi temiz bir duvar kâğıdı, ayarlanabilir bir arama çubuğu ve ihtiyaç duyulana kadar ortada görünmeyen kısayollarla değiştirir.
 
-Yaptığı şey basittir: yeni bir sekme açtığınızda, önce güzel bir duvar kağıdı görürsünüz, sonra doğrudan arama yapabilir, URL yazabilir veya kısayol bağlantılarınızı açabilirsiniz.
+Sakin ve hızlı açılan bir başlangıç sayfası isteyenler içindir: haber akışı, sponsorlu kart, hesap sistemi veya widget dolu panel yok. Sekmeyi aç, duvar kâğıdını gör, ara ya da URL yaz ve devam et.
 
-Haber akışı yok, ekranı dolduran araçlar yok, hava durumu, karşılama mesajı, yapılacaklar listesi yok — ve dikkatinizi başka yere çekmez. Daha çok temiz bir masaüstü gibidir: ihtiyacınız olduğunda oradadır; ihtiyacınız olmadığında sizi rahatsız etmez.
+Aynı sayfa `index.html` doğrudan açılarak bağımsız web sayfası olarak da çalışır; bu yüzden projeyi denemek, okumak ve değiştirmek kolaydır.
 
-## Neden denemeye değer
+## Deneyin
 
-### Açar açmaz görüntü
+### Kurulum
 
-PlainTab'ın en belirgin hissi hızdır.
+[PlainTab'i Chrome Web Store'dan yükleyin](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 
-Birçok yeni sekme sayfası açıldığında önce beyaz bir boşluk gösterir, sonra resim belirir. PlainTab bu hissi mümkün olduğunca önler. Bir kez kullandıktan sonra, tarayıcıda önbellek oluştuğunda, bir sonraki açışınızda duvar kağıdı çok hızlı bir şekilde belirir — sanki hep oradaymış gibi.
-
-Bu, parametrelerde yazan bir "performans optimizasyonu" değil, doğrudan hissettiğiniz bir akıcılıktır.
-
-### İlk bakışta rahat
-
-Varsayılan arayüzü çok ölçülüdür: duvar kağıdı, arama çubuğu, birkaç küçük düğme.
-
-Açar açmaz üzerinize bilgi yığmaz, tarayıcı ana sayfasını başka bir çalışma alanına dönüştürmez. Güzelliği azdan gelir, çoktan değil.
-
-### Duvar kağıdıyla oynamanın birçok yolu
-
-Doğrudan Bing günlük duvar kağıdını kullanabilir, kendi resimlerinizi yükleyebilir veya bilgisayarınızdaki bir duvar kağıdı klasörünü seçebilirsiniz.
-
-Kurcalamayı seviyorsanız, RSS resim kaynakları veya kendi resim API'nizi bağlayabilirsiniz. Basit kullanımı çok kolaydır, derinlemesine keşif için de alan vardır.
-
-### Arama çok rahat
-
-Arama çubuğunu istediğiniz konuma yerleştirebilir, boyutunu, köşe yuvarlaklığını, saydamlığını ve görüntülenme şeklini ayarlayabilirsiniz.
-
-Her zaman görünür olmasını sağlayabilir veya normalde gizli kalıp yalnızca ihtiyaç duyulduğunda görünmesini seçebilirsiniz. Hafif görünür, ancak günlük kullanımda çok pratiktir.
-
-### Kısayol bağlantıları ana sayfayı kaplamaz
-
-Birçok yeni sekme sayfası ekranı kısayol bağlantılarıyla doldurur. PlainTab bunu yapmaz.
-
-Kısayol bağlantılarını komut paletine yerleştirir. Arama yapabilir, ekleyebilir, düzenleyebilir, yer imlerini içe aktarabilir ve bazı bağlantıları gizli bir alana koyabilirsiniz. Ana sayfa temiz kalır, ancak işlevsellik eksilmez.
-
-### Ayarlar yeterli, ama gürültülü değil
-
-PlainTab'da duvar kağıdı, arama çubuğu, kısayol tuşları, yedekleme, dil ve arayüz detayları ayarlanabilir.
-
-Ancak bu ayarlar ana sayfada birikmez. Normalde gördüğünüz sessiz bir yeni sekme sayfasıdır; ayar yapmanız gerektiğinde ayarlar panelini açarsınız.
-
-## Bu bir Yapay Zeka iş birliği projesidir
-
-PlainTab öğrenmek için de çok uygundur.
-
-Bu sadece demo seviyesinde bir oyuncak proje değil, tam teşekküllü bir yeni sekme eklentisidir: gerçek bir arayüz, kullanıcı ayarları, veri depolama, içe/dışa aktarma, çoklu dil, tarayıcı eklenti ortamı ve normal web sayfası ortamı — hepsi mevcuttur.
-
-Bu proje, geliştirme, düzenleme, dokümantasyon ve iterasyon süreçlerinde büyük ölçüde Yapay Zeka iş birliğiyle tamamlanmıştır. Bunu iyi bir öğrenme örneği olarak kullanabilirsiniz:
-
-- Yapay Zekanın gerçek bir projenin geliştirilmesine nasıl katıldığını görmek için.
-- Bir tarayıcı eklentisinin nasıl yapıldığını öğrenmek için.
-- Önyüze başlamak isteyip de hemen karmaşık çerçevelerle karşılaşmak istemeyenler için.
-- Fikirden işlevselliğe, deneyimden dokümantasyona kadar nispeten tam bir küçük projeyi incelemek için.
-
-Kodu karmaşık derleme araçlarına bağlı değildir — dosyayı açıp okuyabilir, sayfayı açıp çalıştırabilirsiniz. Yeni başlayanlar için, başlangıçta bir sürü bağımlılık kurmaktan çok daha dostçadır.
-
-## Kimler için uygun
-
-PlainTab şu kişiler için uygundur:
-
-- Daha güzel bir yeni sekme sayfası isteyenler.
-- Tarayıcıyı açar açmaz bilgi bombardımanı görmekten hoşlanmayanlar.
-- Günlük duvar kağıtlarını sevenler veya kendi duvar kağıdı koleksiyonuna sahip olanlar.
-- Hafif ama tam işlevli bir başlangıç sayfası isteyenler.
-- Gerçek, eksiksiz ve öğrenmeye uygun bir Yapay Zeka iş birliği projesi arayanlar.
-- Tarayıcı eklentilerine veya önyüz projelerine başlamak isteyenler.
-
-## Ne yapmayacak
-
-PlainTab ölçülü kalmaya devam edecek. Bazı özellikler, birçok kişiye tanıdık gelse de, bu projeye uygun olmayabilir.
-
-Büyük olasılıkla desteklenmeyecek:
-
-- Haber akışı, trend listeleri, önerilen içerik.
-- Açılış reklamları, tanıtım kartları, sponsorlu alanlar.
-- Büyük hava durumu, takvim, yapılacaklar paneli.
-- Otomatik oynatılan video veya hareketli arka planlar.
-- Hesap sistemi, sosyal özellikler, bulut içerik akışı.
-- Ana sayfayı onlarca kısayolla doldurmak.
-- Safari sürümü. Ek yayınlama ve bakım maliyeti gerektirir, şu anda bu kişisel proje için pek gerçekçi değil.
-
-Bu özellikler kötü olduğu için değil, PlainTab'ı başka bir şeye dönüştürecekleri için.
-
-Yeni bir sekmeyi sadece biraz sessizlik, bir şey aramak veya duvar kağıdına bakmak için açıyorsanız, PlainTab sizin yanınızda olmalı.
-
-## İleride ne yapabilir
-
-PlainTab'ın şu yönlerde büyümeye devam etmesini istiyorum:
-
-- Daha kararlı duvar kağıdı kaynakları.
-- Daha rahat bir ayar deneyimi.
-- Daha kolay anlaşılır öğrenme dokümanları.
-- Yeni başlayanlar için daha okunaklı kod açıklamaları.
-- Daha eksiksiz Yapay Zeka iş birliği geliştirme kaydı.
-- Firefox desteği mümkün olabilir.
-
-Firefox desteği şu anda doğrudan taahhüt edilemez, çünkü tarayıcı eklenti ortamı, izinler ve API davranışı Chrome / Edge'den farklı olabilir. Ancak gelecekte koşullar uygun olursa, PlainTab'ın yalnızca Chromium tabanlı tarayıcılarla sınırlı kalmamasını isterim.
-
-Firefox eklentileri, tarayıcı uyumluluğu veya Yapay Zeka destekli geliştirme ile ilgileniyorsanız, birlikte keşfetmeye de açığız. Bu proje kullanırken öğrenmek için çok uygundur.
-
-## Özelliklere genel bakış
-
-| Özellik | Açıklama |
-|------|------|
-| Yeni sekme değişimi | Kurulumdan sonra tarayıcının yeni sekme sayfasını devralır |
-| Çevrimiçi başlangıç sayfası | Doğrudan web sayfası olarak da kullanılabilir |
-| Günlük duvar kağıdı | Bing günlük duvar kağıdını destekler |
-| Yerel duvar kağıtları | Resim yükleme ve yerel klasör seçmeyi destekler |
-| RSS / API duvar kağıtları | Daha fazla resim kaynağı bağlanabilir |
-| Arama çubuğu | Konum, boyut, stil ve görüntülenme şekli ayarlanabilir |
-| Arama geçmişi | Son aramalar kaydedilebilir veya kapatılabilir |
-| Kısayol bağlantıları | Komut paletiyle yönetilir, ana sayfayı kaplamaz |
-| Gizli alan | Göstermek istemediğiniz bağlantıları ayrıca saklayın |
-| Ayarlar paneli | Arayüz, duvar kağıdı, kısayol tuşları ve verileri ayarlayın |
-| Veri yedekleme | Dışa aktarma, içe aktarma ve şifreli yedeklemeyi destekler |
-| Çoklu dil | Çoklu dil arayüzünü destekler |
-| Yapay Zeka iş birliği | Yapay Zeka ile proje geliştirmeyi öğrenmek için uygundur |
-
-## Güvenilirlik tanısı
-
-PlainTab, duvar kağıdı önbellek yollarında sınırsız depolama büyümesi olup olmadığını kontrol eder. En son bellek ve depolama tanısı, RSS görsellerinin 12 IndexedDB kaydıyla, API ve Bing’in ise birer kayıtla sınırlı kaldığını; tekrarlı duvar kağıdı yeniden yüklemelerinin zorunlu GC sonrasında stabil olduğunu doğruladı.
-
-Tam rapor İngilizcedir: [bellek ve depolama tanısı, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
-
-## Hızlı başlangıç
-
-### Eklentiyi yükle
-
-[Chrome Web Store'dan PlainTab'ı yükle](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-
-### Çevrimiçi deneyim
+### Canlı demo
 
 [plaintab.kaininx.workers.dev](https://plaintab.kaininx.workers.dev)
 
-### Yerel olarak çalıştır
+### Yerelde çalıştırma
 
 ```bash
 git clone https://github.com/kaininx/PlainTab.git
 ```
 
-Eklenti modu:
+Uzantı modu:
 
-1. `chrome://extensions` adresini açın
-2. Geliştirici modunu etkinleştirin
-3. "Paketlenmemiş öğe yükle"yi seçin
-4. PlainTab proje dizinini seçin
+1. `chrome://extensions` sayfasını açın.
+2. Geliştirici modunu etkinleştirin.
+3. "Paketlenmemiş öğe yükle" seçeneğini kullanın.
+4. PlainTab proje klasörünü seçin.
 
-Web sayfası modu:
+Web modu:
 
 `index.html` dosyasını doğrudan tarayıcıda açın.
 
-Bağımlılık kurmaya veya derlemeye gerek yoktur.
+Bağımlılık, paket yöneticisi veya derleme adımı yoktur.
+
+## Neden PlainTab?
+
+### Önce duvar kâğıdı, daha az boş bekleme
+
+PlainTab yeni sekme açıldığında hemen bir görüntü gelmesine odaklanır. Hafif bir başlangıç önizlemesini `localStorage` içinde tutar; tam duvar kâğıdı yükleme, önbellek ve tema renkleri ilk çizimden sonraya bırakılır.
+
+Algılanan hız burada ürün deneyiminin parçasıdır.
+
+### Varsayılan olarak sakin
+
+Ana sayfa duvar kâğıdı, arama ve birkaç kontrolle sınırlıdır. Kısayollar, gizli bağlantılar, ayarlar, yedekler ve gelişmiş duvar kâğıdı seçenekleri vardır, ama ekranı doldurmaz.
+
+### Esnek duvar kâğıdı kaynakları
+
+Bing günlük duvar kâğıdı, Wallhaven, yüklenen görseller, yerel klasör, RSS, özel görüntü API'si veya video duvar kâğıtları kullanılabilir. Basit kullanım için sade, kurcalamak isteyenler için esnektir.
+
+### Dağınıklık oluşturmayan arama ve kısayollar
+
+Arama çubuğunun konumu, boyutu, köşesi, şeffaflığı, görünürlüğü, geçmişi ve arama motoru davranışı ayarlanabilir. Kısayollar komut paletinde durur; bağlantı arama, ekleme, düzenleme, içe aktarma ve gizleme yapılabilir.
+
+## Özellikler
+
+| Özellik | Açıklama |
+|---------|----------|
+| Yeni sekme değiştirme | Kurulumdan sonra tarayıcının yeni sekmesini değiştirir |
+| Bağımsız web modu | Uzantı paketi olmadan `index.html` ile çalışır |
+| Hızlı duvar kâğıdı başlangıcı | Erken önizleme ile beyaz ekran hissini azaltır |
+| Bing duvar kâğıdı | Bing günlük duvar kâğıdını destekler |
+| Wallhaven duvar kâğıdı | Wallhaven üzerinden göz atma ve ayarlamayı destekler |
+| Yerel duvar kâğıtları | Yükleme, galeri ve yerel klasör seçimi |
+| RSS / API | Özel görüntü akışları ve API'leri |
+| Video duvar kâğıdı | Videoyu duvar kâğıdı olarak kullanma |
+| Arama çubuğu | Konum, boyut, stil, şeffaflık ve görünürlük |
+| Arama geçmişi | Son aramaları saklar veya kapatılabilir |
+| Komut paleti | Kısayolları ana sayfayı kalabalıklaştırmadan yönetir |
+| Gizli alan | Görünmeden erişilebilir bağlantılar |
+| Ayarlar paneli | Arayüz, duvar kâğıdı, kısayollar, veri ve dil |
+| Yedekleme | İçe/dışa aktarma ve şifreli yedekler |
+| Çok dilli arayüz | 16 dil paketi içerir |
+| Yapay zekâ iş birliği izi | AI destekli geliştirme notları ve belgeleri |
+
+## Geliştiriciler için
+
+PlainTab bilinçli olarak sade teknoloji kullanır:
+
+- Vanilla JavaScript, CSS ve tarayıcı API'leri.
+- `npm`, `package.json`, framework veya bundler yok.
+- Uzantı ve web modu için tek kod tabanı.
+- Manifest V3 ayarları `manifest.json` içinde.
+- Çalışma zamanı scriptleri doğrudan `index.html` tarafından yüklenir.
+
+Başlangıç noktaları: [Teknik notlar](technical/README_en.md), [Sürüm notları](RELEASE_NOTES.md), [Bellek ve depolama tanısı](ai-tasks/20260519-memory-storage-diagnostic-report.md), [AI agent talimatları](../AGENTS.md).
+
+Dikkatli olunması gereken alanlar: açılış yolu, iki katmanlı duvar kâğıdı gösterimi, büyük verilerin IndexedDB ile saklanması, localStorage anahtar uyumluluğu ve Chrome Web Store izin beklentileri.
 
 ## Proje yapısı
 
 ```text
 PlainTab/
-├── index.html              # Yeni sekme sayfası ve web sayfası giriş noktası
-├── manifest.json           # Tarayıcı eklenti yapılandırması
-├── css/                    # Sayfa stilleri
-├── js/                     # Sayfa mantığı
-├── js/wallpaper/           # Duvar kağıdıyla ilgili işlevsellik
-├── _locales/               # Eklenti çoklu dil desteği
-├── docs/                   # Dokümantasyon
+├── index.html              # Yeni sekme ve web girişi
+├── manifest.json           # Chrome / Edge manifest dosyası
+├── css/                    # Özelliklere göre stiller
+├── js/                     # Çalışma zamanı modülleri
+├── js/wallpaper/           # Duvar kâğıtları, kaynaklar ve tema çıkarımı
+├── wasm/                   # Tema motoru ve derleme scriptleri
+├── _locales/               # Uzantı i18n mesajları
+├── docs/                   # Belgeler ve sürüm notları
 ├── icon/                   # Simgeler
-└── imgs/                   # Ekran görüntüleri ve mağaza materyalleri
+└── imgs/                   # Ekran görüntüleri ve mağaza görselleri
 ```
+
+## PlainTab nelerden kaçınır?
+
+PlainTab sakin kalacaktır. Haber akışları, trendler, öneriler, açılış reklamları, sponsorlu kartlar, büyük hava durumu/takvim/görev panelleri, hesap sistemleri, sosyal özellikler, bulut içerik akışları, ana sayfayı kaplayan onlarca kısayol ve otomatik oynayan tanıtım içerikleri mevcut yönün parçası değildir.
+
+Safari sürümü şimdilik planlanmıyor; yayınlama ve bakım maliyeti kişisel bir proje için gerçekçi değil.
+
+## AI iş birliği ve öğrenme
+
+PlainTab kod, dokümantasyon, refactor, sürüm hazırlığı ve tanılama süreçlerinde yoğun AI iş birliğiyle geliştirildi. Gerçek arayüzü, kalıcı ayarları, içe/dışa aktarma akışları, duvar kâğıdı depolaması, çoklu dili ve uzantı/web çalışma yolları olan tamamlanmış bir örnektir.
+
+Yeni sekme uzantısı geliştirmeyi, framework'süz küçük frontend yapısını, AI destekli geliştirmeyi belgelendirmeyi ve ürün sadeliğinin teknik kararlara etkisini incelemek için uygundur.
+
+## Yol haritası
+
+Daha kararlı duvar kâğıdı kaynakları, daha akıcı ayar akışları, daha açık teknik belgeler, daha kapsamlı AI geliştirme kayıtları ve API/bakım şartları uygunsa Firefox desteği değerlendirilebilir.
 
 ## Katkı
 
-Issue veya PR göndermekten çekinmeyin.
+Issue ve pull request'ler memnuniyetle karşılanır; özellikle tarayıcı uyumluluğu, duvar kâğıdı kaynakları, dokümantasyon ve küçük UI iyileştirmeleri.
 
-PlainTab orijinal yönünü korumaya çalışacaktır: temiz, hızlı, sessiz ve öğrenilebilir.
+Başlangıç, duvar kâğıdı, depolama, arama, ayarlar veya komut paleti davranışını değiştirmeden önce [AGENTS.md](../AGENTS.md) ve `.claude/rules/` altındaki kuralları okuyun. Küçük, odaklı değişiklikler tercih edilir.
 
-## İlgili bağlantılar
+## Diller
+
+<details>
+<summary>README çevirileri</summary>
+
+- [English](../README.md)
+- [简体中文](README_zh-CN.md)
+- [繁體中文](README_zh-TW.md)
+- [हिन्दी](README_hi.md)
+- [Español](README_es.md)
+- [العربية](README_ar.md)
+- [Français](README_fr.md)
+- [Português](README_pt_BR.md)
+- [Русский](README_ru.md)
+- [Deutsch](README_de.md)
+- [日本語](README_ja.md)
+- [Italiano](README_it.md)
+- Türkçe
+- [Tiếng Việt](README_vi.md)
+- [한국어](README_ko.md)
+- [Polski](README_pl.md)
+
+</details>
+
+## Bağlantılar
 
 - [Değişiklik günlüğü](changelog-i18n/tr.txt)
 - [Ayrıntılı sürüm notları](RELEASE_NOTES.md)
-- [English Technical Notes](technical/README_en.md)
-- [Çevrimiçi deneyim](https://plaintab.kaininx.workers.dev)
-- [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-- [GitHub proje sayfası](https://github.com/kaininx/PlainTab)
-
+- [Teknik notlar](technical/README_en.md)
 - [Bellek ve depolama tanısı](ai-tasks/20260519-memory-storage-diagnostic-report.md)
+- [Canlı demo](https://plaintab.kaininx.workers.dev)
+- [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
+- [GitHub](https://github.com/kaininx/PlainTab)
 
 ## Lisans
 
-PlainTab [MIT License](../LICENSE) altında açık kaynak olarak sunulmaktadır.
+PlainTab [MIT Lisansı](../LICENSE) ile açık kaynaklıdır.
 
 [Kaelri](https://github.com/kaininx) tarafından oluşturulmuş ve sürdürülmektedir.

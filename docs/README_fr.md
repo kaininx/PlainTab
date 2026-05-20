@@ -1,211 +1,57 @@
-<p align="center">
-  <a href="../README.md">English</a>
-  ·
-  <a href="README_zh-CN.md">简体中文</a>
-  ·
-  <a href="README_zh-TW.md">繁體中文</a>
-  ·
-  <a href="README_hi.md">हिन्दी</a>
-  ·
-  <a href="README_es.md">Español</a>
-  ·
-  <a href="README_ar.md">العربية</a>
-  ·
-  Français
-  ·
-  <a href="README_pt_BR.md">Português</a>
-  ·
-  <a href="README_ru.md">Русский</a>
-  ·
-  <a href="README_de.md">Deutsch</a>
-  ·
-  <a href="README_ja.md">日本語</a>
-  ·
-  <a href="README_it.md">Italiano</a>
-  ·
-  <a href="README_tr.md">Türkçe</a>
-  ·
-  <a href="README_vi.md">Tiếng Việt</a>
-  ·
-  <a href="README_ko.md">한국어</a>
-  ·
-  <a href="README_pl.md">Polski</a>
-</p>
-
-<p align="center">
-  <a href="technical/README_en.md">Documentation technique</a>
-  ·
-  <a href="changelog-i18n/fr.txt">Journal des modifications</a>
-  ·
-  <a href="https://plaintab.kaininx.workers.dev">Démo en ligne</a>
-  ·
-  <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome Web Store</a>
-</p>
-
-<p align="center">
+﻿<p align="center">
   <img src="../icon/icon2048.png" alt="PlainTab Logo" width="92">
 </p>
 
 <h1 align="center">PlainTab</h1>
 
 <p align="center">
-  Un nouvel onglet beau, rapide et silencieux.
+  Une nouvelle page d’onglet rapide, calme et centrée sur les fonds d’écran pour Chrome et Edge.
 </p>
 
 <p align="center">
-  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT License"></a>
+  <a href="../README.md">English</a>
+  ·
+  <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome Web Store</a>
+  ·
+  <a href="https://plaintab.kaininx.workers.dev">Démo en ligne</a>
+  ·
+  <a href="technical/README_en.md">Notes techniques</a>
+  ·
+  <a href="changelog-i18n/fr.txt">Journal des changements</a>
+</p>
+
+<p align="center">
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="Licence MIT"></a>
+  <img src="https://img.shields.io/badge/version-3.2.1-111827?style=flat-square" alt="Version 3.2.1">
   <img src="https://img.shields.io/badge/Manifest-V3-4285f4?style=flat-square&logo=googlechrome" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/AI-Collaboration-7c3aed?style=flat-square" alt="AI Collaboration">
-  <img src="https://img.shields.io/badge/No-Build_Step-00a884?style=flat-square" alt="No Build Step">
+  <img src="https://img.shields.io/badge/No_Build_Step-00a884?style=flat-square" alt="Aucune compilation">
+  <img src="https://img.shields.io/badge/Vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=111827" alt="JavaScript vanilla">
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab screenshot 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab screenshot 2" />
+  <img src="../imgs/chrome_01.jpg" width="45%" alt="Capture PlainTab 1" />
+  <img src="../imgs/chrome_02.jpg" width="45%" alt="Capture PlainTab 2" />
 </div>
 
-## Qu'est-ce que c'est
+## Qu’est-ce que PlainTab ?
 
-PlainTab est un nouvel onglet pour navigateur.
+PlainTab est une extension Manifest V3 pour la nouvelle page d’onglet de Chrome et Edge. Elle remplace la page par défaut par un fond d’écran propre, une barre de recherche configurable et des raccourcis qui restent discrets jusqu’au moment où vous en avez besoin.
 
-Il fait quelque chose de très simple : quand vous ouvrez un nouvel onglet, vous voyez d'abord un joli fond d'écran, puis vous pouvez directement chercher, taper une URL ou ouvrir vos liens rapides.
+Elle s’adresse aux personnes qui veulent une page d’accueil calme et immédiate : pas de fil d’actualité, pas de cartes sponsorisées, pas de compte, pas de tableau de bord rempli de widgets. Ouvrez un onglet, regardez le fond, cherchez ou saisissez une URL, puis continuez.
 
-Il n'a pas de fil d'actualités, pas d'écran rempli de widgets, pas de météo, de message d'accueil, de liste de tâches, et il ne cherche pas à capter votre attention ailleurs. C'est plutôt comme un bureau propre : il est là quand vous en avez besoin, et il ne vous dérange pas quand ce n'est pas le cas.
+La même page peut aussi fonctionner comme une page web autonome en ouvrant directement `index.html`, ce qui rend le projet facile à essayer, lire et modifier.
 
-## Pourquoi ça vaut le coup d'essayer
+## Essayer
 
-### Une image dès l'ouverture
+### Installer
 
-La sensation la plus évidente avec PlainTab, c'est la vitesse.
+[Installer PlainTab depuis le Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 
-Beaucoup de nouveaux onglets affichent d'abord un écran blanc avant que l'image n'apparaisse. PlainTab évite au maximum cette sensation. Après une première utilisation, avec le cache du navigateur déjà présent, la prochaine fois que vous ouvrez un onglet, le fond d'écran apparaît presque instantanément, comme s'il avait toujours été là.
-
-Ce n'est pas une « optimisation de performance » théorique, mais une fluidité que vous ressentez concrètement.
-
-### Agréable au premier regard
-
-Son interface par défaut est très sobre : fond d'écran, barre de recherche, quelques petits boutons.
-
-Elle ne vous bombarde pas d'informations dès l'ouverture et ne transforme pas la page d'accueil du navigateur en un autre poste de travail. Sa beauté vient de ce qu'elle enlève, pas de ce qu'elle ajoute.
-
-### De nombreuses façons de jouer avec le fond d'écran
-
-Vous pouvez utiliser le fond d'écran quotidien de Bing, uploader vos propres images, ou choisir un dossier de fonds d'écran sur votre ordinateur.
-
-Si vous aimez bricoler, vous pouvez aussi connecter des flux RSS d'images ou votre propre API d'images. C'est simple pour un usage basique, mais il y a de la place pour explorer en profondeur.
-
-### Une recherche très naturelle
-
-La barre de recherche peut être placée où vous voulez, et vous pouvez ajuster sa taille, ses coins arrondis, sa transparence et son mode d'affichage.
-
-Vous pouvez la garder toujours visible, ou la cacher pour qu'elle n'apparaisse que quand vous en avez besoin. Elle a l'air légère, mais elle est très pratique au quotidien.
-
-### Des liens rapides sans encombrer la page d'accueil
-
-Beaucoup de nouveaux onglets remplissent l'écran de liens rapides. PlainTab ne fait pas ça.
-
-Il place les liens rapides dans la palette de commandes. Vous pouvez chercher, ajouter, modifier, importer des favoris, et même ranger certains liens dans un espace caché. La page d'accueil reste propre, mais sans perdre de fonctionnalités.
-
-### Des réglages en pagaille, mais sans bruit
-
-PlainTab vous permet de régler le fond d'écran, la barre de recherche, les raccourcis clavier, les sauvegardes, la langue et les détails de l'interface.
-
-Mais ces réglages ne s'entassent pas sur la page d'accueil. Au quotidien, vous voyez un nouvel onglet tranquille ; quand vous voulez ajuster quelque chose, vous ouvrez le panneau de configuration.
-
-## Un projet collaboratif avec l'IA
-
-PlainTab est aussi idéal pour apprendre.
-
-Ce n'est pas un projet jouet qui ne fonctionne qu'en démo, mais une extension de nouvel onglet complète : avec une vraie interface, des paramètres utilisateur, de la persistance de données, de l'import/export, du multilingue, et un support à la fois pour l'environnement d'extension navigateur et pour la page web classique.
-
-Ce projet a été développé avec une collaboration intensive de l'IA pour le développement, l'organisation, la documentation et les itérations. Vous pouvez le prendre comme un excellent support d'apprentissage :
-
-- Pour voir comment l'IA participe au développement d'un projet réel.
-- Pour apprendre comment se construit une extension de navigateur.
-- Pour débuter en frontend sans vous confronter directement à des frameworks complexes.
-- Pour étudier un petit projet complet, de l'idée aux fonctionnalités, à l'expérience et à la documentation.
-
-Son code ne dépend pas d'outils de build complexes : ouvrez les fichiers et lisez-les, ouvrez la page et elle fonctionne. Pour les débutants, c'est bien plus accueillant que d'installer une pile de dépendances dès le départ.
-
-## À qui s'adresse PlainTab
-
-PlainTab est fait pour ceux qui :
-
-- Veulent un nouvel onglet plus beau.
-- N'aiment pas voir un tas d'informations en ouvrant le navigateur.
-- Aiment les fonds d'écran quotidiens, ou ont leur propre collection.
-- Veulent une page d'accueil légère mais complète en fonctionnalités.
-- Cherchent un projet collaboratif avec l'IA qui soit réel, complet et adapté à l'apprentissage.
-- Veulent débuter dans les extensions navigateur ou le développement frontend.
-
-## Ce qu'il ne fera pas
-
-PlainTab restera sobre. Certaines fonctions, même si elles sont très répandues, ne conviennent pas forcément à ce projet.
-
-Il n'y aura probablement jamais :
-
-- De fil d'actualités, de tendances, de contenu recommandé.
-- De publicités à l'ouverture, de cartes promotionnelles, d'espaces sponsorisés.
-- De grands panneaux de météo, de calendrier ou de tâches.
-- De lecture automatique de vidéos ou de fonds animés.
-- De système de comptes, de fonctions sociales, de flux de contenu cloud.
-- De page d'accueil remplie de dizaines de raccourcis.
-- De version Safari. Cela demanderait un coût de publication et de maintenance supplémentaire qui n'est pas réaliste pour ce projet personnel pour le moment.
-
-Ce n'est pas que ces fonctions soient mauvaises, c'est qu'elles transformeraient PlainTab en autre chose.
-
-Si quand vous ouvrez un nouvel onglet vous voulez juste un moment de calme, chercher quelque chose ou regarder un fond d'écran, alors PlainTab est de votre côté.
-
-## Ce qui pourrait venir ensuite
-
-J'aimerais que PlainTab continue de grandir dans ces directions :
-
-- Des sources de fonds d'écran plus stables.
-- Une expérience de configuration plus agréable.
-- Une documentation d'apprentissage plus facile à comprendre.
-- Des explications du code plus accessibles aux débutants.
-- Un historique plus complet du développement collaboratif avec l'IA.
-- Possiblement le support de Firefox.
-
-Le support de Firefox ne peut pas être promis pour l'instant, car l'environnement d'extensions, les permissions et le comportement des API peuvent différer de ceux de Chrome et Edge. Mais si les conditions sont réunies à l'avenir, j'aimerais que PlainTab ne reste pas cantonné aux navigateurs basés sur Chromium.
-
-Si vous vous intéressez aux extensions Firefox, à la compatibilité entre navigateurs ou au développement assisté par IA, vous êtes également le bienvenu pour explorer. Ce projet est parfait pour apprendre en pratiquant.
-
-## Aperçu des fonctionnalités
-
-| Fonctionnalité | Description |
-|------|------|
-| Remplacement du nouvel onglet | Remplace le nouvel onglet du navigateur après installation |
-| Page d'accueil en ligne | Fonctionne aussi directement comme page web |
-| Fond d'écran quotidien | Compatible avec le fond d'écran quotidien de Bing |
-| Fonds d'écran locaux | Permet d'uploader des images et de choisir des dossiers locaux |
-| Fonds d'écran RSS / API | Possibilité de connecter davantage de sources d'images |
-| Barre de recherche | Position, taille, style et mode d'affichage réglables |
-| Historique de recherche | Sauvegarde les recherches récentes ou peut être désactivé |
-| Liens rapides | Gérés depuis la palette de commandes, sans occuper la page d'accueil |
-| Espace caché | Range séparément les liens que vous ne voulez pas afficher |
-| Panneau de configuration | Règle l'interface, les fonds, les raccourcis et les données |
-| Sauvegarde de données | Permet d'exporter, d'importer et de faire des sauvegardes chiffrées |
-| Multilingue | Interface multilingue |
-| Collaboration IA | Idéal pour apprendre comment l'IA participe au développement de projets |
-
-## Diagnostic de fiabilité
-
-PlainTab vérifie que ses chemins de cache de fonds d’écran restent bornés. Le dernier diagnostic mémoire et stockage a confirmé que les images RSS restent limitées à 12 enregistrements IndexedDB, que l’API et Bing restent chacun limités à un enregistrement, et que les rechargements répétés de fond d’écran restent stables après GC forcé.
-
-Rapport complet en anglais : [diagnostic mémoire et stockage, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
-
-## Démarrage rapide
-
-### Installer l'extension
-
-[Installer PlainTab sur le Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-
-### Essayer en ligne
+### Ouvrir la démo
 
 [plaintab.kaininx.workers.dev](https://plaintab.kaininx.workers.dev)
 
-### Exécuter en local
+### Lancer localement
 
 ```bash
 git clone https://github.com/kaininx/PlainTab.git
@@ -213,51 +59,175 @@ git clone https://github.com/kaininx/PlainTab.git
 
 Mode extension :
 
-1. Ouvrez `chrome://extensions`
-2. Activez le mode développeur
-3. Sélectionnez « Charger l'extension non empaquetée »
-4. Choisissez le dossier du projet PlainTab
+1. Ouvrez `chrome://extensions`.
+2. Activez le mode développeur.
+3. Choisissez « Charger l’extension non empaquetée ».
+4. Sélectionnez le dossier du projet PlainTab.
 
-Mode page web :
+Mode web :
 
-Ouvrez `index.html` directement dans le navigateur.
+Ouvrez directement `index.html` dans un navigateur.
 
-Pas besoin d'installer de dépendances ni de build.
+Aucune dépendance à installer, aucun gestionnaire de paquets, aucune étape de build.
+
+## Pourquoi PlainTab
+
+### Le fond d’écran d’abord
+
+PlainTab soigne la sensation d’ouverture instantanée. Une prévisualisation légère est conservée dans `localStorage`, puis le chargement complet du fond, la mise en cache et l’extraction des couleurs sont reportés après le premier affichage.
+
+La vitesse perçue fait donc partie de l’expérience produit, pas seulement des chiffres de performance.
+
+### Calme par défaut
+
+La page garde l’essentiel : fond d’écran, recherche et quelques contrôles. Les raccourcis, liens masqués, réglages, sauvegardes et options avancées restent accessibles sans envahir l’accueil.
+
+### Sources de fonds flexibles
+
+Vous pouvez utiliser le fond quotidien Bing, Wallhaven, des images importées, un dossier local, des flux RSS, une API d’images personnalisée ou des fonds vidéo. PlainTab reste simple au quotidien et laisse de la place aux configurations plus personnelles.
+
+### Recherche et raccourcis sans désordre
+
+La barre de recherche permet d’ajuster position, taille, arrondi, transparence, visibilité, historique et moteur. Les raccourcis vivent dans une palette de commandes pour chercher, ajouter, modifier, importer et masquer des liens sans transformer l’accueil en grille.
+
+## Fonctionnalités
+
+| Fonctionnalité | Rôle |
+|----------------|------|
+| Remplacement de nouvel onglet | Remplace la nouvelle page d’onglet après installation |
+| Mode web autonome | Fonctionne depuis `index.html` sans empaquetage |
+| Démarrage rapide du fond | Réduit les écrans blancs grâce à une prévisualisation précoce |
+| Fond Bing | Prend en charge le fond quotidien Bing |
+| Fond Wallhaven | Permet de parcourir et définir des fonds Wallhaven |
+| Fonds locaux | Import, galerie et sélection de dossier local |
+| Fonds RSS / API | Connexion à des flux et APIs d’images |
+| Fonds vidéo | Choix de vidéos comme fond |
+| Barre de recherche | Position, taille, style, transparence et visibilité réglables |
+| Historique de recherche | Peut être conservé ou désactivé |
+| Palette de commandes | Gestion des raccourcis sans encombrer l’accueil |
+| Espace masqué | Liens disponibles mais non visibles |
+| Panneau de réglages | Interface, fonds, raccourcis clavier, données et langue |
+| Sauvegarde et restauration | Import, export et sauvegarde chiffrée |
+| Interface multilingue | 16 langues d’interface incluses |
+| Trace de collaboration IA | Notes et documents du développement assisté par IA |
+
+## Pour les développeurs
+
+PlainTab reste volontairement simple :
+
+- JavaScript vanilla, CSS et APIs du navigateur.
+- Pas de `npm`, pas de `package.json`, pas de framework, pas de bundler.
+- Une seule base de code pour le mode extension et le mode web.
+- Configuration Manifest V3 dans `manifest.json`.
+- Scripts chargés directement par `index.html`.
+
+Points d’entrée utiles :
+
+- [Notes techniques](technical/README_en.md) pour l’architecture et les responsabilités.
+- [Notes de version](RELEASE_NOTES.md) pour l’historique des fonctionnalités.
+- [Diagnostic mémoire et stockage](ai-tasks/20260519-memory-storage-diagnostic-report.md) pour le cache des fonds.
+- [Instructions pour agents IA](../AGENTS.md) pour les règles de maintenance.
+
+Zones sensibles :
+
+- Le chemin de démarrage limite les flashs blancs.
+- Le rendu du fond utilise une couche stable et une couche de transition.
+- Les gros fichiers de fond passent par le module de stockage et IndexedDB.
+- Les clés localStorage doivent rester compatibles sauf migration.
+- Les permissions doivent rester adaptées à la validation du Chrome Web Store.
 
 ## Structure du projet
 
 ```text
 PlainTab/
-├── index.html              # Point d'entrée nouvel onglet et page web
-├── manifest.json           # Configuration de l'extension navigateur
-├── css/                    # Styles de la page
-├── js/                     # Logique de la page
-├── js/wallpaper/           # Fonctions liées au fond d'écran
-├── _locales/               # Multilingue de l'extension
-├── docs/                   # Documentation
+├── index.html              # Nouvelle page d’onglet et entrée web
+├── manifest.json           # Manifeste Chrome / Edge
+├── css/                    # Styles par fonctionnalité
+├── js/                     # Modules d’exécution
+├── js/wallpaper/           # Fonds, sources et extraction de thème
+├── wasm/                   # Moteur de thème et scripts de build
+├── _locales/               # Messages i18n de l’extension
+├── docs/                   # Docs, notes de version et tâches
 ├── icon/                   # Icônes
-└── imgs/                   # Captures d'écran et ressources pour le store
+└── imgs/                   # Captures et ressources de boutique
 ```
+
+## Ce que PlainTab évite
+
+PlainTab restera sobre. Ces fonctionnalités ne font pas partie de la direction actuelle :
+
+- Flux d’actualité, tendances ou recommandations.
+- Publicités de démarrage, cartes sponsorisées ou emplacements promus.
+- Grands panneaux météo, calendrier ou tâches.
+- Comptes, fonctions sociales ou flux cloud.
+- Des dizaines de raccourcis épinglés sur l’accueil.
+- Contenu promotionnel en lecture automatique.
+
+Une version Safari n’est pas prévue pour le moment : la publication et la maintenance seraient trop lourdes pour un projet personnel.
+
+## Collaboration IA et apprentissage
+
+PlainTab a été développé avec une forte collaboration IA : code, documentation, refactorisation, préparation de versions et diagnostics. Ce n’est pas une démo jouet : il contient une vraie interface, des réglages persistants, import/export, stockage de fonds, plusieurs langues et deux modes d’exécution.
+
+Il peut servir à étudier :
+
+- la construction d’une extension de nouvelle page d’onglet ;
+- l’organisation d’un petit frontend sans framework ;
+- la documentation et la revue du développement assisté par IA ;
+- l’impact des choix produit sur les choix techniques.
+
+## Feuille de route
+
+PlainTab pourra évoluer vers :
+
+- des sources de fonds plus stables ;
+- des réglages et flux de fonds plus fluides ;
+- une documentation technique plus claire ;
+- un historique plus complet du développement assisté par IA ;
+- un possible support Firefox si les APIs et la maintenance le permettent.
 
 ## Contribuer
 
-Les Issues et les PR sont les bienvenus.
+Les issues et pull requests sont bienvenues, surtout pour la compatibilité navigateur, les sources de fonds, la documentation et les petites améliorations d’interface.
 
-PlainTab gardera sa direction d'origine : propre, rapide, silencieux et facile à apprendre.
+Avant de modifier le démarrage, les fonds, le stockage, la recherche, les réglages ou la palette de commandes, lisez [AGENTS.md](../AGENTS.md) et les règles dans `.claude/rules/`. L’ouverture de PlainTab est sensible ; privilégiez les changements petits et ciblés.
 
-## Liens connexes
+## Langues
 
-- [Journal des modifications](changelog-i18n/fr.txt)
+<details>
+<summary>Traductions du README</summary>
+
+- [English](../README.md)
+- [简体中文](README_zh-CN.md)
+- [繁體中文](README_zh-TW.md)
+- [हिन्दी](README_hi.md)
+- [Español](README_es.md)
+- [العربية](README_ar.md)
+- Français
+- [Português](README_pt_BR.md)
+- [Русский](README_ru.md)
+- [Deutsch](README_de.md)
+- [日本語](README_ja.md)
+- [Italiano](README_it.md)
+- [Türkçe](README_tr.md)
+- [Tiếng Việt](README_vi.md)
+- [한국어](README_ko.md)
+- [Polski](README_pl.md)
+
+</details>
+
+## Liens utiles
+
+- [Journal des changements](changelog-i18n/fr.txt)
 - [Notes de version détaillées](RELEASE_NOTES.md)
-- [Notes techniques en anglais](technical/README_en.md)
-- [Essayer en ligne](https://plaintab.kaininx.workers.dev)
-- [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-- [Page du projet GitHub](https://github.com/kaininx/PlainTab)
-
+- [Notes techniques](technical/README_en.md)
 - [Diagnostic mémoire et stockage](ai-tasks/20260519-memory-storage-diagnostic-report.md)
+- [Démo en ligne](https://plaintab.kaininx.workers.dev)
+- [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
+- [GitHub](https://github.com/kaininx/PlainTab)
 
 ## Licence
 
-PlainTab est open source sous [MIT License](../LICENSE).
+PlainTab est open source sous [licence MIT](../LICENSE).
 
 Créé et maintenu par [Kaelri](https://github.com/kaininx).

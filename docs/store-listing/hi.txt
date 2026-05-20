@@ -1,100 +1,89 @@
-PlainTab एक सुंदर, तेज़ और शांत नया टैब पेज है।
+PlainTab · सरल नया टैब
 
-क्यों? क्योंकि आपका नया टैब पहले एक आरामदायक वॉलपेपर दिखाए, न कि विज्ञापन, समाचार, ट्रेंड या शॉर्टकट से भरी स्क्रीन।
+Chrome और Edge के लिए तेज़, शांत और वॉलपेपर-केंद्रित नया टैब पेज।
 
-PlainTab एक सरल काम करता है: नया टैब खोलें, वॉलपेपर देखें, फिर खोजें, URL टाइप करें या अपने शॉर्टकट खोलें। यह आपका ध्यान नहीं खींचता और ब्राउज़र होमपेज को एक और कंटेंट फीड नहीं बनाता।
+जब आप नया टैब खोलते हैं, तो सबसे पहले एक सुंदर वॉलपेपर, खोज पट्टी और ज़रूरत पड़ने पर अपने लिंक दिखने चाहिए। समाचार फ़ीड, विज्ञापन, ट्रेंड, सुझाव या विजेट से भरी स्क्रीन नहीं।
+
+PlainTab नए टैब को साफ़, सुंदर और तेज़ रखता है। आप खोज सकते हैं, URL लिख सकते हैं, शॉर्टकट खोल सकते हैं, वॉलपेपर स्रोत बदल सकते हैं, या बस एक पल के लिए चित्र देखकर आगे बढ़ सकते हैं।
 
 PlainTab क्यों चुनें?
 
-【खुलते ही चित्र】
-• बेहद तेज़ लोकल वॉलपेपर लोडिंग: PlainTab हल्का प्रीव्यू स्नैपशॉट लोकल रूप से सहेजता है और हर नए टैब पर तुरंत लोड करता है, जिससे सफेद स्क्रीन झिलमिलाहट कम होती है।
-• हाई-रेज़ोल्यूशन वॉलपेपर बैकग्राउंड में स्मूथ तरीके से बदलते हैं, जबकि मौजूदा चित्र नीचे fallback के रूप में रहता है। इसलिए बैकग्राउंड देखने के लिए नेटवर्क का इंतज़ार नहीं करना पड़ता।
-• Bing दैनिक वॉलपेपर cache और update को सपोर्ट करते हैं; एक बार उपयोग करने के बाद अगली बार खुलना और भी सहज लगता है।
+[वॉलपेपर जल्दी दिखता है]
 
-【वॉलपेपर की आज़ादी】
-• Bing दैनिक वॉलपेपर और आपकी अपनी अपलोड की गई तस्वीरों को सपोर्ट करता है।
-• लोकल वॉलपेपर फ़ोल्डर चुनने की सुविधा, अगर आपके पास पहले से वॉलपेपर संग्रह है।
-• RSS image sources और custom APIs सपोर्ट करता है: सरल उपयोग के लिए सरल, और प्रयोग करने के लिए लचीला।
-• लोकल वॉलपेपर में अधिकतम 12 चित्रों की rotation और 3×4 gallery preview सपोर्ट है, जिन्हें कभी भी हटाया या बदला जा सकता है।
+PlainTab नए टैब खुलने के पहले क्षण पर ध्यान देता है।
 
-【शांत, लेकिन खाली नहीं】
-• होमपेज संयमित रहता है: वॉलपेपर, search bar और कुछ ज़रूरी controls, बिना widgets से पेज भरने के।
-• search bar की position, size, corner radius, opacity और visibility mode बदली जा सकती है।
-• search bar हमेशा दिखाई दे सकता है, ज़रूरत पर दिख सकता है या छिपा रह सकता है।
-• शॉर्टकट command palette में manage होते हैं, search, add, edit और bookmark import के साथ, इसलिए वे वॉलपेपर को ढकते नहीं।
-• hidden space उन links को रखने देता है जिन्हें आप सीधे नहीं दिखाना चाहते, ताकि homepage साफ़ रहे।
+यह ब्राउज़र में हल्का वॉलपेपर पूर्वावलोकन स्थानीय रूप से सहेजता है, ताकि अगली बार नया टैब खुलते ही चित्र जल्दी दिख सके। पूरा वॉलपेपर लोड होना, कैश और थीम रंग निकालना बाद में होता है।
 
-【Privacy पहले】
-• कोई विज्ञापन नहीं, कोई tracking नहीं, browsing data collection नहीं।
-• लोकल रूप से upload किए गए वॉलपेपर browser के local storage में रहते हैं। वे upload, sync या third-party servers से होकर नहीं जाते।
-• search और shortcut settings local use के लिए डिज़ाइन की गई हैं। आपका नया टैब आपका होना चाहिए।
+वॉलपेपर बदलते समय दो परतों का उपयोग होता है: पुराना चित्र दिखाई देता रहता है, और नया चित्र तैयार होने पर धीरे से सामने आता है। यदि कोई ऑनलाइन स्रोत विफल हो जाए, तो PlainTab मौजूदा स्थिर वॉलपेपर को बनाए रखने की कोशिश करता है।
 
-【हल्का और पारदर्शी】
-• Vanilla JavaScript, CSS और browser APIs से बना है, बिना frontend framework, बिना build step और बिना बड़े runtime dependency के।
-• Chrome / Edge new tab extension के रूप में काम करता है, और सीधे web page के रूप में भी खोला जा सकता है।
-• पूरी तरह open source, रोज़मर्रा के उपयोग और browser extension, frontend project तथा AI-assisted engineering सीखने के लिए उपयुक्त।
+[लचीले वॉलपेपर स्रोत]
 
-PlainTab आपके लिए है, यदि आप चाहते हैं:
+PlainTab इन स्रोतों का समर्थन करता है:
 
-• information feed के शोर के बिना सुंदर नया टैब
-• दैनिक वॉलपेपर या अपनी wallpaper collection manage करने की जगह
-• search, shortcuts, bookmark import और backup बिना homepage clutter के
-• ऐसा homepage जो दर्जनों shortcut tiles से ढका न हो
-• complex build tools के बिना हल्का और transparent extension
-• सीखने के लिए वास्तविक और पूर्ण browser extension project
+• Bing दैनिक वॉलपेपर
+• Wallhaven
+• स्थानीय चित्र अपलोड
+• स्थानीय वॉलपेपर फ़ोल्डर
+• RSS चित्र फ़ीड
+• कस्टम चित्र API
+• वीडियो वॉलपेपर
 
-PlainTab क्या नहीं करेगा:
+यदि आप सरल अनुभव चाहते हैं, तो Bing दैनिक वॉलपेपर चुनें। यदि आपके पास अपना संग्रह है, तो स्थानीय चित्र या फ़ोल्डर उपयोग करें। अधिक अनुकूलन चाहिए, तो RSS, API या Wallhaven जोड़ सकते हैं।
 
-• news feeds, trending lists या recommended content नहीं
-• ads, sponsored cards या promotional slots नहीं
-• account system, social features या cloud content stream नहीं
-• homepage पर shortcut tiles की दीवार नहीं
-• autoplay video या animated backgrounds नहीं
+[शांत पेज, उपयोगी सुविधाएँ]
 
-Support और Feedback
+PlainTab होम पेज को शॉर्टकट टाइलों से नहीं भरता और नए टैब को एक और फ़ीड नहीं बनाता।
 
-• Open source: https://github.com/kaininx/PlainTab
-• Live demo: https://plaintab.kaininx.workers.dev
-• Detailed release notes: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
-• PlainTab पसंद आया? Chrome Web Store पर review देना बहुत मददगार होगा।
-• सवाल या सुझाव? GitHub पर Issue खोलें।
+मुख्य पेज पर वॉलपेपर, खोज और कुछ आवश्यक नियंत्रण रहते हैं। शॉर्टकट कमांड पैलेट में रखे जाते हैं, जहाँ आप लिंक खोज सकते हैं, जोड़ सकते हैं, संपादित कर सकते हैं, बुकमार्क आयात कर सकते हैं और निजी लिंक छिपा सकते हैं।
 
-बदलावों का लॉग
+खोज पट्टी में स्थान, चौड़ाई, कोने, पारदर्शिता, दिखने का तरीका, खोज इतिहास और खोज इंजन व्यवहार बदला जा सकता है।
 
-• v3.2.1 · Wallhaven और वीडियो वॉलपेपर समर्थन जोड़ा, वॉलपेपर सेटअप और लागू करने की सुरक्षा सुधारी, कमांड पैलेट/थीम अनुभव बेहतर किया, और वॉलपेपर, सेटिंग्स व i18n स्थिरता ठीक की।
+[गहरी सेटिंग्स, कम शोर]
 
-• v3.2.0 · बड़ा फीचर और प्रदर्शन अपडेट: कमांड पैलेट, RSS/API/लोकल फ़ोल्डर वॉलपेपर, WASM वॉलपेपर थीम रंग, कॉन्फ़िग import/export और खोज इतिहास जोड़े; स्टोरेज को v3.2 मॉडल में माइग्रेट किया, अनुमतियों और खोज fallback को कड़ा किया, और startup, wallpaper, gallery तथा settings पाथ को मॉड्यूलर व ऑप्टिमाइज़ किया।
+सेटिंग्स अलग पैनल में रहती हैं। आप वॉलपेपर स्रोत, खोज, हॉटकी, कमांड पैलेट, इंटरफ़ेस शैली, बैकअप, भाषा और बहुत कुछ समायोजित कर सकते हैं।
 
-• v3.1.4 · स्टोरेज कॉन्स्टेंट नेमिंग को रिफैक्टर किया और IDB माइग्रेशन को क्रैश-रिकवरेबल ऑर्डरिंग के लिए दो-चरण ट्रांजेक्शन में मर्ज किया; नए उपयोगकर्ता माइग्रेशन स्किप को ऑप्टिमाइज़ किया; बैच अपलोड में डुप्लीकेट फ़िल्टरिंग और 12-इमेज कैप जोड़ा
+[गोपनीयता और अनुमतियाँ]
 
-• v3.1.3 · localStorage और IndexedDB के लिए स्टोरेज वर्शन माइग्रेशन लागू किया, स्टोरेज की नेमिंग को एकीकृत किया, लोकल मोड में थंबनेल पर्सिस्टेंस लॉजिक को ठीक किया।
+PlainTab में विज्ञापन नहीं हैं और ट्रैकिंग विश्लेषण नहीं है।
 
-• v3.1.2 · Chrome Web Store compliance के लिए _locales/pt को pt_BR में rename किया; changelog format unified किया; Portuguese files को pt_BR में rename किया।
+अपलोड किए गए वॉलपेपर, शॉर्टकट, खोज इतिहास और सेटिंग्स मुख्य रूप से आपके ब्राउज़र के स्थानीय संग्रहण में रहती हैं। खाता बनाने की आवश्यकता नहीं है।
 
-• v3.1.1 · Bing API को Promise.any race mode और 8-second AbortController timeout में बदला; सभी 16 language README अपडेट किए।
+अनुमतियाँ नए टैब, खोज, पेज इंटरैक्शन और वैकल्पिक ऑनलाइन वॉलपेपर स्रोतों से संबंधित हैं। RSS, API और Wallhaven को अपने चित्र स्रोतों तक पहुँच की आवश्यकता हो सकती है।
 
-• v3.1.0 · Local wallpaper gallery: multiple wallpapers upload/delete/rotate, batch file selection; panel styling improved; localization expanded; CSP configuration tightened.
+[हल्का और खुला]
 
-• v3.0.5 · Bing API proxy upgrade, wallpaper caching optimize, localStorage keys unified, 16-language changelog added, logs और code semantics improved.
+PlainTab साधारण JavaScript, CSS और ब्राउज़र API से बना है। इसमें कोई फ़्रंटएंड फ़्रेमवर्क, बिल्ड चरण या भारी रनटाइम निर्भरता नहीं है।
 
-• v3.0.4 · CSP image allowlist में Bing CDN domains missing होने से wallpaper loading failure fix किया।
+प्रोजेक्ट खुला स्रोत है और पढ़ने में आसान है। यह रोज़मर्रा के उपयोग के साथ-साथ वास्तविक ब्राउज़र एक्सटेंशन सीखने के लिए भी उपयोगी है।
 
-• v3.0.3 · first-frame rendering path optimize, CSP security harden, unused code cleanup, icons और promotion assets add किए।
+PlainTab आपके लिए है यदि आप चाहते हैं:
 
-• v3.0.2 · dark mode adaptive background, code structure adjusted, multilingual footer bar added.
+• फ़ीड के बिना सुंदर नया टैब
+• दैनिक वॉलपेपर या अपना वॉलपेपर संग्रह
+• खोज, शॉर्टकट, बुकमार्क आयात और बैकअप
+• दर्जनों टाइलों से मुक्त होम पेज
+• हल्का और पारदर्शी एक्सटेंशन
 
-• v3.0.1 · Chrome Web Store single-purpose requirements के लिए Chrome Search API integrate किया।
+PlainTab ये चीज़ें नहीं जोड़ेगा:
 
-• v3.0.0 · core rewrite: dual-layer architecture new tab white flash कम करती है, fallback background add किया।
+• समाचार फ़ीड, ट्रेंड या सुझाव
+• विज्ञापन या प्रायोजित कार्ड
+• खाता प्रणाली, सामाजिक सुविधाएँ या क्लाउड सामग्री फ़ीड
+• होम पेज पर दर्जनों स्थिर शॉर्टकट
+• अपने-आप चलने वाले प्रचार वीडियो या सामग्री फ़ीड
 
-• v2.2.7 · English, Japanese, Korean, Russian और Simplified Chinese README add किए; default search mode हमेशा visible किया।
+सहायता
 
-• v2.2.6 · wallpaper loading और thumbnail caching optimize, Bing API constants organized.
+• स्रोत कोड: https://github.com/kaininx/PlainTab
+• लाइव डेमो: https://plaintab.kaininx.workers.dev
+• रिलीज़ नोट्स: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
+• यदि आपको PlainTab पसंद है, तो स्टोर समीक्षा बहुत मदद करेगी।
+• समस्या या सुझाव हो तो GitHub पर issue खोलें।
 
-• v2.2.5 · white screen कम करने के लिए wallpaper preloading और first-frame optimization add किया।
+हाल के अपडेट
 
-• v2.2.4 · wallpaper storage को localStorage से IndexedDB में migrate किया।
+• v3.2.1: Wallhaven और वीडियो वॉलपेपर समर्थन जोड़ा गया; वॉलपेपर लागू करने की सुरक्षा, कमांड पैलेट, थीम और स्थिरता बेहतर की गई।
 
-• v2.2.3 · local wallpaper upload add किया और search engine switching experience improve किया।
+• v3.2.0: कमांड पैलेट, RSS/API/स्थानीय फ़ोल्डर वॉलपेपर, WASM थीम रंग, आयात/निर्यात और खोज इतिहास जोड़े गए।
 
-• v1.2.0 · initial release: wallpaper system, 16-language UI, Chrome i18n localization और MIT license.
+PlainTab साफ़, तेज़, शांत और सीखने योग्य दिशा में आगे बढ़ता रहेगा।

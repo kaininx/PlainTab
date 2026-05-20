@@ -1,211 +1,49 @@
-<p align="center">
-  <a href="../README.md">English</a>
-  ·
-  <a href="README_zh-CN.md">简体中文</a>
-  ·
-  <a href="README_zh-TW.md">繁體中文</a>
-  ·
-  <a href="README_hi.md">हिन्दी</a>
-  ·
-  <a href="README_es.md">Español</a>
-  ·
-  <a href="README_ar.md">العربية</a>
-  ·
-  <a href="README_fr.md">Français</a>
-  ·
-  <a href="README_pt_BR.md">Português</a>
-  ·
-  <a href="README_ru.md">Русский</a>
-  ·
-  <a href="README_de.md">Deutsch</a>
-  ·
-  <a href="README_ja.md">日本語</a>
-  ·
-  <a href="README_it.md">Italiano</a>
-  ·
-  <a href="README_tr.md">Türkçe</a>
-  ·
-  <a href="README_vi.md">Tiếng Việt</a>
-  ·
-  <a href="README_ko.md">한국어</a>
-  ·
-  Polski
-</p>
-
-<p align="center">
-  <a href="technical/README_en.md">Dokumentacja techniczna</a>
-  ·
-  <a href="changelog-i18n/pl.txt">Dziennik zmian</a>
-  ·
-  <a href="https://plaintab.kaininx.workers.dev">Demo online</a>
-  ·
-  <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome Web Store</a>
-</p>
-
-<p align="center">
+﻿<p align="center">
   <img src="../icon/icon2048.png" alt="PlainTab Logo" width="92">
 </p>
 
 <h1 align="center">PlainTab</h1>
 
 <p align="center">
-  Ładna, szybka i spokojna strona nowej karty.
+  Szybka, spokojna i skupiona na tapetach strona nowej karty dla Chrome i Edge.
 </p>
 
 <p align="center">
-  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT License"></a>
+  <a href="../README.md">English</a> · <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome Web Store</a> · <a href="https://plaintab.kaininx.workers.dev">Demo online</a> · <a href="technical/README_en.md">Notatki techniczne</a> · <a href="changelog-i18n/pl.txt">Lista zmian</a>
+</p>
+
+<p align="center">
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="Licencja MIT"></a>
+  <img src="https://img.shields.io/badge/version-3.2.1-111827?style=flat-square" alt="Wersja 3.2.1">
   <img src="https://img.shields.io/badge/Manifest-V3-4285f4?style=flat-square&logo=googlechrome" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/AI-Collaboration-7c3aed?style=flat-square" alt="AI Collaboration">
-  <img src="https://img.shields.io/badge/No-Build_Step-00a884?style=flat-square" alt="No Build Step">
+  <img src="https://img.shields.io/badge/No_Build_Step-00a884?style=flat-square" alt="Bez budowania">
+  <img src="https://img.shields.io/badge/Vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=111827" alt="Vanilla JavaScript">
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab screenshot 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab screenshot 2" />
+  <img src="../imgs/chrome_01.jpg" width="45%" alt="Zrzut ekranu PlainTab 1" />
+  <img src="../imgs/chrome_02.jpg" width="45%" alt="Zrzut ekranu PlainTab 2" />
 </div>
 
-## Co to jest
+## Czym jest PlainTab
 
-PlainTab to strona nowej karty w przeglądarce.
+PlainTab to rozszerzenie Manifest V3 dla nowej karty w Chrome i Edge. Zastępuje domyślną stronę czystą tapetą, konfigurowalnym paskiem wyszukiwania i skrótami, które pozostają schowane, dopóki nie są potrzebne.
 
-Robi prostą rzecz: gdy otwierasz nową kartę, najpierw widzisz ładną tapetę, a potem możesz od razu szukać, wpisać adres lub otworzyć swoje szybkie linki.
+Jest dla osób, które chcą spokojnej strony startowej: bez wiadomości, promowanych kart, konta i pulpitu pełnego widżetów. Otwierasz kartę, widzisz tapetę, wyszukujesz albo wpisujesz URL i wracasz do pracy.
 
-Nie ma tu kanału informacyjnego, nie ma widżetów na cały ekran, nie ma pogody, powitań, listy zadań ani niczego, co odciąga twoją uwagę. To bardziej jak czysty blat biurka: jest tam, gdy go potrzebujesz, i nie przeszkadza, gdy go nie potrzebujesz.
+Ta sama strona działa też jako samodzielna strona WWW po otwarciu `index.html`, więc projekt łatwo przetestować, przeczytać i zmienić.
 
-## Dlaczego warto spróbować
+## Wypróbuj
 
-### Obraz od razu po otwarciu
-
-Najbardziej zauważalną cechą PlainTab jest szybkość.
-
-Wiele stron nowej karty przy otwieraniu najpierw mignie puste tło, a potem pojawia się obraz. PlainTab stara się uniknąć tego wrażenia. Gdy użyjesz go choć raz i przeglądarka ma już cache, przy następnym otwarciu tapeta pojawi się bardzo szybko — jakby zawsze tam była.
-
-To nie jest ta „optymalizacja wydajności", która istnieje tylko na papierze — to płynność, którą odczuwasz bezpośrednio.
-
-### Przyjemne na pierwszy rzut oka
-
-Domyślny interfejs jest bardzo powściągliwy: tapeta, pasek wyszukiwania, kilka małych przycisków.
-
-Nie zasypuje cię informacjami przy otwarciu ani nie zamienia strony domowej przeglądarki w kolejne miejsce pracy. Jego piękno bierze się z odejmowania, nie z dodawania.
-
-### Wiele możliwości tapet
-
-Możesz używać codziennej tapety Bing, przesyłać własne obrazy lub wybrać folder z tapetami na swoim komputerze.
-
-Jeśli lubisz eksperymentować, możesz podłączyć źródła obrazów RSS lub własne API obrazów. Możesz korzystać prosto, a możesz też głębiej konfigurować.
-
-### Wygodne wyszukiwanie
-
-Pasek wyszukiwania można umieścić w wybranym miejscu, a także dostosować rozmiar, zaokrąglenie, przezroczystość i tryb wyświetlania.
-
-Możesz go zostawić zawsze widoczny albo normalnie ukryty, pojawiający się tylko wtedy, gdy jest potrzebny. Wygląda lekko, ale na co dzień jest bardzo wygodny.
-
-### Szybkie linki nie zajmują strony głównej
-
-Wiele stron nowej karty wypełnia ekran szybkimi linkami. PlainTab tego nie robi.
-
-Umieszcza szybkie linki w palecie poleceń. Możesz wyszukiwać, dodawać, edytować, importować zakładki, a także przenosić niektóre linki do ukrytej przestrzeni. Strona główna pozostaje czysta, ale funkcje nie znikają.
-
-### Dużo ustawień, ale nie nachalnie
-
-PlainTab pozwala dostosować tapetę, pasek wyszukiwania, skróty klawiszowe, kopie zapasowe, język, szczegóły interfejsu.
-
-Ale te ustawienia nie zaśmiecają strony głównej. Na co dzień widzisz spokojną stronę nowej karty; gdy potrzebujesz coś dostosować, otwierasz panel ustawień.
-
-## To projekt tworzony przy współpracy z AI
-
-PlainTab świetnie nadaje się również do nauki.
-
-To nie jest zabawkowy projekt na poziomie demo, ale kompletne rozszerzenie nowej karty: z prawdziwym interfejsem, ustawieniami użytkownika, zapisem danych, importem i eksportem, wielojęzycznością, działające zarówno jako rozszerzenie przeglądarki, jak i zwykła strona internetowa.
-
-Ten projekt powstał w dużej mierze przy współpracy z AI podczas prac rozwojowych, porządkowania, dokumentowania i iteracji. Możesz go traktować jako doskonały materiał do nauki:
-
-- Aby zobaczyć, jak AI uczestniczy w prawdziwym rozwoju projektu.
-- Aby dowiedzieć się, jak zbudowane jest rozszerzenie przeglądarki.
-- Aby zacząć przygodę z frontendem bez natychmiastowego zderzenia ze złożonymi frameworkami.
-- Aby przestudiować mały projekt, który jest dość kompletny — od pomysłu, przez funkcje i doświadczenie użytkownika, aż po dokumentację.
-
-Jego kod nie zależy od skomplikowanych narzędzi budowania — otwierasz plik i czytasz, otwierasz stronę i działa. Dla początkujących jest to o wiele przyjaźniejsze niż instalowanie najpierw mnóstwa zależności.
-
-## Dla kogo jest
-
-PlainTab pasuje do tych osób:
-
-- Które chcą zmienić stronę nowej karty na ładniejszą.
-- Które nie lubią widzieć natłoku informacji przy otwieraniu przeglądarki.
-- Które lubią codzienne tapety lub mają własną kolekcję tapet.
-- Które chcą lekką, ale funkcjonalnie kompletną stronę startową.
-- Które szukają prawdziwego, kompletnego projektu z kolaboracją AI do nauki.
-- Które chcą zacząć przygodę z rozszerzeniami przeglądarek lub projektami frontendowymi.
-
-## Czego nie będzie robić
-
-PlainTab będzie nadal pozostawać powściągliwy. Niektóre funkcje, nawet jeśli wiele osób je zna, niekoniecznie pasują do tego projektu.
-
-Najprawdopodobniej nie będzie obsługiwać:
-
-- Kanałów informacyjnych, list trendów, treści rekomendowanych.
-- Reklam na ekranie startowym, kart promocyjnych, miejsc sponsorowanych.
-- Dużych paneli pogody, kalendarza, zadań.
-- Automatycznie odtwarzanych filmów lub animowanych teł.
-- Systemów kont, funkcji społecznościowych, strumieni treści z chmury.
-- Wypełniania strony głównej dziesiątkami szybkich linków.
-- Wersji dla Safari. Wymagałaby ona dodatkowego nakładu na publikację i utrzymanie, co na razie jest mało realistyczne dla osobistego projektu.
-
-Nie chodzi o to, że te funkcje są złe — po prostu zmieniłyby PlainTab w coś innego.
-
-Jeśli otwierasz nową kartę tylko po to, żeby na chwilę się uspokoić, coś znaleźć lub rzucić okiem na tapetę, to PlainTab powinien być po twojej stronie.
-
-## Co może przynieść przyszłość
-
-Chciałbym, żeby PlainTab rozwijał się w tych kierunkach:
-
-- Bardziej stabilne źródła tapet.
-- Przyjemniejsze doświadczenie konfiguracji.
-- Łatwiejsza do zrozumienia dokumentacja do nauki.
-- Opisy kodu bardziej przystępne dla początkujących.
-- Pełniejszy zapis procesu rozwoju wspomaganego przez AI.
-- Ewentualne wsparcie dla Firefoksa.
-
-Wsparcia dla Firefoksa na razie nie można bezpośrednio obiecać, ponieważ środowisko rozszerzeń, uprawnienia i zachowanie API mogą się różnić od Chrome / Edge. Ale jeśli w przyszłości warunki będą odpowiednie, chciałbym, żeby PlainTab nie ograniczał się tylko do przeglądarek opartych na Chromium.
-
-Jeśli akurat interesujesz się rozszerzeniami do Firefoksa, kompatybilnością między przeglądarkami lub rozwojem wspomaganym przez AI, również zapraszam do wspólnego badania. Ten projekt dobrze nadaje się do nauki przez praktykę.
-
-## Przegląd funkcji
-
-| Funkcja | Opis |
-|------|------|
-| Zastąpienie nowej karty | Po instalacji przejmuje nową kartę przeglądarki |
-| Strona startowa online | Może być również używana bezpośrednio jako strona internetowa |
-| Codzienna tapeta | Obsługuje codzienną tapetę Bing |
-| Lokalne tapety | Obsługuje przesyłanie obrazów i wybór lokalnego folderu |
-| Tapety RSS / API | Można podłączać więcej źródeł obrazów |
-| Pasek wyszukiwania | Regulowana pozycja, rozmiar, styl i tryb wyświetlania |
-| Historia wyszukiwania | Można zapisywać ostatnie wyszukiwania lub wyłączyć |
-| Szybkie linki | Zarządzanie przez paletę poleceń, nie zajmując strony głównej |
-| Ukryta przestrzeń | Oddzielne przechowywanie linków, które mają nie być widoczne |
-| Panel ustawień | Dostosowywanie interfejsu, tapet, skrótów klawiszowych i danych |
-| Kopia zapasowa | Obsługa eksportu, importu i szyfrowanej kopii zapasowej |
-| Wielojęzyczność | Obsługa wielojęzycznego interfejsu |
-| Kolaboracja AI | Nadaje się do nauki udziału AI w rozwoju projektów |
-
-## Diagnostyka niezawodności
-
-PlainTab sprawdza, czy ścieżki pamięci podręcznej tapet mają ograniczony wzrost danych. Najnowsza diagnostyka pamięci i magazynu potwierdziła, że obrazy RSS są ograniczone do 12 rekordów IndexedDB, API i Bing do jednego rekordu każde, a wielokrotne przeładowania tapety pozostają stabilne po wymuszonej GC.
-
-Pełny raport po angielsku: [diagnostyka pamięci i magazynu, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
-
-## Szybki start
-
-### Instalacja rozszerzenia
+### Instalacja
 
 [Zainstaluj PlainTab z Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 
-### Wersja online
+### Demo online
 
 [plaintab.kaininx.workers.dev](https://plaintab.kaininx.workers.dev)
 
-### Uruchomienie lokalne
+### Uruchom lokalnie
 
 ```bash
 git clone https://github.com/kaininx/PlainTab.git
@@ -213,51 +51,146 @@ git clone https://github.com/kaininx/PlainTab.git
 
 Tryb rozszerzenia:
 
-1. Otwórz `chrome://extensions`
-2. Włącz tryb programisty
-3. Wybierz „Wczytaj rozpakowane rozszerzenie"
-4. Wybierz katalog projektu PlainTab
+1. Otwórz `chrome://extensions`.
+2. Włącz tryb dewelopera.
+3. Wybierz „Załaduj rozpakowane”.
+4. Wskaż katalog projektu PlainTab.
 
-Tryb strony internetowej:
+Tryb web:
 
-Po prostu otwórz `index.html` w przeglądarce.
+Otwórz `index.html` bezpośrednio w przeglądarce.
 
-Nie trzeba instalować zależności ani niczego budować.
+Bez zależności, bez menedżera pakietów i bez kroku budowania.
+
+## Dlaczego PlainTab
+
+### Najpierw tapeta, mniej pustego czekania
+
+PlainTab dba o to, aby po otwarciu nowej karty od razu pojawił się obraz. Lekki podgląd startowy jest trzymany w `localStorage`, a pełne ładowanie tapety, cache i kolory motywu są wykonywane po pierwszym renderowaniu.
+
+Odczuwalna szybkość jest częścią produktu, nie tylko wynikiem benchmarku.
+
+### Spokój domyślnie
+
+Strona główna zostawia tylko tapetę, wyszukiwanie i kilka kontrolek. Skróty, ukryte linki, ustawienia, kopie zapasowe i bardziej zaawansowane opcje są dostępne, ale nie zajmują ekranu.
+
+### Elastyczne źródła tapet
+
+Możesz użyć codziennej tapety Bing, Wallhaven, przesłanych obrazów, folderu lokalnego, RSS, własnego API obrazów albo tapet wideo. PlainTab może być prosty na co dzień i elastyczny dla osób lubiących konfigurację.
+
+### Wyszukiwanie i skróty bez bałaganu
+
+Pasek wyszukiwania obsługuje położenie, rozmiar, zaokrąglenie, przezroczystość, widoczność, historię i zachowanie wyszukiwarki. Skróty są w palecie poleceń, gdzie można je wyszukiwać, dodawać, edytować, importować i ukrywać.
+
+## Funkcje
+
+| Funkcja | Opis |
+|---------|------|
+| Nowa karta | Zastępuje stronę nowej karty po instalacji |
+| Tryb web | Działa z `index.html` bez pakowania rozszerzenia |
+| Szybki start tapety | Ogranicza białe mignięcia dzięki wczesnemu podglądowi |
+| Tapeta Bing | Obsługuje codzienną tapetę Bing |
+| Tapeta Wallhaven | Obsługuje przeglądanie i ustawianie z Wallhaven |
+| Tapety lokalne | Przesyłanie, galeria i wybór folderu lokalnego |
+| RSS / API | Podłącza feedy i własne API obrazów |
+| Tapety wideo | Pozwala używać wideo jako tapety |
+| Pasek wyszukiwania | Położenie, rozmiar, styl, przezroczystość i widoczność |
+| Historia wyszukiwania | Zapisuje ostatnie wyszukiwania lub można ją wyłączyć |
+| Paleta poleceń | Zarządza skrótami bez zaśmiecania strony |
+| Ukryta przestrzeń | Linki dostępne, ale niewidoczne |
+| Panel ustawień | Interfejs, tapety, skróty, dane i język |
+| Kopia i przywracanie | Import, eksport i szyfrowane kopie |
+| Wielojęzyczny interfejs | Zawiera 16 pakietów językowych |
+| Ślad współpracy z AI | Notatki i dokumenty z rozwoju wspieranego przez AI |
+
+## Dla deweloperów
+
+PlainTab celowo używa prostych technologii:
+
+- Vanilla JavaScript, CSS i API przeglądarki.
+- Bez `npm`, `package.json`, frameworka i bundlera.
+- Jedna baza kodu dla rozszerzenia i trybu web.
+- Konfiguracja Manifest V3 w `manifest.json`.
+- Skrypty ładowane bezpośrednio przez `index.html`.
+
+Punkty startowe: [notatki techniczne](technical/README_en.md), [release notes](RELEASE_NOTES.md), [diagnostyka pamięci i storage](ai-tasks/20260519-memory-storage-diagnostic-report.md), [instrukcje dla agentów AI](../AGENTS.md).
+
+Wrażliwe obszary: ścieżka startowa, dwuwarstwowe renderowanie tapety, duże dane w IndexedDB, zgodność kluczy localStorage i uprawnienia zgodne z Chrome Web Store.
 
 ## Struktura projektu
 
 ```text
 PlainTab/
-├── index.html              # Nowa karta i wejście do strony internetowej
-├── manifest.json           # Konfiguracja rozszerzenia przeglądarki
-├── css/                    # Style strony
-├── js/                     # Logika strony
-├── js/wallpaper/           # Funkcje związane z tapetami
-├── _locales/               # Wielojęzyczność rozszerzenia
-├── docs/                   # Dokumentacja
+├── index.html              # Nowa karta i wejście web
+├── manifest.json           # Manifest Chrome / Edge
+├── css/                    # Style według funkcji
+├── js/                     # Moduły runtime
+├── js/wallpaper/           # Tapety, źródła i motyw
+├── wasm/                   # Silnik motywu i skrypty build
+├── _locales/               # Wiadomości i18n rozszerzenia
+├── docs/                   # Dokumentacja i notatki wydań
 ├── icon/                   # Ikony
-└── imgs/                   # Zrzuty ekranu i materiały do sklepu
+└── imgs/                   # Zrzuty i materiały sklepu
 ```
 
-## Współpraca
+## Czego PlainTab unika
 
-Zapraszamy do zgłaszania Issues i Pull Requestów.
+PlainTab pozostanie oszczędny. Poza obecnym kierunkiem są: feedy wiadomości, trendy, rekomendacje, reklamy startowe, sponsorowane karty, duże panele pogody/kalendarza/zadań, konta, funkcje społecznościowe, strumienie chmurowe, dziesiątki skrótów na stronie oraz automatycznie odtwarzane treści promocyjne.
 
-PlainTab będzie starał się utrzymać swój pierwotny kierunek: czysty, szybki, spokojny, odpowiedni do nauki.
+Wersja Safari nie jest teraz planowana, bo publikacja i utrzymanie byłyby zbyt kosztowne dla projektu osobistego.
 
-## Powiązane linki
+## Współpraca z AI i nauka
 
-- [Dziennik zmian](changelog-i18n/pl.txt)
-- [Szczegółowe informacje o wydaniu](RELEASE_NOTES.md)
-- [Angielskie uwagi techniczne](technical/README_en.md)
-- [Wersja online](https://plaintab.kaininx.workers.dev)
+PlainTab powstał z dużą pomocą AI przy kodzie, dokumentacji, refaktoryzacji, przygotowaniu wydań i diagnostyce. To nie jest demo: ma prawdziwy interfejs, trwałe ustawienia, import/eksport, przechowywanie tapet, wiele języków i tryby rozszerzenia oraz web.
+
+Może służyć do nauki budowy rozszerzenia nowej karty, małego frontendu bez frameworka, dokumentowania pracy z AI i wpływu decyzji produktowych na technikę.
+
+## Roadmap
+
+Możliwe kierunki: stabilniejsze źródła tapet, płynniejsze ustawienia, czytelniejsza dokumentacja techniczna, pełniejszy zapis rozwoju z AI i ewentualne wsparcie Firefox, jeśli pozwolą API i koszty utrzymania.
+
+## Wkład
+
+Issues i pull requesty są mile widziane, zwłaszcza dotyczące zgodności przeglądarek, źródeł tapet, dokumentacji i drobnych ulepszeń UI.
+
+Przed zmianami w starcie, tapetach, storage, wyszukiwaniu, ustawieniach lub palecie poleceń przeczytaj [AGENTS.md](../AGENTS.md) i reguły w `.claude/rules/`. Preferowane są małe, skupione zmiany.
+
+## Języki
+
+<details>
+<summary>Tłumaczenia README</summary>
+
+- [English](../README.md)
+- [简体中文](README_zh-CN.md)
+- [繁體中文](README_zh-TW.md)
+- [हिन्दी](README_hi.md)
+- [Español](README_es.md)
+- [العربية](README_ar.md)
+- [Français](README_fr.md)
+- [Português](README_pt_BR.md)
+- [Русский](README_ru.md)
+- [Deutsch](README_de.md)
+- [日本語](README_ja.md)
+- [Italiano](README_it.md)
+- [Türkçe](README_tr.md)
+- [Tiếng Việt](README_vi.md)
+- [한국어](README_ko.md)
+- Polski
+
+</details>
+
+## Linki
+
+- [Lista zmian](changelog-i18n/pl.txt)
+- [Szczegółowe release notes](RELEASE_NOTES.md)
+- [Notatki techniczne](technical/README_en.md)
+- [Diagnostyka pamięci i storage](ai-tasks/20260519-memory-storage-diagnostic-report.md)
+- [Demo online](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-- [Strona projektu na GitHubie](https://github.com/kaininx/PlainTab)
-
-- [Diagnostyka pamięci i magazynu](ai-tasks/20260519-memory-storage-diagnostic-report.md)
+- [GitHub](https://github.com/kaininx/PlainTab)
 
 ## Licencja
 
-PlainTab jest udostępniony jako open source na [licencji MIT](../LICENSE).
+PlainTab jest open source na [licencji MIT](../LICENSE).
 
-Stworzony i utrzymywany przez [Kaelri](https://github.com/kaininx).
+Utworzone i utrzymywane przez [Kaelri](https://github.com/kaininx).

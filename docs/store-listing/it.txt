@@ -1,100 +1,89 @@
-PlainTab è una nuova scheda bella, veloce e silenziosa.
+PlainTab · Nuova scheda minimalista
 
-Perché? Perché la tua nuova scheda dovrebbe mostrarti prima uno sfondo piacevole, non pubblicità, notizie, tendenze o una schermata piena di scorciatoie.
+Una nuova scheda veloce, silenziosa e centrata sugli sfondi.
 
-PlainTab fa una cosa semplice: apri una nuova scheda, vedi lo sfondo, poi puoi cercare, digitare un URL o aprire i tuoi collegamenti. Non cerca la tua attenzione e non trasforma la home del browser in un altro feed.
+Quando apri una nuova scheda dovresti vedere prima qualcosa di calmo: un bello sfondo, una barra di ricerca e i tuoi link quando servono. Non un feed di notizie, pubblicità, trend o widget ovunque.
 
-Perché scegliere PlainTab?
+PlainTab mantiene la nuova scheda pulita, bella e reattiva. Cerca, digita un URL, apri scorciatoie, cambia sorgente degli sfondi o goditi l'immagine per un momento.
 
-【Immagine subito visibile】
-• Caricamento locale degli sfondi estremamente rapido: PlainTab salva localmente un'anteprima leggera e la carica all'istante a ogni nuova scheda, riducendo i flash bianchi.
-• Gli sfondi ad alta risoluzione cambiano in modo fluido in background, mentre l'immagine esistente resta sotto come fallback. Non devi aspettare la rete per vedere uno sfondo.
-• Gli sfondi giornalieri di Bing supportano cache e aggiornamento; dopo il primo utilizzo, le aperture successive risultano più fluide.
+Perché PlainTab?
 
-【Libertà degli sfondi】
-• Supporta gli sfondi giornalieri di Bing e le immagini caricate dall'utente.
-• Supporta la scelta di una cartella locale di sfondi, ideale per chi ha già una collezione.
-• Supporta sorgenti RSS di immagini e API personalizzate: semplice quando vuoi semplicità, flessibile quando vuoi sperimentare.
-• Gli sfondi locali supportano fino a 12 immagini in rotazione con anteprima galleria 3×4, eliminabili o sostituibili in qualsiasi momento.
+[Sfondo subito visibile]
 
-【Silenzioso, ma non spoglio】
-• La home resta essenziale: sfondo, barra di ricerca e pochi ingressi necessari, senza riempirsi di widget.
-• La barra di ricerca permette di regolare posizione, dimensione, raggio degli angoli, trasparenza e visibilità.
-• Può essere sempre visibile, apparire solo quando serve o restare nascosta.
-• I collegamenti sono gestiti nel pannello comandi, con ricerca, aggiunta, modifica e importazione dei segnalibri, senza coprire lo sfondo.
-• Lo spazio nascosto consente di salvare link che non vuoi mostrare direttamente, mantenendo pulita la home.
+PlainTab cura il primo istante dopo l'apertura.
 
-【Privacy prima di tutto】
-• Nessuna pubblicità, nessun tracciamento, nessuna raccolta dei dati di navigazione.
-• Gli sfondi caricati localmente sono salvati nello storage locale del browser. Non vengono caricati, sincronizzati o inviati a server di terze parti.
-• Le impostazioni di ricerca e collegamenti sono pensate per l'uso locale. La tua nuova scheda dovrebbe appartenere a te.
+Salva localmente un'anteprima leggera dello sfondo, così la prossima apertura può mostrare un'immagine il prima possibile. Caricamento completo, cache e colori del tema avvengono dopo.
 
-【Leggero e trasparente】
-• Costruito con JavaScript nativo, CSS e API del browser, senza framework frontend, senza build step e senza grandi dipendenze runtime.
-• Funziona come estensione nuova scheda per Chrome / Edge e può anche essere aperto direttamente come pagina web.
-• Completamente open source, adatto all'uso quotidiano e allo studio di estensioni browser, progetti frontend e sviluppo assistito da IA.
+Le transizioni usano due livelli: l'immagine corrente resta visibile mentre la successiva carica e sfuma. Se una sorgente di rete fallisce, PlainTab prova a conservare lo sfondo stabile.
+
+[Sorgenti flessibili]
+
+PlainTab supporta:
+
+• Sfondo giornaliero Bing
+• Wallhaven
+• Immagini caricate
+• Cartelle locali
+• Feed RSS di immagini
+• API di immagini personalizzate
+• Sfondi video
+
+Usa Bing per semplicità, immagini locali per la tua collezione, oppure RSS, API e Wallhaven per una configurazione più personale.
+
+[Home tranquilla, strumenti utili]
+
+PlainTab non copre la home con scorciatoie e non la trasforma in un feed.
+
+La pagina mantiene l'essenziale: sfondo, ricerca e pochi controlli. Le scorciatoie stanno nella palette comandi, dove puoi cercare, aggiungere, modificare, importare segnalibri e nascondere link.
+
+La barra di ricerca permette di regolare posizione, larghezza, raggio, trasparenza, visibilità, cronologia e motore di ricerca.
+
+[Impostazioni complete]
+
+Le impostazioni restano in un pannello dedicato. Puoi gestire sfondi, ricerca, tasti rapidi, palette comandi, stile, backup, lingua e altro.
+
+[Privacy e permessi]
+
+PlainTab non ha pubblicità e non usa analytics di tracciamento.
+
+Sfondi caricati, scorciatoie, cronologia e configurazione sono salvati principalmente nello storage locale del browser. Non serve un account.
+
+I permessi riguardano nuova scheda, ricerca, interazione con la pagina e sorgenti opzionali di sfondi online. RSS, API e Wallhaven possono richiedere accesso alle rispettive fonti di immagini.
+
+[Leggero e aperto]
+
+PlainTab usa JavaScript vanilla, CSS e API del browser. Nessun framework, nessun build step, nessuna dipendenza runtime pesante.
+
+Il progetto è open source e facile da leggere. È utile ogni giorno e anche come progetto reale da studiare.
 
 PlainTab fa per te se vuoi:
 
-• Una nuova scheda più bella senza rumore da feed informativi
-• Sfondi giornalieri o un posto dove gestire la tua collezione
-• Ricerca, collegamenti, importazione segnalibri e backup senza ingombrare la home
-• Una pagina iniziale non coperta da decine di scorciatoie
-• Un'estensione leggera e trasparente senza strumenti di build complessi
-• Un progetto reale e completo di estensione browser da cui imparare
+• Una nuova scheda più bella senza feed
+• Sfondi giornalieri o una tua collezione
+• Ricerca, scorciatoie, import segnalibri e backup
+• Una home senza decine di tile
+• Un'estensione leggera e trasparente
 
-Cosa PlainTab non farà:
+PlainTab non aggiungerà:
 
-• Niente feed di notizie, classifiche o contenuti consigliati
-• Niente pubblicità, schede sponsorizzate o spazi promozionali
-• Nessun sistema account, funzioni social o flussi cloud
-• Nessun muro di scorciatoie sulla home
-• Nessun video in autoplay o sfondo animato
+• Feed di notizie, trend o raccomandazioni
+• Pubblicità o schede sponsorizzate
+• Account, social o flussi cloud
+• Decine di scorciatoie fisse
+• Video promozionali o feed in autoplay
 
-Supporto e feedback
+Supporto
 
-• Open source: https://github.com/kaininx/PlainTab
-• Demo online: https://plaintab.kaininx.workers.dev
-• Note di rilascio dettagliate: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
-• Ti piace PlainTab? Una recensione sul Chrome Web Store è molto apprezzata.
-• Domande o suggerimenti? Apri una Issue su GitHub.
+• Codice: https://github.com/kaininx/PlainTab
+• Demo: https://plaintab.kaininx.workers.dev
+• Note di rilascio: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
+• Se PlainTab ti piace, una recensione aiuta molto.
+• Per problemi o idee, apri una issue su GitHub.
 
-Registro delle modifiche
+Aggiornamenti recenti
 
-• v3.2.1 · Aggiunge il supporto a sfondi Wallhaven e video, migliora configurazione e applicazione sicura degli sfondi, rifinisce palette comandi e temi, e corregge la stabilità di sfondi, impostazioni e i18n.
+• v3.2.1: aggiunti Wallhaven e sfondi video, migliorata la sicurezza di applicazione degli sfondi, palette comandi, tema e stabilità.
 
-• v3.2.0 · Grande aggiornamento di funzionalità e prestazioni: aggiunti pannello comandi, sfondi RSS/API/cartella locale, colori tema dello sfondo via WASM, import/export configurazione e cronologia ricerche; migrazione al modello storage v3.2, permessi e fallback ricerca più stretti, percorsi di avvio, sfondo, galleria e impostazioni modularizzati e ottimizzati.
+• v3.2.0: palette comandi, sfondi RSS/API/cartelle locali, colori tema WASM, import/export e cronologia ricerche.
 
-• v3.1.4 · Ridenominazione delle costanti di storage e migrazione IDB unificata in transazione bifase con ordinamento recuperabile; ottimizzato il salto migrazione per nuovi utenti; aggiunta deduplicazione nel caricamento batch con limite di 12 immagini
-
-• v3.1.3 · Implementata la migrazione della versione di archiviazione per localStorage e IndexedDB, unificata la denominazione delle chiavi, corretta la logica di persistenza delle miniature in modalità locale.
-
-• v3.1.2 · Rinominato _locales/pt in pt_BR per conformità al Chrome Web Store; formato changelog unificato; file portoghesi rinominati in pt_BR.
-
-• v3.1.1 · Bing API passata alla modalità race Promise.any con timeout AbortController di 8 secondi; aggiornati i README in 16 lingue.
-
-• v3.1.0 · Galleria sfondi locali: caricamento, eliminazione e rotazione di più sfondi, selezione batch; stile pannelli migliorato; localizzazione ampliata; configurazione CSP rafforzata.
-
-• v3.0.5 · Proxy Bing API aggiornato, cache sfondi ottimizzata, chiavi localStorage unificate, changelog in 16 lingue aggiunti, log e semantica del codice migliorati.
-
-• v3.0.4 · Risolto il caricamento degli sfondi causato da domini CDN Bing mancanti nella allowlist CSP delle immagini.
-
-• v3.0.3 · Percorso di primo rendering ottimizzato, sicurezza CSP rafforzata, codice inutilizzato rimosso, icone e risorse promozionali aggiunte.
-
-• v3.0.2 · Sfondo adattivo in modalità scura, struttura del codice regolata, barra inferiore multilingue aggiunta.
-
-• v3.0.1 · Integrata Chrome Search API per soddisfare i requisiti single-purpose del Chrome Web Store.
-
-• v3.0.0 · Riscrittura del core: architettura a doppio livello per ridurre i flash bianchi nelle nuove schede, con sfondo fallback.
-
-• v2.2.7 · Aggiunti README in inglese, giapponese, coreano, russo e cinese semplificato; modalità ricerca predefinita impostata su sempre visibile.
-
-• v2.2.6 · Ottimizzati caricamento sfondi e cache miniature, organizzate le costanti Bing API.
-
-• v2.2.5 · Aggiunti precaricamento sfondi e ottimizzazione del primo frame per ridurre schermate bianche.
-
-• v2.2.4 · Archiviazione sfondi migrata da localStorage a IndexedDB.
-
-• v2.2.3 · Aggiunto caricamento sfondi locali e migliorato il cambio motore di ricerca.
-
-• v1.2.0 · Prima versione: sistema sfondi, interfaccia in 16 lingue, localizzazione Chrome i18n e licenza MIT.
+PlainTab resterà pulito, veloce, silenzioso e facile da imparare.

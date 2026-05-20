@@ -5,203 +5,49 @@
 <h1 align="center">PlainTab</h1>
 
 <p align="center">
-  一个好看、很快、很安静的新标签页。
+  一个快速、安静、以壁纸为中心的 Chrome / Edge 新标签页。
 </p>
 
 <p align="center">
   <a href="../README.md">English</a>
   ·
-  简体中文
-  ·
-  <a href="README_zh-TW.md">繁體中文</a>
-  ·
-  <a href="README_hi.md">हिन्दी</a>
-  ·
-  <a href="README_es.md">Español</a>
-  ·
-  <a href="README_ar.md">العربية</a>
-  ·
-  <a href="README_fr.md">Français</a>
-  ·
-  <a href="README_pt_BR.md">Português</a>
-  ·
-  <a href="README_ru.md">Русский</a>
-  ·
-  <a href="README_de.md">Deutsch</a>
-  ·
-  <a href="README_ja.md">日本語</a>
-  ·
-  <a href="README_it.md">Italiano</a>
-  ·
-  <a href="README_tr.md">Türkçe</a>
-  ·
-  <a href="README_vi.md">Tiếng Việt</a>
-  ·
-  <a href="README_ko.md">한국어</a>
-  ·
-  <a href="README_pl.md">Polski</a>
-</p>
-
-<p align="center">
-  <a href="technical/README_zh-CN.md">技术文档</a>
-  ·
-  <a href="changelog-i18n/zh-CN.txt">更新日志</a>
+  <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome 网上应用店</a>
   ·
   <a href="https://plaintab.kaininx.workers.dev">在线体验</a>
   ·
-  <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome 网上应用店</a>
+  <a href="technical/README_zh-CN.md">技术说明</a>
+  ·
+  <a href="changelog-i18n/zh-CN.txt">更新日志</a>
 </p>
 
 <p align="center">
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/version-3.2.1-111827?style=flat-square" alt="Version 3.2.1">
   <img src="https://img.shields.io/badge/Manifest-V3-4285f4?style=flat-square&logo=googlechrome" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/AI-Collaboration-7c3aed?style=flat-square" alt="AI Collaboration">
-  <img src="https://img.shields.io/badge/No-Build_Step-00a884?style=flat-square" alt="No Build Step">
+  <img src="https://img.shields.io/badge/No_Build_Step-00a884?style=flat-square" alt="无需构建">
+  <img src="https://img.shields.io/badge/Vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=111827" alt="原生 JavaScript">
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab screenshot 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab screenshot 2" />
+  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab 截图 1" />
+  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab 截图 2" />
 </div>
 
-## 这是什么
+## PlainTab 是什么
 
-PlainTab 是一个浏览器新标签页。
+PlainTab 是一个基于 Manifest V3 的 Chrome / Edge 新标签页扩展。安装后，它会把默认新标签页替换成一张干净的壁纸、一个可调整的搜索栏，以及一套需要时才出现的快捷链接。
 
-它做的事情很简单：当你打开新标签页时，先看到一张漂亮的壁纸，然后直接搜索、输入网址，或者打开自己的快捷链接。
+它适合想要一个清爽浏览器起始页的人：没有新闻流，没有推广卡片，没有账号系统，也没有满屏小组件。打开新标签页，看一眼壁纸，搜索或输入网址，然后继续做自己的事。
 
-它没有新闻流，没有满屏小组件，没有天气、问候语、待办列表，也不会把你的注意力往别的地方拽。它更像一张干净的桌面：你需要的时候，它在那里；你不需要的时候，它不打扰你。
+同一套页面也可以直接作为网页运行：用浏览器打开 `index.html` 就能体验。因此它也很适合阅读、修改和学习。
 
-## 为什么值得试试
-
-### 打开就有画面
-
-PlainTab 最明显的感觉是快。
-
-很多新标签页打开时，会先闪出一片空白，等一下图片才出来。PlainTab 尽量避免这种感觉。只要你用过一次、浏览器里已经有缓存，下次打开时壁纸会非常快地出现，像是一直就在那儿。
-
-这不是那种写在参数里的"性能优化"，而是你能直接感觉到的顺滑。
-
-### 第一眼很舒服
-
-它的默认界面很克制：壁纸、搜索栏、几个小按钮。
-
-不会一打开就塞给你一堆信息，也不会把浏览器首页变成另一个工作台。它的美感来自少，而不是来自堆。
-
-### 壁纸玩法很多
-
-你可以直接用 Bing 每日壁纸，也可以上传自己的图片，或者选择电脑里的壁纸文件夹。
-
-如果你喜欢折腾，也可以接 RSS 图片源，或者接自己的图片 API。简单用可以很简单，想深入玩也有空间。
-
-### 搜索很顺手
-
-搜索栏可以放在你喜欢的位置，也可以调整大小、圆角、透明度和显示方式。
-
-你可以让它一直显示，也可以让它平时隐藏，只在需要时出现。它看起来很轻，但日常用起来很方便。
-
-### 快捷链接不占主页
-
-很多新标签页会把快捷链接铺满屏幕。PlainTab 没有这么做。
-
-它把快捷链接放进命令面板里。你可以搜索、添加、编辑、导入书签，也可以把一些链接放进隐藏空间。主页还是干净的，但功能没有少。
-
-### 设置够多，但不吵
-
-PlainTab 可以调壁纸、搜索栏、快捷键、备份、语言、界面细节。
-
-但这些设置不会堆在主页上。平时你看到的是一个安静的新标签页；需要调整时，再打开设置面板。
-
-## 这是一个 AI 协作项目
-
-PlainTab 也很适合拿来学习。
-
-它不是一个只停留在演示层面的玩具项目，而是一个完整的新标签页扩展：有真实界面，有用户设置，有数据保存，有导入导出，有多语言，有浏览器扩展环境，也有普通网页环境。
-
-这个项目在开发、整理、文档和迭代过程中大量使用 AI 协作完成。你可以把它当作一个很好的学习样本：
-
-- 想看看 AI 怎么参与真实项目开发。
-- 想学习一个浏览器扩展是怎么做出来的。
-- 想入门前端，但不想一上来就面对复杂框架。
-- 想研究一个从想法、功能、体验到文档都比较完整的小项目。
-
-它的代码不依赖复杂构建工具，打开文件就能看，打开页面就能跑。对新手来说，这比一上来安装一堆依赖更友好。
-
-## 适合谁
-
-PlainTab 适合这些人：
-
-- 想换一个更漂亮的新标签页。
-- 不喜欢打开浏览器就看到一堆信息。
-- 喜欢每日壁纸，或者有自己的壁纸收藏。
-- 想要一个轻量但功能完整的起始页。
-- 想找一个真实、完整、适合学习的 AI 协作项目。
-- 想入门浏览器扩展或前端项目。
-
-## 不会做什么
-
-PlainTab 会继续保持克制。有些功能就算很多人熟悉，也不一定适合放进这个项目。
-
-大概率不会支持：
-
-- 新闻流、热榜、推荐内容。
-- 开屏广告、推广卡片、赞助位。
-- 大面积天气、日历、待办面板。
-- 自动播放视频或动态背景。
-- 账号系统、社交功能、云端内容流。
-- 把主页铺满几十个快捷方式。
-- Safari 版本。它需要额外的发布和维护成本，对现在这个个人项目来说还不太现实。
-
-不是这些功能不好，而是它们会把 PlainTab 变成另一个东西。
-
-如果你打开新标签页只是想安静一下、搜个东西、看一眼壁纸，那 PlainTab 应该站在你这边。
-
-## 以后可能会做什么
-
-我比较想让 PlainTab 继续往这几个方向长：
-
-- 更稳定的壁纸来源。
-- 更舒服的设置体验。
-- 更容易理解的学习文档。
-- 更适合新手阅读的代码说明。
-- 更完整的 AI 协作开发记录。
-- 可能支持 Firefox。
-
-Firefox 支持现在还不能直接承诺，因为浏览器扩展环境、权限、API 行为都可能和 Chrome / Edge 不一样。但如果未来条件合适，我会希望 PlainTab 不只停在 Chromium 系浏览器里。
-
-如果你正好对 Firefox 扩展、浏览器兼容或 AI 辅助开发感兴趣，也欢迎一起研究。这个项目很适合边用边学。
-
-## 功能一览
-
-| 功能 | 说明 |
-|------|------|
-| 新标签页替换 | 安装后接管浏览器新标签页 |
-| 在线起始页 | 也可以直接作为网页使用 |
-| 每日壁纸 | 支持 Bing 每日壁纸 |
-| 本地壁纸 | 支持上传图片和选择本地文件夹 |
-| RSS / API 壁纸 | 可以接入更多图片来源 |
-| 搜索栏 | 可调整位置、大小、样式和显示方式 |
-| 搜索历史 | 可保存最近搜索，也可以关闭 |
-| 快捷链接 | 用命令面板管理，不占主页 |
-| 隐藏空间 | 单独保存不想展示的链接 |
-| 设置面板 | 调整界面、壁纸、快捷键和数据 |
-| 数据备份 | 支持导出、导入和加密备份 |
-| 多语言 | 支持多语言界面 |
-| AI 协作 | 适合用来学习 AI 参与项目开发 |
-
-## 可靠性诊断
-
-PlainTab 的壁纸缓存路径会检查是否存在无界存储增长。最新的内存与存储诊断显示：RSS 图片稳定限制在 12 条 IndexedDB 记录内，API 和 Bing 各自限制为 1 条记录，重复壁纸重载在强制 GC 后保持稳定。
-
-完整报告（英文）：[2026-05-19 内存与存储诊断](ai-tasks/20260519-memory-storage-diagnostic-report.md).
-
-## 快速开始
+## 先试试看
 
 ### 安装扩展
 
-[在 Chrome Web Store 安装 PlainTab](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
+[在 Chrome 网上应用店安装 PlainTab](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 
-### 在线体验
+### 打开在线演示
 
 [plaintab.kaininx.workers.dev](https://plaintab.kaininx.workers.dev)
 
@@ -213,51 +59,175 @@ git clone https://github.com/kaininx/PlainTab.git
 
 扩展模式：
 
-1. 打开 `chrome://extensions`
-2. 启用开发者模式
-3. 选择"加载已解压的扩展程序"
-4. 选择 PlainTab 项目目录
+1. 打开 `chrome://extensions`。
+2. 启用“开发者模式”。
+3. 选择“加载已解压的扩展程序”。
+4. 选择 PlainTab 项目目录。
 
 网页模式：
 
 直接用浏览器打开 `index.html`。
 
-不需要安装依赖，也不需要构建。
+不需要安装依赖，不需要包管理器，也不需要构建。
+
+## 为什么选择 PlainTab
+
+### 壁纸优先，尽量少等空白
+
+PlainTab 很在意“打开新标签页时马上有画面”的体验。它会在 `localStorage` 中保存一个轻量的启动预览，让页面先把壁纸显示出来，再把更完整的壁纸加载、缓存和主题色计算交给运行时慢慢处理。
+
+也就是说，这个项目把“体感速度”当成产品体验的一部分，而不是只看跑分数字。
+
+### 默认安静
+
+主页只保留壁纸、搜索、少量控制入口，不主动抢你的注意力。快捷链接、隐藏空间、设置、备份和更深入的壁纸选项都在，但它们不会默认摊开在页面上。
+
+### 壁纸来源灵活
+
+你可以使用 Bing 每日壁纸、Wallhaven、上传图片、本地文件夹、RSS 图片源、自定义图片 API，或者视频壁纸。只想每天换一张图时，它可以很简单；想慢慢折腾自己的壁纸系统时，也有足够空间。
+
+### 搜索和快捷链接不占地方
+
+搜索栏支持位置、大小、圆角、透明度、显示方式、搜索历史和搜索引擎行为调整。快捷链接放在命令面板里，可以搜索、添加、编辑、导入和隐藏，不会把新标签页变成一整屏图标。
+
+## 功能
+
+| 功能 | 说明 |
+|------|------|
+| 新标签页替换 | 安装后接管浏览器的新标签页 |
+| 独立网页模式 | 不打包扩展也能直接从 `index.html` 运行 |
+| 快速壁纸启动 | 通过早期预览路径减少新标签页空白闪烁 |
+| Bing 壁纸 | 支持 Bing 每日壁纸 |
+| Wallhaven 壁纸 | 支持基于 Wallhaven 的壁纸浏览和设置 |
+| 本地壁纸 | 支持上传图片、图库管理和本地文件夹选择 |
+| RSS / API 壁纸 | 支持接入自定义图片源和图片 API |
+| 视频壁纸 | 支持选择视频作为壁纸 |
+| 搜索栏 | 可调整位置、大小、样式、透明度和显示方式 |
+| 搜索历史 | 可保存最近搜索，也可以关闭 |
+| 命令面板 | 用可搜索、可编辑的方式管理快捷链接，不占主页 |
+| 隐藏空间 | 保存想要随时访问、但不想展示出来的链接 |
+| 设置面板 | 管理界面、壁纸、快捷键、数据和语言 |
+| 备份与恢复 | 支持导入、导出和加密备份流程 |
+| 多语言界面 | 内置 16 种界面语言 |
+| AI 协作记录 | 保留 AI 辅助开发过程中的文档和任务记录 |
+
+## 给开发者
+
+PlainTab 有意保持技术栈朴素：
+
+- 原生 JavaScript、CSS 和浏览器 API。
+- 没有 `npm`，没有 `package.json`，没有前端框架，也没有打包工具。
+- 扩展模式和独立网页模式共用同一套代码。
+- `manifest.json` 管理 Manifest V3 扩展配置。
+- 运行时脚本由 `index.html` 直接按顺序加载。
+
+建议从这些地方开始看：
+
+- [中文技术说明](technical/README_zh-CN.md)：架构、启动路径和模块职责。
+- [详细更新说明](RELEASE_NOTES.md)：功能演进记录。
+- [内存与存储诊断](ai-tasks/20260519-memory-storage-diagnostic-report.md)：壁纸缓存和存储增长边界。
+- [AI Agent 协作说明](../AGENTS.md)：项目约束和维护规则。
+
+这些区域改动时要格外小心：
+
+- 启动路径经过专门设计，用来减少新标签页白屏闪烁。
+- 壁纸渲染使用稳定的 back 层和过渡用的 front 层。
+- 大体积壁纸数据需要通过存储模块和 IndexedDB 管理。
+- 除非有迁移逻辑，否则要保持 localStorage key 兼容。
+- 扩展权限需要继续符合 Chrome 网上应用店的审核预期。
 
 ## 项目结构
 
 ```text
 PlainTab/
-├── index.html              # 新标签页和网页入口
-├── manifest.json           # 浏览器扩展配置
-├── css/                    # 页面样式
-├── js/                     # 页面逻辑
-├── js/wallpaper/           # 壁纸相关功能
-├── _locales/               # 扩展多语言
-├── docs/                   # 文档
-├── icon/                   # 图标
+├── index.html              # 新标签页和独立网页入口
+├── manifest.json           # Chrome / Edge 扩展清单
+├── css/                    # 按功能拆分的页面样式
+├── js/                     # 运行时模块
+├── js/wallpaper/           # 壁纸渲染、来源和主题色提取
+├── wasm/                   # 壁纸主题引擎的源码和构建脚本
+├── _locales/               # Chrome 扩展 i18n 文案
+├── docs/                   # 用户文档、发布说明、技术说明和任务记录
+├── icon/                   # 扩展图标
 └── imgs/                   # 截图和商店素材
 ```
 
-## 贡献
+## PlainTab 不打算做什么
 
-欢迎提 Issue 或 PR。
+PlainTab 会继续保持克制。下面这些功能不在当前方向里：
 
-PlainTab 会尽量保持它原本的方向：干净、快速、安静、可学习。
+- 新闻流、热榜或推荐内容。
+- 开屏广告、赞助卡片或推广位。
+- 大面积天气、日历或待办面板。
+- 账号系统、社交功能或云端内容流。
+- 把几十个快捷方式固定铺满主页。
+- 自动播放的推广内容。
+
+Safari 版本目前也没有计划。对个人项目来说，它需要额外的发布和维护成本，现阶段不太现实。
+
+## AI 协作与学习
+
+PlainTab 在编码、文档、重构、发布准备和诊断过程中大量使用了 AI 协作。它不是一个只做给人看的演示项目，而是一个完整的新标签页扩展：有真实界面、持久化设置、导入导出、壁纸存储、多语言界面，也同时支持扩展环境和网页环境。
+
+如果你想学习这些内容，它会是一个不错的样本：
+
+- 浏览器新标签页扩展是怎么做出来的；
+- 不用前端框架的小型项目如何组织；
+- AI 辅助开发如何留下可回顾、可审查的记录；
+- 产品上的克制如何影响技术决策。
+
+## 路线图
+
+PlainTab 后续可能继续往这些方向完善：
+
+- 更稳定的壁纸来源。
+- 更顺手的设置和壁纸配置流程。
+- 更清晰的技术文档和代码说明。
+- 更完整的 AI 辅助开发记录。
+- 如果扩展 API 和维护成本允许，未来可能支持 Firefox。
+
+## 参与贡献
+
+欢迎提交 Issue 和 Pull Request，尤其是浏览器兼容性、壁纸来源、文档和小范围界面优化相关的改进。
+
+在修改启动、壁纸、存储、搜索、设置或命令面板行为前，请先阅读 [AGENTS.md](../AGENTS.md) 和 `.claude/rules/` 下的相关规则。PlainTab 的打开体验比较敏感，建议优先做小而聚焦的改动。
+
+## 语言
+
+<details>
+<summary>README 翻译</summary>
+
+- [English](../README.md)
+- 简体中文
+- [繁體中文](README_zh-TW.md)
+- [हिन्दी](README_hi.md)
+- [Español](README_es.md)
+- [العربية](README_ar.md)
+- [Français](README_fr.md)
+- [Português](README_pt_BR.md)
+- [Русский](README_ru.md)
+- [Deutsch](README_de.md)
+- [日本語](README_ja.md)
+- [Italiano](README_it.md)
+- [Türkçe](README_tr.md)
+- [Tiếng Việt](README_vi.md)
+- [한국어](README_ko.md)
+- [Polski](README_pl.md)
+
+</details>
 
 ## 相关链接
 
 - [更新日志](changelog-i18n/zh-CN.txt)
 - [详细更新说明](RELEASE_NOTES.md)
-- [中文技术文档](technical/README_zh-CN.md)
-- [在线体验](https://plaintab.kaininx.workers.dev)
-- [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-- [GitHub 项目主页](https://github.com/kaininx/PlainTab)
-
+- [中文技术说明](technical/README_zh-CN.md)
 - [内存与存储诊断](ai-tasks/20260519-memory-storage-diagnostic-report.md)
+- [在线体验](https://plaintab.kaininx.workers.dev)
+- [Chrome 网上应用店](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
+- [GitHub 项目主页](https://github.com/kaininx/PlainTab)
 
 ## 许可
 
-PlainTab 使用 [MIT License](../LICENSE) 开源。
+PlainTab 基于 [MIT License](../LICENSE) 开源。
 
 由 [Kaelri](https://github.com/kaininx) 创建和维护。

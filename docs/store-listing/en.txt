@@ -1,100 +1,102 @@
-PlainTab is a beautiful, fast, and quiet new tab page.
+PlainTab · Minimal New Tab
 
-Why? Because your new tab should first give you a comfortable wallpaper, not ads, news, trending feeds, or a screen full of shortcuts.
+A fast, quiet, wallpaper-first new tab page.
 
-PlainTab does one simple thing: open a new tab, show your wallpaper, then let you search, type a URL, or open your own shortcuts. It does not fight for your attention or turn your browser homepage into another content feed.
+When you open a new tab, you should see something calm and useful first: a beautiful wallpaper, a search bar, and your own links when you need them. Not a news feed, not ads, not trending cards, and not a dashboard full of widgets.
 
-Why choose PlainTab?
+PlainTab keeps the new tab page clean, fast, and personal. Search, type a URL, open shortcuts, switch wallpaper sources, or simply enjoy the image for a second and move on.
 
-【A Picture Right Away】
-• Extremely fast local wallpaper loading — PlainTab stores a lightweight preview snapshot locally and loads it instantly every time you open a new tab, reducing blank-screen flicker.
-• High-resolution wallpapers switch smoothly in the background, while the previous image remains underneath as a fallback, so you do not need to wait for the network before seeing a background.
-• Bing daily wallpapers support caching and updates; after you have used PlainTab once, later opens feel smoother.
+Why PlainTab?
 
-【Wallpaper Freedom】
-• Supports Bing daily wallpapers and your own uploaded images.
-• Supports selecting a local wallpaper folder, ideal if you already keep a wallpaper collection.
-• Supports RSS image sources and custom APIs, simple when you want it simple, flexible when you want to tinker.
-• Local wallpapers support up to 12 rotating images with a 3×4 gallery preview, so you can delete or replace them anytime.
+[Instant-feeling wallpaper]
 
-【Quiet, Not Bare】
-• The homepage stays restrained: wallpaper, search bar, and a few necessary controls, without filling the page with widgets.
-• The search bar supports adjustable position, size, corner radius, opacity, and visibility.
-• The search bar can stay always visible, appear only when needed, or stay hidden.
-• Shortcuts are managed in the command palette, with search, add, edit, and bookmark import support, so they do not cover the wallpaper.
-• Hidden space lets you keep links you do not want to display directly, keeping the homepage clean.
+PlainTab cares about the first moment after a new tab opens.
 
-【Privacy First】
-• No ads, no tracking, and no browsing-data collection.
-• Locally uploaded wallpapers are stored in your browser's local storage. They are not uploaded, synced, or routed through third-party servers.
-• Search and shortcut settings are designed for local use. Your new tab should belong to you.
+It stores a lightweight wallpaper preview locally so the next open can show an image as quickly as possible. Full wallpaper loading, caching, and theme color extraction happen later in the runtime path, helping reduce the blank-white feeling many new tab extensions have.
 
-【Lightweight And Transparent】
-• Built with vanilla JavaScript, CSS, and browser APIs, with no frontend framework, no build step, and no large runtime dependency.
-• Works as a Chrome / Edge new tab extension, and can also run directly as a web page.
-• Fully open source, suitable for everyday use and for learning browser extension development, frontend projects, and AI-assisted engineering.
+Wallpaper transitions use a two-layer design: the current image stays visible while the next one loads and fades in. If a network source fails, PlainTab tries to keep the current stable wallpaper instead of clearing the page.
+
+[Flexible wallpaper sources]
+
+PlainTab supports:
+
+• Bing daily wallpaper
+• Wallhaven wallpapers
+• Local image uploads
+• Local wallpaper folders
+• RSS image feeds
+• Custom image APIs
+• Video wallpapers
+
+Use Bing if you want something simple. Use uploads or folders if you already have a wallpaper collection. Use RSS, API, or Wallhaven if you like a more custom setup.
+
+[Quiet homepage, useful tools]
+
+PlainTab does not cover the homepage with shortcut tiles or turn the new tab page into another feed.
+
+The homepage keeps the essentials: wallpaper, search, and a few controls. Shortcuts live in a command palette where you can search, add, edit, import bookmarks, and hide private links in a separate space.
+
+The search bar can be adjusted to your habits:
+
+• Position
+• Width
+• Corner radius
+• Transparency
+• Visibility mode
+• Search history
+• Search engine behavior
+
+Keep it always visible, or let it appear only when needed.
+
+[Settings with depth]
+
+Settings stay in the settings panel, not scattered across the homepage.
+
+You can adjust wallpaper sources, search, hotkeys, command palette behavior, interface style, data backup, language, and more. Most of the time, what you see is still just a quiet new tab page.
+
+[Privacy and permissions]
+
+PlainTab has no ads and no tracking analytics.
+
+Uploaded wallpapers, shortcuts, search history, and configuration are mainly stored in your browser's local storage. PlainTab does not require an account and does not turn your new tab into a cloud content stream.
+
+The extension uses permissions related to the new tab page, search, page interaction, and optional network wallpaper sources. Custom APIs, RSS, and Wallhaven may require access to their image sources. If you use local or default settings, the experience stays simple.
+
+[Lightweight and open]
+
+PlainTab is built with vanilla JavaScript, CSS, and browser APIs. There is no frontend framework, no build step, and no large runtime dependency.
+
+The project is open source and easy to inspect. It is useful for daily browsing and also as a real-world browser extension project to learn from.
 
 PlainTab is for you if you want:
 
-• A better-looking new tab without information-feed noise
-• Daily wallpapers, or a place to manage your own wallpaper collection
-• Search, shortcuts, bookmark import, and backup features without homepage clutter
-• A homepage that is not covered by dozens of shortcut tiles
-• A lightweight, transparent extension without complex build tooling
-• A real, complete browser extension project to learn from
+• A better-looking new tab without feeds
+• Daily wallpapers or your own wallpaper collection
+• Search, shortcuts, bookmark import, and backups
+• A homepage that is not filled with dozens of tiles
+• A lightweight and transparent extension
+• A complete browser extension project to study
 
-What PlainTab will not do:
+PlainTab will not add:
 
-• No news feeds, trending lists, or recommended content
-• No ads, sponsored cards, or promotional slots
-• No account system, social features, or cloud content stream
-• No wall of shortcut tiles covering the homepage
-• No autoplay video or animated backgrounds
+• News feeds, trending lists, or recommended content
+• Ads, sponsored cards, or promoted slots
+• Account systems, social features, or cloud content streams
+• Dozens of pinned shortcuts across the homepage
+• Promotional autoplay video or content feeds
 
-Support And Feedback
+Support and feedback
 
-• Open source: https://github.com/kaininx/PlainTab
+• Source code: https://github.com/kaininx/PlainTab
 • Live demo: https://plaintab.kaininx.workers.dev
-• Detailed release notes: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
-• Like PlainTab? A Chrome Web Store review is always appreciated.
-• Questions or suggestions? Open an Issue on GitHub.
+• Release notes: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
+• Like PlainTab? A Chrome Web Store review helps a lot.
+• Found an issue or have an idea? Open an issue on GitHub.
 
-Changelog
+Recent updates
 
-• v3.2.1 · Added Wallhaven and video wallpaper support, refined wallpaper setup and apply safety, improved command palette/theme behavior, and fixed wallpaper, settings, and i18n stability.
+• v3.2.1: Added Wallhaven and video wallpaper support, refined wallpaper setup and apply safety, improved command palette and theme behavior, and fixed wallpaper, settings, and i18n stability issues.
 
-• v3.2.0 · Major feature and performance update: added command palette, RSS/API/local-folder wallpapers, WASM wallpaper theme colors, config import/export and search history; migrated storage to the v3.2 model, tightened permissions and search fallback, and modularized/optimized startup, wallpaper, gallery, and settings paths.
+• v3.2.0: Added command palette, RSS/API/local-folder wallpapers, WASM wallpaper theme colors, config import/export, and search history; migrated the v3.2 storage model and optimized startup, wallpaper, gallery, and settings paths.
 
-• v3.1.4 · Refactored storage constant naming and merged IDB migration into two-phase transaction for crash-recoverable ordering; optimized new user migration skip; added batch upload deduplication with 12-image cap
-
-• v3.1.3 · Implemented storage version migration for localStorage and IndexedDB, unified storage key naming, fixed thumbnail persistence logic in local mode.
-
-• v3.1.2 · Renamed _locales/pt to pt_BR for Chrome Web Store compliance; unified changelog format to compact style; renamed Portuguese files to pt_BR for consistency.
-
-• v3.1.1 · Switched Bing API to Promise.any race mode with 8-second AbortController timeout; updated all 16 language READMEs to reflect the new fetch strategy.
-
-• v3.1.0 · Local wallpaper gallery: upload, delete, rotate multiple local wallpapers, batch file selection; improved panel styling; enhanced localization; tightened CSP configuration.
-
-• v3.0.5 · Upgraded Bing API proxy, optimized wallpaper caching, unified localStorage key names, added 16-language changelogs, improved logs and code semantics.
-
-• v3.0.4 · Fixed wallpaper loading failures caused by missing Bing CDN domains in the CSP image allowlist.
-
-• v3.0.3 · Optimized the first-frame rendering path, hardened CSP security, cleaned up unused code, added icons and promotional assets.
-
-• v3.0.2 · Dark-mode adaptive background, adjusted code structure, added multilingual footer note.
-
-• v3.0.1 · Integrated Chrome Search API to meet Chrome Web Store single-purpose requirements.
-
-• v3.0.0 · Core rewrite: dual-layer architecture reduces blank-screen flicker on new tabs, with fallback background.
-
-• v2.2.7 · Added English, Japanese, Korean, Russian, and Simplified Chinese READMEs; default search mode changed to always visible.
-
-• v2.2.6 · Optimized wallpaper loading and thumbnail caching, organized Bing API constants.
-
-• v2.2.5 · Added wallpaper preloading and first-frame optimization to reduce blank-screen flashes.
-
-• v2.2.4 · Migrated wallpaper storage from localStorage to IndexedDB.
-
-• v2.2.3 · Added local wallpaper upload and improved search-engine switching.
-
-• v1.2.0 · Initial release: added wallpaper system, 16-language UI, Chrome i18n localization, and MIT license.
+PlainTab will keep moving in the same direction: clean, fast, quiet, and learnable.

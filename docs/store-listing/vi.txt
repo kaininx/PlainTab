@@ -1,100 +1,89 @@
-PlainTab là một trang tab mới đẹp, nhanh và yên tĩnh.
+PlainTab · Tab mới tối giản
 
-Vì sao? Vì tab mới của bạn nên hiển thị trước một hình nền dễ chịu, chứ không phải quảng cáo, tin tức, xu hướng hay cả màn hình đầy lối tắt.
+Trang tab mới nhanh, yên tĩnh và ưu tiên hình nền.
 
-PlainTab làm một việc đơn giản: mở tab mới, hiển thị hình nền, rồi để bạn tìm kiếm, nhập URL hoặc mở các lối tắt của riêng mình. Nó không giành lấy sự chú ý của bạn và không biến trang chủ trình duyệt thành một luồng nội dung khác.
+Khi mở tab mới, thứ đầu tiên bạn nên thấy là một hình nền dễ chịu, ô tìm kiếm và các liên kết của riêng bạn khi cần. Không phải bảng tin, quảng cáo, xu hướng hay một màn hình đầy widget.
+
+PlainTab giữ tab mới sạch, đẹp và nhanh. Bạn có thể tìm kiếm, nhập URL, mở lối tắt, đổi nguồn hình nền hoặc chỉ nhìn hình một chút rồi tiếp tục công việc.
 
 Vì sao chọn PlainTab?
 
-【Có hình ngay khi mở】
-• Tải hình nền cục bộ cực nhanh: PlainTab lưu một ảnh xem trước nhẹ trong máy và tải ngay lập tức mỗi khi mở tab mới, giúp giảm nhấp nháy màn hình trắng.
-• Hình nền độ phân giải cao chuyển mượt trong nền, trong khi ảnh hiện có vẫn nằm dưới làm lớp dự phòng, nên bạn không cần chờ mạng mới thấy nền.
-• Hình nền hằng ngày của Bing hỗ trợ bộ nhớ đệm và cập nhật; sau lần dùng đầu tiên, những lần mở sau sẽ mượt hơn.
+[Hình nền hiện nhanh]
 
-【Tự do hình nền】
-• Hỗ trợ hình nền hằng ngày của Bing và ảnh tự tải lên.
-• Hỗ trợ chọn thư mục hình nền cục bộ, phù hợp nếu bạn đã có bộ sưu tập riêng.
-• Hỗ trợ nguồn ảnh RSS và API tùy chỉnh: đơn giản khi bạn muốn đơn giản, linh hoạt khi bạn muốn tùy biến.
-• Hình nền cục bộ hỗ trợ tối đa 12 ảnh xoay vòng, có xem trước dạng thư viện 3×4, có thể xóa hoặc thay bất cứ lúc nào.
+PlainTab quan tâm đến khoảnh khắc đầu tiên khi mở tab.
 
-【Yên tĩnh nhưng không thiếu】
-• Trang chính giữ sự tối giản: hình nền, thanh tìm kiếm và vài lối vào cần thiết, không phủ đầy widget.
-• Thanh tìm kiếm có thể chỉnh vị trí, kích thước, bo góc, độ trong suốt và cách hiển thị.
-• Thanh tìm kiếm có thể luôn hiển thị, chỉ xuất hiện khi cần hoặc ẩn đi.
-• Lối tắt được quản lý trong bảng lệnh, hỗ trợ tìm kiếm, thêm, sửa và nhập dấu trang, không che hình nền.
-• Không gian ẩn giúp lưu các liên kết bạn không muốn hiển thị trực tiếp, giữ trang chính sạch sẽ.
+Nó lưu cục bộ một bản xem trước nhẹ để lần mở sau có thể hiển thị hình nhanh nhất có thể. Việc tải đầy đủ, cache và lấy màu chủ đề được xử lý sau.
 
-【Ưu tiên quyền riêng tư】
-• Không quảng cáo, không theo dõi, không thu thập dữ liệu duyệt web.
-• Hình nền tải lên cục bộ được lưu trong bộ nhớ cục bộ của trình duyệt. Chúng không được tải lên, đồng bộ hay đi qua máy chủ bên thứ ba.
-• Cài đặt tìm kiếm và lối tắt được thiết kế cho sử dụng cục bộ. Tab mới của bạn nên thuộc về bạn.
+Chuyển hình nền dùng hai lớp: hình hiện tại vẫn được giữ trong khi hình mới tải và hiện dần. Nếu nguồn mạng lỗi, PlainTab cố giữ hình nền ổn định hiện tại.
 
-【Nhẹ và minh bạch】
-• Được xây dựng bằng JavaScript thuần, CSS và API trình duyệt, không framework frontend, không bước build, không phụ thuộc runtime lớn.
-• Hoạt động như tiện ích tab mới cho Chrome / Edge và cũng có thể mở trực tiếp như trang web.
-• Hoàn toàn mã nguồn mở, phù hợp dùng hằng ngày và học phát triển tiện ích trình duyệt, frontend và kỹ thuật có AI hỗ trợ.
+[Nguồn hình nền linh hoạt]
+
+PlainTab hỗ trợ:
+
+• Hình nền hằng ngày của Bing
+• Wallhaven
+• Tải ảnh cục bộ
+• Thư mục hình nền cục bộ
+• RSS hình ảnh
+• API hình ảnh tùy chỉnh
+• Hình nền video
+
+Dùng Bing nếu muốn đơn giản, dùng ảnh hoặc thư mục nếu có bộ sưu tập riêng, hoặc RSS, API, Wallhaven nếu muốn tùy biến sâu hơn.
+
+[Trang chính yên tĩnh, công cụ đủ dùng]
+
+PlainTab không phủ trang chính bằng ô lối tắt và không biến tab mới thành một feed khác.
+
+Trang chỉ giữ phần cần thiết: hình nền, tìm kiếm và vài điều khiển. Lối tắt nằm trong command palette để tìm, thêm, sửa, nhập bookmark và ẩn liên kết riêng.
+
+Thanh tìm kiếm có thể chỉnh vị trí, độ rộng, bo góc, độ trong suốt, chế độ hiển thị, lịch sử và hành vi công cụ tìm kiếm.
+
+[Cài đặt đầy đủ]
+
+Cài đặt nằm trong một panel riêng. Bạn có thể chỉnh nguồn hình nền, tìm kiếm, phím tắt, command palette, giao diện, sao lưu, ngôn ngữ và nhiều thứ khác.
+
+[Riêng tư và quyền]
+
+PlainTab không có quảng cáo và không có analytics theo dõi.
+
+Hình nền tải lên, lối tắt, lịch sử tìm kiếm và cấu hình chủ yếu được lưu trong bộ nhớ cục bộ của trình duyệt. Không cần tài khoản.
+
+Quyền mở rộng liên quan đến tab mới, tìm kiếm, tương tác trang và nguồn hình nền trực tuyến tùy chọn. RSS, API và Wallhaven có thể cần truy cập nguồn ảnh tương ứng.
+
+[Nhẹ và mở]
+
+PlainTab dùng JavaScript thuần, CSS và API trình duyệt. Không framework, không bước build, không phụ thuộc runtime nặng.
+
+Dự án mã nguồn mở và dễ đọc. Phù hợp cho sử dụng hằng ngày và học từ một tiện ích trình duyệt thực tế.
 
 PlainTab phù hợp nếu bạn muốn:
 
-• Tab mới đẹp hơn nhưng không bị nhiễu bởi luồng thông tin
-• Hình nền hằng ngày hoặc nơi quản lý bộ sưu tập hình nền riêng
-• Tìm kiếm, lối tắt, nhập dấu trang và sao lưu mà không làm rối trang chính
-• Trang chủ không bị phủ bởi hàng chục ô lối tắt
-• Một tiện ích nhẹ, minh bạch, không có công cụ build phức tạp
-• Một dự án tiện ích trình duyệt thật và hoàn chỉnh để học hỏi
+• Tab mới đẹp hơn nhưng không có feed
+• Hình nền hằng ngày hoặc bộ sưu tập riêng
+• Tìm kiếm, lối tắt, nhập bookmark và sao lưu
+• Trang chính không đầy ô shortcut
+• Một tiện ích nhẹ và minh bạch
 
-PlainTab sẽ không làm:
+PlainTab sẽ không thêm:
 
-• Không có luồng tin tức, danh sách xu hướng hoặc nội dung đề xuất
-• Không quảng cáo, thẻ tài trợ hoặc vị trí quảng bá
-• Không hệ thống tài khoản, tính năng xã hội hoặc luồng nội dung đám mây
-• Không phủ trang chủ bằng hàng chục ô lối tắt
-• Không video tự phát hoặc nền động
+• Bảng tin, xu hướng hoặc đề xuất
+• Quảng cáo hoặc thẻ tài trợ
+• Tài khoản, mạng xã hội hoặc luồng cloud
+• Hàng chục lối tắt cố định trên trang chính
+• Video quảng bá hoặc feed tự phát
 
-Hỗ trợ và phản hồi
+Hỗ trợ
 
-• Mã nguồn mở: https://github.com/kaininx/PlainTab
-• Trải nghiệm trực tuyến: https://plaintab.kaininx.workers.dev
-• Ghi chú phát hành chi tiết: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
-• Thích PlainTab? Một đánh giá trên Chrome Web Store luôn rất đáng quý.
-• Có câu hỏi hoặc đề xuất? Hãy mở Issue trên GitHub.
+• Mã nguồn: https://github.com/kaininx/PlainTab
+• Demo: https://plaintab.kaininx.workers.dev
+• Ghi chú phát hành: https://github.com/kaininx/PlainTab/blob/main/docs/RELEASE_NOTES.md
+• Nếu bạn thích PlainTab, đánh giá trên store sẽ giúp rất nhiều.
+• Có lỗi hoặc ý tưởng? Hãy mở issue trên GitHub.
 
-Nhật Ký Cập Nhật
+Cập nhật gần đây
 
-• v3.2.1 · Bổ sung hỗ trợ hình nền Wallhaven và video, tinh chỉnh thiết lập và áp dụng hình nền an toàn, cải thiện bảng lệnh/chủ đề, đồng thời sửa độ ổn định của hình nền, cài đặt và i18n.
+• v3.2.1: thêm Wallhaven và hình nền video, cải thiện an toàn khi áp dụng hình nền, command palette, theme và độ ổn định.
 
-• v3.2.0 · Bản cập nhật lớn về tính năng và hiệu năng: thêm bảng lệnh, hình nền RSS/API/thư mục cục bộ, màu chủ đề hình nền bằng WASM, nhập/xuất cấu hình và lịch sử tìm kiếm; di chuyển lưu trữ sang mô hình v3.2, siết quyền và fallback tìm kiếm, đồng thời mô-đun hóa/tối ưu luồng khởi động, hình nền, thư viện và cài đặt.
+• v3.2.0: thêm command palette, hình nền RSS/API/thư mục cục bộ, màu theme WASM, import/export và lịch sử tìm kiếm.
 
-• v3.1.4 · Tái cấu trúc đặt tên hằng số lưu trữ và hợp nhất di chuyển IDB thành giao dịch hai pha có thể phục hồi sau sự cố; tối ưu hóa bỏ qua di chuyển cho người dùng mới; thêm loại bỏ trùng lặp khi tải lên hàng loạt với giới hạn 12 ảnh
-
-• v3.1.3 · Đã triển khai di chuyển phiên bản lưu trữ cho localStorage và IndexedDB, thống nhất cách đặt tên khóa lưu trữ, sửa logic lưu trữ hình thu nhỏ trong chế độ cục bộ.
-
-• v3.1.2 · Đổi tên _locales/pt thành pt_BR để phù hợp Chrome Web Store; thống nhất định dạng changelog; đổi tên các tệp tiếng Bồ Đào Nha thành pt_BR.
-
-• v3.1.1 · Chuyển Bing API sang chế độ đua Promise.any với timeout AbortController 8 giây; cập nhật README của 16 ngôn ngữ.
-
-• v3.1.0 · Thư viện hình nền cục bộ: tải lên, xóa và xoay vòng nhiều hình nền, chọn hàng loạt; cải thiện kiểu bảng; mở rộng bản địa hóa; siết cấu hình CSP.
-
-• v3.0.5 · Nâng cấp proxy Bing API, tối ưu bộ nhớ đệm hình nền, thống nhất khóa localStorage, thêm changelog 16 ngôn ngữ, cải thiện log và ngữ nghĩa mã.
-
-• v3.0.4 · Sửa lỗi tải hình nền do thiếu miền Bing CDN trong danh sách cho phép ảnh của CSP.
-
-• v3.0.3 · Tối ưu đường dẫn render khung đầu, tăng cường bảo mật CSP, dọn mã không dùng, thêm biểu tượng và tư liệu quảng bá.
-
-• v3.0.2 · Nền thích ứng chế độ tối, điều chỉnh cấu trúc mã, thêm thanh ghi chú đa ngôn ngữ ở cuối.
-
-• v3.0.1 · Tích hợp Chrome Search API để đáp ứng yêu cầu mục đích duy nhất của Chrome Web Store.
-
-• v3.0.0 · Viết lại lõi: kiến trúc hai lớp giảm nhấp nháy màn hình trắng khi mở tab mới, có nền dự phòng.
-
-• v2.2.7 · Thêm README tiếng Anh, Nhật, Hàn, Nga và Trung giản thể; chế độ tìm kiếm mặc định đổi thành luôn hiển thị.
-
-• v2.2.6 · Tối ưu tải hình nền và bộ nhớ đệm ảnh thu nhỏ, sắp xếp hằng số Bing API.
-
-• v2.2.5 · Thêm tải trước hình nền và tối ưu khung đầu để giảm màn hình trắng.
-
-• v2.2.4 · Di chuyển lưu trữ hình nền từ localStorage sang IndexedDB.
-
-• v2.2.3 · Thêm tải lên hình nền cục bộ và cải thiện trải nghiệm đổi công cụ tìm kiếm.
-
-• v1.2.0 · Bản phát hành đầu tiên: hệ thống hình nền, giao diện 16 ngôn ngữ, bản địa hóa Chrome i18n và giấy phép MIT.
+PlainTab sẽ tiếp tục sạch, nhanh, yên tĩnh và dễ học.

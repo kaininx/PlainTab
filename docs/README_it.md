@@ -1,211 +1,49 @@
-<p align="center">
-  <a href="../README.md">English</a>
-  ·
-  <a href="README_zh-CN.md">简体中文</a>
-  ·
-  <a href="README_zh-TW.md">繁體中文</a>
-  ·
-  <a href="README_hi.md">हिन्दी</a>
-  ·
-  <a href="README_es.md">Español</a>
-  ·
-  <a href="README_ar.md">العربية</a>
-  ·
-  <a href="README_fr.md">Français</a>
-  ·
-  <a href="README_pt_BR.md">Português</a>
-  ·
-  <a href="README_ru.md">Русский</a>
-  ·
-  <a href="README_de.md">Deutsch</a>
-  ·
-  <a href="README_ja.md">日本語</a>
-  ·
-  Italiano
-  ·
-  <a href="README_tr.md">Türkçe</a>
-  ·
-  <a href="README_vi.md">Tiếng Việt</a>
-  ·
-  <a href="README_ko.md">한국어</a>
-  ·
-  <a href="README_pl.md">Polski</a>
-</p>
-
-<p align="center">
-  <a href="technical/README_en.md">Documentazione tecnica</a>
-  ·
-  <a href="changelog-i18n/it.txt">Registro delle modifiche</a>
-  ·
-  <a href="https://plaintab.kaininx.workers.dev">Demo online</a>
-  ·
-  <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome Web Store</a>
-</p>
-
-<p align="center">
+﻿<p align="center">
   <img src="../icon/icon2048.png" alt="PlainTab Logo" width="92">
 </p>
 
 <h1 align="center">PlainTab</h1>
 
 <p align="center">
-  Una nuova scheda bella, veloce e silenziosa.
+  Una nuova scheda veloce, silenziosa e centrata sugli sfondi per Chrome ed Edge.
 </p>
 
 <p align="center">
-  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT License"></a>
+  <a href="../README.md">English</a> · <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome Web Store</a> · <a href="https://plaintab.kaininx.workers.dev">Demo live</a> · <a href="technical/README_en.md">Note tecniche</a> · <a href="changelog-i18n/it.txt">Changelog</a>
+</p>
+
+<p align="center">
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="Licenza MIT"></a>
+  <img src="https://img.shields.io/badge/version-3.2.1-111827?style=flat-square" alt="Versione 3.2.1">
   <img src="https://img.shields.io/badge/Manifest-V3-4285f4?style=flat-square&logo=googlechrome" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/AI-Collaboration-7c3aed?style=flat-square" alt="AI Collaboration">
-  <img src="https://img.shields.io/badge/No-Build_Step-00a884?style=flat-square" alt="No Build Step">
+  <img src="https://img.shields.io/badge/No_Build_Step-00a884?style=flat-square" alt="Nessun build">
+  <img src="https://img.shields.io/badge/Vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=111827" alt="JavaScript vanilla">
 </p>
 
 <div align="center">
-  <img src="../imgs/chrome_01.jpg" width="45%" alt="PlainTab screenshot 1" />
-  <img src="../imgs/chrome_02.jpg" width="45%" alt="PlainTab screenshot 2" />
+  <img src="../imgs/chrome_01.jpg" width="45%" alt="Screenshot PlainTab 1" />
+  <img src="../imgs/chrome_02.jpg" width="45%" alt="Screenshot PlainTab 2" />
 </div>
 
-## Che cos'è
+## Che cos'è PlainTab
 
-PlainTab è una nuova scheda per il browser.
+PlainTab è un'estensione Manifest V3 per la nuova scheda di Chrome ed Edge. Sostituisce la pagina predefinita con uno sfondo pulito, una barra di ricerca configurabile e scorciatoie che restano nascoste finché non servono.
 
-Fa una cosa molto semplice: quando apri una nuova scheda, vedi prima un bello sfondo, e poi puoi cercare direttamente, digitare un URL o aprire i tuoi collegamenti rapidi.
+È pensata per chi vuole una pagina iniziale calma e immediata: niente feed di notizie, schede sponsorizzate, account o dashboard piene di widget. Apri una scheda, guardi lo sfondo, cerchi o digiti un URL e vai avanti.
 
-Non ha feed di notizie, né schermo pieno di widget, né meteo, messaggi di benvenuto, liste di cose da fare, e non cerca di portare la tua attenzione altrove. È più come una scrivania pulita: c'è quando ti serve, e non ti disturba quando non ne hai bisogno.
+La stessa pagina può funzionare anche come sito autonomo aprendo direttamente `index.html`, quindi il progetto è facile da provare, leggere e modificare.
 
-## Perché vale la pena provarlo
+## Provalo
 
-### L'immagine c'è da subito
+### Installazione
 
-La sensazione più evidente con PlainTab è la velocità.
+[Installa PlainTab dal Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 
-Molte nuove schede mostrano prima uno spazio bianco, poi l'immagine appare dopo un attimo. PlainTab evita il più possibile questa sensazione. Dopo averlo usato una volta, con la cache del browser già presente, la prossima volta che apri una scheda lo sfondo appare quasi all'istante, come se fosse sempre stato lì.
-
-Non è un'"ottimizzazione delle prestazioni" solo sulla carta, ma una fluidità che puoi sentire davvero.
-
-### Piacevole a prima vista
-
-La sua interfaccia predefinita è molto sobria: sfondo, barra di ricerca, pochi piccoli pulsanti.
-
-Non ti sommerge di informazioni appena lo apri, e non trasforma la pagina iniziale del browser in un'altra postazione di lavoro. La sua bellezza viene dal togliere, non dall'accumulare.
-
-### Tanti modi di giocare con lo sfondo
-
-Puoi usare lo sfondo quotidiano di Bing, caricare le tue immagini o scegliere una cartella di sfondi dal tuo computer.
-
-Se ti piace sperimentare, puoi anche collegare fonti RSS di immagini o usare la tua API di immagini. È semplice per un uso base, ma c'è spazio per esplorare a fondo.
-
-### La ricerca è molto naturale
-
-La barra di ricerca può essere posizionata dove preferisci, e puoi regolarne dimensioni, angoli arrotondati, trasparenza e modalità di visualizzazione.
-
-Puoi tenerla sempre visibile, o nasconderla e farla apparire solo quando ti serve. Sembra leggera, ma nell'uso quotidiano è molto comoda.
-
-### Collegamenti rapidi senza occupare la pagina principale
-
-Molte nuove schede riempiono lo schermo di collegamenti rapidi. PlainTab non lo fa.
-
-Mette i collegamenti rapidi nella tavolozza dei comandi. Puoi cercare, aggiungere, modificare, importare segnalibri e anche mettere alcuni collegamenti in uno spazio nascosto. La pagina principale resta pulita, ma senza perdere funzionalità.
-
-### Tante impostazioni, ma senza rumore
-
-PlainTab ti permette di regolare lo sfondo, la barra di ricerca, le scorciatoie da tastiera, i backup, la lingua e i dettagli dell'interfaccia.
-
-Ma queste impostazioni non si accumulano sulla pagina principale. Ogni giorno vedi una nuova scheda tranquilla; quando vuoi modificare qualcosa, apri il pannello delle impostazioni.
-
-## Un progetto di collaborazione con l'IA
-
-PlainTab è anche ottimo per imparare.
-
-Non è un progetto giocattolo che funziona solo in demo, ma un'estensione per nuova scheda completa: con una vera interfaccia, impostazioni utente, persistenza dei dati, importazione ed esportazione, multilingua, e supporto sia per l'ambiente di estensione del browser che per la pagina web classica.
-
-Questo progetto è stato sviluppato con una collaborazione intensiva dell'IA nello sviluppo, nell'organizzazione, nella documentazione e nelle iterazioni. Puoi prenderlo come un ottimo materiale di studio:
-
-- Per vedere come l'IA partecipa allo sviluppo di un progetto reale.
-- Per imparare come si costruisce un'estensione per browser.
-- Per iniziare con il frontend senza dover affrontare subito framework complessi.
-- Per studiare un piccolo progetto completo, dall'idea alle funzionalità, all'esperienza e alla documentazione.
-
-Il suo codice non dipende da strumenti di build complessi: apri i file e li leggi, apri la pagina e funziona. Per i principianti, è molto più amichevole che installare una pila di dipendenze fin dall'inizio.
-
-## A chi è adatto
-
-PlainTab è per chi:
-
-- Vuole una nuova scheda più bella.
-- Non ama vedere un mucchio di informazioni quando apre il browser.
-- Apprezza gli sfondi quotidiani o ha la propria collezione di sfondi.
-- Vuole una pagina iniziale leggera ma completa di funzionalità.
-- Cerca un progetto di collaborazione con l'IA che sia reale, completo e adatto all'apprendimento.
-- Vuole iniziare con le estensioni per browser o lo sviluppo frontend.
-
-## Cosa non farà
-
-PlainTab continuerà a essere sobrio. Alcune funzioni, per quanto comuni, non sono necessariamente adatte a questo progetto.
-
-Molto probabilmente non supporterà mai:
-
-- Feed di notizie, tendenze, contenuti consigliati.
-- Pubblicità all'apertura, card promozionali, spazi sponsorizzati.
-- Grandi pannelli di meteo, calendario o attività.
-- Riproduzione automatica di video o sfondi animati.
-- Sistema di account, funzioni social, flusso di contenuti cloud.
-- La pagina principale piena di decine di scorciatoie.
-- Versione per Safari. Richiederebbe costi aggiuntivi di pubblicazione e manutenzione che, per un progetto personale come questo, non sono realistici al momento.
-
-Non è che queste funzioni siano sbagliate, è che trasformerebbero PlainTab in qualcos'altro.
-
-Se quando apri una nuova scheda vuoi solo un momento di calma, cercare qualcosa o guardare uno sfondo, allora PlainTab è dalla tua parte.
-
-## Cosa potrebbe arrivare in futuro
-
-Mi piacerebbe che PlainTab continuasse a crescere in queste direzioni:
-
-- Fonti di sfondi più stabili.
-- Un'esperienza di configurazione più comoda.
-- Documentazione di apprendimento più facile da capire.
-- Spiegazioni del codice più accessibili ai principianti.
-- Una cronologia più completa dello sviluppo collaborativo con l'IA.
-- Possibile supporto per Firefox.
-
-Il supporto per Firefox non può essere promesso ora, perché l'ambiente delle estensioni, i permessi e il comportamento delle API potrebbero essere diversi da quelli di Chrome ed Edge. Ma se in futuro le condizioni saranno favorevoli, mi piacerebbe che PlainTab non restasse solo sui browser basati su Chromium.
-
-Se ti interessano le estensioni per Firefox, la compatibilità tra browser o lo sviluppo assistito dall'IA, sei il benvenuto per esplorare insieme. Questo progetto è perfetto per imparare mentre si usa.
-
-## Panoramica delle funzionalità
-
-| Funzionalità | Descrizione |
-|------|------|
-| Sostituzione della nuova scheda | Sostituisce la nuova scheda del browser dopo l'installazione |
-| Pagina iniziale online | Funziona anche direttamente come pagina web |
-| Sfondo quotidiano | Supporta lo sfondo quotidiano di Bing |
-| Sfondi locali | Permette di caricare immagini e scegliere cartelle locali |
-| Sfondi RSS / API | Possibilità di collegare più fonti di immagini |
-| Barra di ricerca | Posizione, dimensioni, stile e modalità di visualizzazione regolabili |
-| Cronologia delle ricerche | Salva le ricerche recenti o può essere disattivata |
-| Collegamenti rapidi | Gestiti dalla tavolozza dei comandi, senza occupare la pagina principale |
-| Spazio nascosto | Conserva separatamente i collegamenti che non vuoi mostrare |
-| Pannello delle impostazioni | Regola interfaccia, sfondi, scorciatoie e dati |
-| Backup dei dati | Permette di esportare, importare e fare backup cifrati |
-| Multilingua | Interfaccia multilingue |
-| Collaborazione con l'IA | Ottimo per imparare come l'IA partecipa allo sviluppo di progetti |
-
-## Diagnostica di affidabilità
-
-PlainTab controlla che i percorsi di cache degli sfondi restino entro limiti definiti. L’ultima diagnostica di memoria e archiviazione ha verificato che le immagini RSS restano limitate a 12 record IndexedDB, API e Bing restano ciascuno limitati a un record, e i reload ripetuti dello sfondo restano stabili dopo GC forzato.
-
-Report completo in inglese: [diagnostica memoria e archiviazione, 2026-05-19](ai-tasks/20260519-memory-storage-diagnostic-report.md).
-
-## Avvio rapido
-
-### Installare l'estensione
-
-[Installa PlainTab nel Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-
-### Prova online
+### Demo online
 
 [plaintab.kaininx.workers.dev](https://plaintab.kaininx.workers.dev)
 
-### Esecuzione in locale
+### Esecuzione locale
 
 ```bash
 git clone https://github.com/kaininx/PlainTab.git
@@ -213,51 +51,151 @@ git clone https://github.com/kaininx/PlainTab.git
 
 Modalità estensione:
 
-1. Apri `chrome://extensions`
-2. Attiva la modalità sviluppatore
-3. Seleziona "Carica estensione non pacchettizzata"
-4. Scegli la cartella del progetto PlainTab
+1. Apri `chrome://extensions`.
+2. Attiva la modalità sviluppatore.
+3. Scegli "Carica estensione non pacchettizzata".
+4. Seleziona la cartella del progetto PlainTab.
 
-Modalità pagina web:
+Modalità web:
 
 Apri `index.html` direttamente nel browser.
 
-Non serve installare dipendenze né fare build.
+Nessuna dipendenza, nessun package manager, nessun passaggio di build.
+
+## Perché PlainTab
+
+### Prima lo sfondo, non una pagina vuota
+
+PlainTab cura la sensazione di apertura immediata. Salva un'anteprima leggera in `localStorage`, poi rimanda caricamento completo, cache e colori del tema a dopo il primo rendering.
+
+La velocità percepita è parte del prodotto, non solo un numero nei benchmark.
+
+### Tranquillo per impostazione predefinita
+
+La home resta essenziale: sfondo, ricerca e pochi controlli. Scorciatoie, link nascosti, impostazioni, backup e opzioni avanzate esistono, ma non invadono la pagina.
+
+### Sfondi flessibili
+
+Puoi usare lo sfondo giornaliero di Bing, Wallhaven, immagini caricate, una cartella locale, feed RSS, una tua API di immagini o sfondi video. PlainTab resta semplice per l'uso quotidiano e flessibile per chi vuole personalizzare.
+
+### Ricerca e scorciatoie senza confusione
+
+La barra di ricerca permette di regolare posizione, dimensione, raggio, trasparenza, visibilità, cronologia e motore. Le scorciatoie stanno nella palette comandi, dove puoi cercare, aggiungere, modificare, importare e nascondere link.
+
+## Funzionalità
+
+| Funzionalità | Cosa fa |
+|--------------|---------|
+| Nuova scheda | Sostituisce la nuova scheda del browser dopo l'installazione |
+| Modalità web autonoma | Si avvia da `index.html` senza pacchettizzare l'estensione |
+| Avvio rapido dello sfondo | Riduce i lampi bianchi con un'anteprima iniziale |
+| Sfondo Bing | Supporta lo sfondo giornaliero di Bing |
+| Sfondo Wallhaven | Supporta esplorazione e scelta da Wallhaven |
+| Sfondi locali | Upload, galleria e selezione di cartelle locali |
+| Sfondi RSS / API | Connette feed e API di immagini personalizzate |
+| Sfondi video | Permette di usare video come sfondo |
+| Barra di ricerca | Posizione, dimensione, stile, trasparenza e visibilità |
+| Cronologia ricerche | Salva ricerche recenti o può essere disattivata |
+| Palette comandi | Gestisce scorciatoie senza sporcare la home |
+| Spazio nascosto | Link disponibili ma non visibili |
+| Pannello impostazioni | Interfaccia, sfondi, scorciatoie, dati e lingua |
+| Backup e ripristino | Import, export e backup cifrati |
+| Interfaccia multilingue | Include 16 pacchetti lingua |
+| Traccia di collaborazione IA | Note e documenti dello sviluppo assistito da IA |
+
+## Per sviluppatori
+
+PlainTab usa una tecnologia volutamente semplice:
+
+- JavaScript vanilla, CSS e API del browser.
+- Niente `npm`, `package.json`, framework o bundler.
+- Un'unica codebase per estensione e modalità web.
+- Configurazione Manifest V3 in `manifest.json`.
+- Script caricati direttamente da `index.html`.
+
+Da dove iniziare:
+
+- [Note tecniche](technical/README_en.md) per architettura e responsabilità.
+- [Note di rilascio](RELEASE_NOTES.md) per la storia delle funzionalità.
+- [Diagnostica memoria e storage](ai-tasks/20260519-memory-storage-diagnostic-report.md) per la cache degli sfondi.
+- [Istruzioni per agenti IA](../AGENTS.md) per vincoli e regole del progetto.
+
+Aree delicate: percorso di avvio, rendering a due livelli dello sfondo, dati grandi in IndexedDB, compatibilità delle chiavi localStorage e permessi richiesti dal Chrome Web Store.
 
 ## Struttura del progetto
 
 ```text
 PlainTab/
-├── index.html              # Punto d'ingresso nuova scheda e pagina web
-├── manifest.json           # Configurazione dell'estensione del browser
-├── css/                    # Stili della pagina
-├── js/                     # Logica della pagina
-├── js/wallpaper/           # Funzioni relative allo sfondo
-├── _locales/               # Multilingua dell'estensione
-├── docs/                   # Documentazione
+├── index.html              # Nuova scheda e ingresso web
+├── manifest.json           # Manifest Chrome / Edge
+├── css/                    # Stili per funzionalità
+├── js/                     # Moduli runtime
+├── js/wallpaper/           # Sfondi, fonti ed estrazione tema
+├── wasm/                   # Motore tema e script di build
+├── _locales/               # Messaggi i18n dell'estensione
+├── docs/                   # Documentazione e note di rilascio
 ├── icon/                   # Icone
-└── imgs/                   # Screenshot e risorse per lo store
+└── imgs/                   # Screenshot e asset dello store
 ```
+
+## Cosa evita PlainTab
+
+PlainTab resterà sobrio. Non rientrano nella direzione attuale: feed di notizie, trend, raccomandazioni, pubblicità, grandi pannelli meteo/calendario/todo, account, social, flussi cloud, decine di scorciatoie fisse o contenuti promozionali in autoplay.
+
+Una versione Safari non è prevista per ora: pubblicazione e manutenzione sarebbero troppo pesanti per un progetto personale.
+
+## Collaborazione IA e apprendimento
+
+PlainTab è stato sviluppato con molta collaborazione IA: codice, documentazione, refactoring, rilascio e diagnostica. Non è una demo giocattolo: ha interfaccia reale, impostazioni persistenti, import/export, storage degli sfondi, più lingue e modalità estensione/web.
+
+È utile per studiare come si costruisce un'estensione nuova scheda, come organizzare un piccolo frontend senza framework, come documentare lo sviluppo assistito da IA e come la sobrietà del prodotto guida le scelte tecniche.
+
+## Roadmap
+
+Possibili direzioni: fonti di sfondi più stabili, impostazioni più fluide, documentazione tecnica più chiara, registro più completo dello sviluppo assistito da IA e possibile supporto Firefox se API e manutenzione lo permetteranno.
 
 ## Contribuire
 
-Issue e PR sono benvenuti.
+Issue e pull request sono benvenute, soprattutto per compatibilità browser, fonti di sfondi, documentazione e piccoli miglioramenti UI.
 
-PlainTab manterrà la sua direzione originale: pulito, veloce, silenzioso e facile da imparare.
+Prima di modificare avvio, sfondi, storage, ricerca, impostazioni o palette comandi, leggi [AGENTS.md](../AGENTS.md) e le regole in `.claude/rules/`. L'apertura di PlainTab è sensibile: meglio cambi piccoli e mirati.
 
-## Link correlati
+## Lingue
 
-- [Registro delle modifiche](changelog-i18n/it.txt)
+<details>
+<summary>Traduzioni del README</summary>
+
+- [English](../README.md)
+- [简体中文](README_zh-CN.md)
+- [繁體中文](README_zh-TW.md)
+- [हिन्दी](README_hi.md)
+- [Español](README_es.md)
+- [العربية](README_ar.md)
+- [Français](README_fr.md)
+- [Português](README_pt_BR.md)
+- [Русский](README_ru.md)
+- [Deutsch](README_de.md)
+- [日本語](README_ja.md)
+- Italiano
+- [Türkçe](README_tr.md)
+- [Tiếng Việt](README_vi.md)
+- [한국어](README_ko.md)
+- [Polski](README_pl.md)
+
+</details>
+
+## Link utili
+
+- [Changelog](changelog-i18n/it.txt)
 - [Note di rilascio dettagliate](RELEASE_NOTES.md)
-- [Note tecniche in inglese](technical/README_en.md)
-- [Prova online](https://plaintab.kaininx.workers.dev)
+- [Note tecniche](technical/README_en.md)
+- [Diagnostica memoria e storage](ai-tasks/20260519-memory-storage-diagnostic-report.md)
+- [Demo live](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-- [Pagina del progetto su GitHub](https://github.com/kaininx/PlainTab)
-
-- [Diagnostica memoria e archiviazione](ai-tasks/20260519-memory-storage-diagnostic-report.md)
+- [GitHub](https://github.com/kaininx/PlainTab)
 
 ## Licenza
 
-PlainTab è open source sotto [MIT License](../LICENSE).
+PlainTab è open source sotto [licenza MIT](../LICENSE).
 
 Creato e mantenuto da [Kaelri](https://github.com/kaininx).
