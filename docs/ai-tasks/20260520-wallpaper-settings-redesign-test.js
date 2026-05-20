@@ -110,7 +110,80 @@ function testUploadSettingsUiContract() {
   assert(settingsPanel.includes("data-upload-mode=\"video\""), 'upload drawer should expose a video mode choice');
   assert(settingsPanel.includes("tr('uploadApplyImageTitle')"), 'image mode should use localized title copy');
   assert(settingsPanel.includes("tr('uploadApplyVideoTitle')"), 'video mode should use localized title copy');
+  assert(settingsPanel.includes("tr('uploadApplyPrivacyHint')"), 'upload drawer should explain local-only storage');
+  assert(settingsPanel.includes("tr('folderPermissionHint')"), 'folder drawer should explain browser permission lifetime and local-only access');
   assert(settingsPanel.includes('prepareUploadWorkOrder'), 'upload source should prepare files during apply');
+}
+
+function testApiSettingsUsesSharedVisualLanguage() {
+  const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
+  const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  assert(settingsPanel.includes('data-api-type-tab="image"'), 'API editor should render the direct-image type tab');
+  assert(settingsPanel.includes('data-api-type-tab="json"'), 'API editor should render the JSON type tab');
+  assert(!/data-api-type-tab="(?:image|json)"[\s\S]{0,90}<span><\/span>/.test(settingsPanel), 'API type tabs should not render decorative per-type color spans');
+  const apiCssStart = css.indexOf('.api-config');
+  const apiCssEnd = css.indexOf('.wallhaven-config', apiCssStart);
+  assert(apiCssStart > 0 && apiCssEnd > apiCssStart, 'API CSS block should be inspectable');
+  const apiCss = css.slice(apiCssStart, apiCssEnd);
+  assert(!apiCss.includes('168, 85, 247'), 'API controls should not hard-code a separate purple identity');
+  assert(!apiCss.includes('#a855f7'), 'API controls should not hard-code the purple API color');
+  assert(!apiCss.includes('#22c55e') && !apiCss.includes('#ef4444'), 'API test states should use shared muted state colors, not raw red/green dots');
+  assert(/\.api-type-tabs button\.active\s*\{[\s\S]*rgba\(var\(--surface-elevated-rgb\)/.test(apiCss), 'API type tabs should use the shared selected-control surface');
+  assert(!apiCss.includes('.api-json-path-row'), 'API CSS should not keep dead JSON path row styles');
+  assert(/\.api-add-row\s*\{[\s\S]*grid-template-columns:\s*1fr/.test(apiCss), 'API add form should stack controls instead of squeezing them into narrow columns');
+  assert(/\.api-config\[data-api-type="json"\] \.api-add-row\s*\{[\s\S]*grid-template-columns:\s*1fr/.test(apiCss), 'JSON API add form should use the same stacked layout');
+}
+
+function testAccentColorAppliesOnPickerChange() {
+  const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
+  assert(/accentColorInput\.addEventListener\('input',\s*function \(\) \{ applyAccentColor\(this\.value\); \}\)/.test(settingsPanel), 'accent color should update while dragging in browsers that emit input');
+  assert(/accentColorInput\.addEventListener\('change',\s*function \(\) \{ applyAccentColor\(this\.value\); \}\)/.test(settingsPanel), 'accent color should apply when the native color picker confirms with change');
+}
+
+function testCustomAccentAppliesFullThemePalette() {
+  const index = fs.readFileSync(path.join(repoRoot, 'index.html'), 'utf8');
+  const theme = fs.readFileSync(path.join(repoRoot, 'js', 'theme.js'), 'utf8');
+  const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
+  const settingsBootstrap = fs.readFileSync(path.join(repoRoot, 'js', 'settings-bootstrap.js'), 'utf8');
+  assert(index.includes('<script src="js/theme.js"></script>'), 'shared theme module should load before settings bootstrap');
+  assert(index.indexOf('js/theme.js') < index.indexOf('js/settings-bootstrap.js'), 'theme module should be available to startup settings');
+  [
+    'customAccentThemePalette',
+    'applyCustomAccentTheme',
+    'applyDefaultSurfaceTheme',
+    'applyPaletteAliases'
+  ].forEach((name) => {
+    assert(theme.includes(`function ${name}`), `shared theme module should define ${name}`);
+  });
+  [
+    '--theme-surface-base-rgb',
+    '--theme-surface-elevated-rgb',
+    '--theme-tint-rgb',
+    '--theme-stroke-rgb',
+    '--theme-accent-rgb',
+    '--surface-base-rgb',
+    '--surface-elevated-rgb',
+    '--tint-rgb',
+    '--stroke-rgb'
+  ].forEach((token) => {
+    assert(theme.includes(token), `shared custom accent should write ${token}`);
+  });
+  assert(theme.includes('window.PlainTabTheme'), 'theme module should expose a shared global API');
+  assert(/applyCustomAccentTheme\(value\)[\s\S]*writePalette\(root, palette\);[\s\S]*applyPaletteAliases\(root, palette\);/.test(theme), 'custom accent should apply direct alias values so later wallpaper extraction cannot override it');
+  assert(settingsPanel.includes('window.PlainTabTheme.applyCustomAccentTheme'), 'settings panel should call the shared theme API');
+  assert(settingsBootstrap.includes('window.PlainTabTheme.applyCustomAccentTheme'), 'startup bootstrap should call the shared theme API');
+  assert(/if \(mode === 'custom' && rgb\) \{\s*applyCustomAccentTheme\(rgb\);/.test(settingsBootstrap), 'startup custom accent should apply a full palette, not just --accent-rgb');
+  assert(/function applyAccentPreference\(\) \{[\s\S]*applyCustomAccentTheme\(rgb\);/.test(settingsPanel), 'runtime custom accent should apply a full palette, not just --accent-rgb');
+}
+
+function testCustomAccentIsNotMaskedByWallpaperSourceColors() {
+  const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  const modeChipBlock = css.slice(css.indexOf('.wp-mode-chip {'), css.indexOf('/* L1 buttons */'));
+  assert(modeChipBlock.includes('--chip-signal-rgb'), 'current source chip should keep source identity on the small signal only');
+  assert(!/\.wp-mode-chip\.(?:bing|upload|folder|rss|api|wallhaven)\s*\{[^}]*--chip-rgb/.test(modeChipBlock), 'current source chip surface should use global accent, not source-specific chip color');
+  assert(!/\.wallpaper-source-item(?:\[data-source="[^"]+"\]|\.(?:bing|upload|folder|rss|api|wallhaven))/.test(css), 'source identity colors should not override the whole source row accent');
+  assert(/\.wallpaper-source-glyph\.bing\s*\{\s*--source-rgb:\s*59,\s*130,\s*246;/.test(css), 'source glyph should keep the Bing identity color');
+  assert(/\.wallpaper-source-item\[aria-selected="true"\][\s\S]*box-shadow:\s*2px 0 0 rgba\(var\(--accent-rgb\)/.test(css), 'selected source row rail should follow the custom accent color');
 }
 
 function testUnifiedWallpaperLayoutContract() {
@@ -124,6 +197,16 @@ function testUnifiedWallpaperLayoutContract() {
   assert(settingsWallpaper.includes('wallpaper-source-detail'), 'new wallpaper layout should render a source detail panel');
   assert(settingsWallpaper.includes('wallpaper-runtime-card'), 'new wallpaper layout should render a current runtime card');
   assert(settingsWallpaper.includes('data-wallpaper-source-option'), 'source nav should expose source option buttons');
+  assert(settingsWallpaper.includes('function syncWorkspaceDetailHeight'), 'wallpaper module should sync detail height from the source nav');
+  assert(settingsWallpaper.includes('ResizeObserver'), 'source nav height should update dynamically when the source list changes');
+  const sourceNavMatch = settingsWallpaper.match(/function sourceNavHTML\(\) \{[\s\S]*?\n        \}/);
+  assert(sourceNavMatch, 'source nav renderer should be easy to inspect');
+  assert(!sourceNavMatch[0].includes('source.descKey'), 'source nav should not render descriptions in the left rail');
+  assert(!sourceNavMatch[0].includes('<small>'), 'source nav should keep the left rail to name and status only');
+  assert(settingsPanel.includes('wallpaper-detail-summary'), 'right detail panel should have a designed source summary header');
+  assert(settingsPanel.includes('wallpaper-detail-source-dot'), 'right detail panel should repeat the source signal dot beside the title');
+  assert(settingsPanel.includes('wallpaper-detail-status'), 'right detail panel should show the current source work-order status');
+  assert(settingsPanel.includes('wallpaper-detail-explainer'), 'source descriptions should render as a dedicated explanatory area in the right detail panel');
   ['bing', 'upload', 'folder', 'rss', 'wallhaven', 'api'].forEach((source) => {
     assert(settingsWallpaper.includes(`'${source}'`) || settingsWallpaper.includes(`"${source}"`), `source nav should include ${source}`);
   });
@@ -133,6 +216,49 @@ function testUnifiedWallpaperLayoutContract() {
   assert(settingsBootstrap.includes("loadScript('js/settings-panel.js')"), 'settings bootstrap should lazy-load the full panel');
   assert(settingsBootstrap.includes("loadScript('js/settings-wallpaper.js')"), 'settings bootstrap should lazy-load wallpaper settings after the full panel');
   assert(settingsBootstrap.includes('SettingsPanelFull.isReady'), 'settings bootstrap should gate full-panel refresh until init is complete');
+}
+
+function testWallpaperDetailScrollBoundedBySourceNav() {
+  const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  assert(css.includes('--wallpaper-source-nav-height'), 'wallpaper detail panel should use the measured source-nav height');
+  assert(css.includes('max-height: var(--wallpaper-source-nav-height'), 'wallpaper detail panel should be capped by the source nav height');
+  assert(/\.wallpaper-source-detail\s*\{[\s\S]*overflow-y:\s*auto/.test(css), 'wallpaper detail panel should scroll internally when content is taller than the source nav');
+  assert(!/\.wallpaper-source-detail\s*\{[\s\S]*overscroll-behavior:\s*contain/.test(css), 'wallpaper detail panel should allow wheel scroll chaining to the main wallpaper settings body');
+}
+
+function testWallpaperHeaderUsesGlobalTabChrome() {
+  const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  assert(/\.wallpaper-tab-header-v2\s*\{[\s\S]*position:\s*absolute/.test(css), 'wallpaper v2 header should keep the same fixed title geometry as other tabs');
+  assert(!/\.wallpaper-tab-header-v2\s*\{[\s\S]*position:\s*static/.test(css), 'wallpaper v2 header should not opt out of global title layout');
+  assert(/\.wallpaper-tab-body-v2\s*\{[\s\S]*padding-top:\s*178px/.test(css), 'wallpaper v2 body should reserve the same title height as other tabs');
+  assert(!/\.wallpaper-tab-body-v2\s*\{[\s\S]*mask-image:\s*none/.test(css), 'wallpaper v2 body should keep the global top fade mask');
+  assert(css.includes('.settings-page-header p,\n.wallpaper-tab-header p'), 'settings subtitles should share one global style rule');
+}
+
+function testWallpaperRuntimeCardCompactness() {
+  const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  const settingsWallpaper = fs.readFileSync(path.join(repoRoot, 'js', 'settings-wallpaper.js'), 'utf8');
+  assert(/\.wallpaper-tab-header-v2\s*\{[\s\S]*minmax\(180px,\s*220px\)/.test(css), 'runtime card column should be compact enough for long localized text');
+  assert(settingsWallpaper.includes("tr('wallpaperCurrentSource').replace('{source}', '')"), 'runtime card should keep the original current-source label');
+  assert(settingsWallpaper.includes("tr('wallpaperApplyNoChanges')"), 'runtime card should keep the original saved-state copy');
+  assert(!settingsWallpaper.includes("tr('wallpaperRuntimeLabel')"), 'runtime card should not use the mistaken compact label keys');
+  assert(/\.wallpaper-runtime-card\s*\{[\s\S]*align-content:\s*center/.test(css), 'runtime card should keep its original vertical card layout');
+  assert(/\.wallpaper-runtime-card\s*\{[\s\S]*min-height:\s*78px/.test(css), 'runtime card should keep its original height');
+  assert(/\.wallpaper-source-item\s*\{[\s\S]*grid-template-columns:\s*16px minmax\(0,\s*1fr\)/.test(css), 'source rows should not reserve a narrow fixed status column');
+  assert(/\.wallpaper-source-badge\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)/.test(css), 'source row status should avoid a second dot next to the source signal');
+  assert(!/\.wallpaper-source-badge\s*\{[\s\S]*border-left-width/.test(css), 'source row status should not add a second rail beside the selected source rail');
+  assert(/\.wallpaper-source-badge\s*\{[\s\S]*border-radius:\s*7px/.test(css), 'source row status should render as a designed status chip');
+  assert(/\.wallpaper-source-badge\s*\{[\s\S]*white-space:\s*normal/.test(css), 'source row status text should wrap instead of overflowing its frame');
+  assert(/\.wallpaper-source-badge\s*\{[\s\S]*overflow-wrap:\s*anywhere/.test(css), 'source row status should tolerate long localized words');
+}
+
+function testWallpaperCopyNoLongerReferencesOldAccordionInteraction() {
+  const zh = fs.readFileSync(path.join(repoRoot, 'js', 'i18n', 'zh-CN.js'), 'utf8');
+  const en = fs.readFileSync(path.join(repoRoot, 'js', 'i18n', 'en.js'), 'utf8');
+  assert(!zh.includes('点击来源条展开配置'), 'wallpaper subtitle should not describe the removed accordion interaction');
+  assert(!en.includes('Click a source row to expand settings'), 'wallpaper subtitle should not describe the removed accordion interaction in English');
+  assert(zh.includes('选择来源后在右侧配置'), 'wallpaper subtitle should explain the current right-side configuration flow');
+  assert(en.includes('Choose a source and configure it on the right'), 'wallpaper subtitle should explain the current right-side configuration flow in English');
 }
 
 function testOldWallpaperAccordionRemoved() {
@@ -423,7 +549,15 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
 (async function run() {
   testWallhavenSettingsUiContract();
   testUploadSettingsUiContract();
+  testApiSettingsUsesSharedVisualLanguage();
+  testAccentColorAppliesOnPickerChange();
+  testCustomAccentAppliesFullThemePalette();
+  testCustomAccentIsNotMaskedByWallpaperSourceColors();
   testUnifiedWallpaperLayoutContract();
+  testWallpaperDetailScrollBoundedBySourceNav();
+  testWallpaperHeaderUsesGlobalTabChrome();
+  testWallpaperRuntimeCardCompactness();
+  testWallpaperCopyNoLongerReferencesOldAccordionInteraction();
   testOldWallpaperAccordionRemoved();
   testSourceLibraryEditsAutoSaveWithoutGlobalSave();
   await testSourceTabSelectionDoesNotCommitActiveSource();

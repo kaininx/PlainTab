@@ -113,7 +113,7 @@
                     var classes = 'wallpaper-source-item ' + source.id + (active ? ' active' : '') + (source.id === running ? ' running' : '');
                     return '<button class="' + classes + '" type="button" role="radio" aria-checked="' + (active ? 'true' : 'false') + '" data-source="' + source.id + '" data-wallpaper-source-option="' + source.id + '">' +
                         '<span class="wallpaper-source-glyph ' + source.id + '" aria-hidden="true">' + escapeHtml(source.glyph) + '</span>' +
-                        '<span class="wallpaper-source-copy"><strong>' + escapeHtml(tr(source.nameKey)) + '</strong><small>' + escapeHtml(tr(source.descKey)) + '</small></span>' +
+                        '<span class="wallpaper-source-copy"><strong>' + escapeHtml(tr(source.nameKey)) + '</strong></span>' +
                         sourceBadgeHTML(source.id, activeSource, running) +
                         '</button>';
                 }).join('') +
@@ -163,6 +163,28 @@
             if (context.refreshWallpaperDraftTab) context.refreshWallpaperDraftTab();
         }
 
+        function syncWorkspaceDetailHeight(root) {
+            root = root || (context.modalContent ? context.modalContent : document);
+            var workspace = root.querySelector('.wallpaper-workspace');
+            if (!workspace) return;
+            var nav = workspace.querySelector('.wallpaper-source-nav');
+            if (!nav) return;
+
+            function writeHeight() {
+                var height = Math.ceil(nav.getBoundingClientRect().height || 0);
+                if (height > 0) workspace.style.setProperty('--wallpaper-source-nav-height', height + 'px');
+            }
+
+            writeHeight();
+            requestAnimationFrame(writeHeight);
+
+            if (workspace._wallpaperNavResizeObserver) workspace._wallpaperNavResizeObserver.disconnect();
+            if (typeof ResizeObserver === 'function') {
+                workspace._wallpaperNavResizeObserver = new ResizeObserver(writeHeight);
+                workspace._wallpaperNavResizeObserver.observe(nav);
+            }
+        }
+
         function bindEvents(root) {
             root = root || (context.modalContent ? context.modalContent : document);
             root.querySelectorAll('[data-wallpaper-source-option]').forEach(function (button) {
@@ -171,6 +193,7 @@
                 });
             });
             if (context.bindWallpaperSourceDetailEvents) context.bindWallpaperSourceDetailEvents(root);
+            syncWorkspaceDetailHeight(root);
             var applyBtn = root.querySelector('#wallpaperApplyBtn');
             if (applyBtn && context.applyWallpaperDraft) applyBtn.addEventListener('click', context.applyWallpaperDraft);
             var reset = root.querySelector('#wallpaperResetBtn');
@@ -186,6 +209,7 @@
             buildHTML: buildHTML,
             bindEvents: bindEvents,
             selectWallpaperSource: selectWallpaperSource,
+            syncWorkspaceDetailHeight: syncWorkspaceDetailHeight,
             clonePlain: clonePlain
         };
     }

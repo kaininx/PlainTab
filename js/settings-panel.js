@@ -1769,6 +1769,7 @@
                 '<span class="upload-mode-copy"><strong>' + escapeHtml(tr('uploadApplyVideoTitle')) + '</strong><small>' + escapeHtml(tr('uploadApplyVideoDesc')) + '</small></span>' +
             '</button>' +
             '<p class="upload-apply-hint">' + escapeHtml(tr('uploadApplyModeHint')) + '</p>' +
+            '<p class="wallpaper-source-help">' + escapeHtml(tr('uploadApplyPrivacyHint')) + '</p>' +
             '</div>';
     }
 
@@ -1845,7 +1846,7 @@
             segment(604800000, tr('rssRefreshSevenDays')) +
             '</div>';
         return '<div class="api-config" data-api-type="' + apiType + '">' +
-            '<div class="api-type-tabs"><button type="button" data-api-type-tab="image" class="' + (apiType === 'image' ? 'active' : '') + '"><span></span>' + tr('apiTypeImage') + '</button><button type="button" data-api-type-tab="json" class="' + (apiType === 'json' ? 'active' : '') + '"><span></span>' + tr('apiTypeJson') + '</button></div>' +
+            '<div class="api-type-tabs"><button type="button" data-api-type-tab="image" class="' + (apiType === 'image' ? 'active' : '') + '">' + tr('apiTypeImage') + '</button><button type="button" data-api-type-tab="json" class="' + (apiType === 'json' ? 'active' : '') + '">' + tr('apiTypeJson') + '</button></div>' +
             '<div class="api-source-list">' + rows + '</div>' +
             '<div class="api-notice" id="apiNotice" hidden></div>' +
             '<div class="api-add-row"><input id="apiNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="apiUrlInput" type="url" placeholder="https://example.com/wallpaper">' + (apiType === 'json' ? '<input id="apiJsonPathInput" type="text" placeholder="data.image.url">' : '') + '<button id="apiAddBtn" type="button" disabled>' + tr('rssAdd') + '</button></div>' +
@@ -2172,7 +2173,10 @@
         if (uiRadiusSel) uiRadiusSel.addEventListener('change', function () { applyUiRadius(this.value); });
         if (fontScaleSel) fontScaleSel.addEventListener('change', function () { applyFontScale(this.value); });
         if (accentModeSel) accentModeSel.addEventListener('change', function () { applyAccentMode(this.value); });
-        if (accentColorInput) accentColorInput.addEventListener('input', function () { applyAccentColor(this.value); });
+        if (accentColorInput) {
+            accentColorInput.addEventListener('input', function () { applyAccentColor(this.value); });
+            accentColorInput.addEventListener('change', function () { applyAccentColor(this.value); });
+        }
         if (reducedMotionCheck) reducedMotionCheck.addEventListener('change', function () { applyReducedMotion(this.checked); });
         if (resetBtn) resetBtn.addEventListener('click', function () {
             if (!confirm(tr('resetAppearanceConfirm'))) return;
@@ -2247,11 +2251,19 @@
             }
         };
         var detail = detailMap[source] || detailMap.bing;
+        var status = validateWallpaperWorkOrder();
+        var state = wallpaperStatusState(status);
         return '<div class="wallpaper-detail-card" data-source-detail-card="' + escapeHtml(source) + '">' +
             '<div class="wallpaper-detail-heading">' +
-                '<span class="wallpaper-detail-kicker">' + escapeHtml(tr('settingsGroupWallpaperSource')) + '</span>' +
-                '<h3 class="wallpaper-detail-title">' + escapeHtml(detail.title) + '</h3>' +
-                '<p class="wallpaper-detail-copy">' + escapeHtml(detail.desc) + '</p>' +
+                '<div class="wallpaper-detail-summary">' +
+                    '<span class="wallpaper-detail-source-dot ' + escapeHtml(source) + '" aria-hidden="true"></span>' +
+                    '<div class="wallpaper-detail-title-stack">' +
+                        '<span class="wallpaper-detail-kicker">' + escapeHtml(tr('settingsGroupWallpaperSource')) + '</span>' +
+                        '<h3 class="wallpaper-detail-title">' + escapeHtml(detail.title) + '</h3>' +
+                    '</div>' +
+                    '<span class="wallpaper-detail-status" data-state="' + escapeHtml(state) + '">' + escapeHtml(wallpaperStatusText(status)) + '</span>' +
+                '</div>' +
+                '<p class="wallpaper-detail-explainer">' + escapeHtml(detail.desc) + '</p>' +
             '</div>' +
             '<div class="wallpaper-detail-body">' + detail.body + '</div>' +
             '</div>';
@@ -2613,6 +2625,7 @@
             '</div>' +
             '</div>' +
             '<div class="folder-strategy-readonly"><span>' + tr('folderRotation') + '</span><strong>' + tr('strategyRandom') + '</strong></div>' +
+            '<div class="wallpaper-source-help">' + escapeHtml(tr('folderPermissionHint')) + '</div>' +
             '<div class="folder-notice" id="folderNotice" hidden></div>' +
             '<div class="folder-status' + folderStatusToneClass() + '" id="folderStatus">' + escapeHtml(folderStatusText()) + '</div>' +
             '</div>';
@@ -4273,13 +4286,30 @@
         saveAllSettings();
     }
 
+    function customAccentThemePalette(value) {
+        return window.PlainTabTheme && window.PlainTabTheme.customAccentThemePalette
+            ? window.PlainTabTheme.customAccentThemePalette(value)
+            : null;
+    }
+
+    function applyCustomAccentTheme(value) {
+        if (window.PlainTabTheme && window.PlainTabTheme.applyCustomAccentTheme) {
+            return window.PlainTabTheme.applyCustomAccentTheme(value);
+        }
+        return false;
+    }
+
+    function applyDefaultSurfaceTheme() {
+        if (window.PlainTabTheme && window.PlainTabTheme.applyDefaultSurfaceTheme) {
+            window.PlainTabTheme.applyDefaultSurfaceTheme();
+        }
+    }
+
     function applyAccentPreference() {
         if (accentMode !== 'custom') return;
         var rgb = hexToRgb(accentColor);
         if (!rgb) return;
-        var root = document.documentElement.style;
-        root.setProperty('--accent-rgb', rgb);
-        root.setProperty('--accent-contrast-rgb', '255, 255, 255');
+        applyCustomAccentTheme(rgb);
     }
 
     function applyAccentMode(value) {
@@ -4308,59 +4338,17 @@
 
     function applyThemeMode(on) {
         themeEnabled = on;
-        var root = document.documentElement.style;
-        document.documentElement.setAttribute('data-wallpaper-theme', on ? 'on' : 'off');
         if (on) {
-            root.setProperty('--surface-base-rgb', 'var(--theme-surface-base-rgb)');
-            root.setProperty('--surface-elevated-rgb', 'var(--theme-surface-elevated-rgb)');
-            root.setProperty('--tint-rgb', 'var(--theme-tint-rgb)');
-            root.setProperty('--stroke-rgb', 'var(--theme-stroke-rgb)');
-            root.setProperty('--on-surface-rgb', 'var(--theme-on-surface-rgb)');
-            root.setProperty('--on-surface-muted-rgb', 'var(--theme-on-surface-muted-rgb)');
-            root.setProperty('--accent-rgb', 'var(--theme-accent-rgb)');
-            root.setProperty('--accent-contrast-rgb', 'var(--theme-accent-contrast-rgb)');
-            root.setProperty('--surface-rgb', 'var(--surface-base-rgb)');
-            root.setProperty('--surface-soft-rgb', 'var(--surface-elevated-rgb)');
-            root.setProperty('--surface-strong-rgb', 'var(--surface-base-rgb)');
-            root.setProperty('--border-rgb', 'var(--stroke-rgb)');
-            root.setProperty('--text-primary-rgb', 'var(--on-surface-rgb)');
-            root.setProperty('--text-secondary-rgb', 'var(--on-surface-muted-rgb)');
-            root.setProperty('--text-muted-rgb', 'var(--on-surface-muted-rgb)');
-            root.setProperty('--glass-bg', 'rgba(var(--surface-base-rgb), var(--panel-opacity))');
-            root.setProperty('--glass-tint', 'linear-gradient(180deg, rgba(var(--tint-rgb), 0.24), rgba(var(--surface-elevated-rgb), 0.10))');
-            root.setProperty('--glass-border', '1px solid rgba(var(--stroke-rgb), 0.78)');
+            if (window.PlainTabTheme && window.PlainTabTheme.applyWallpaperTheme) {
+                window.PlainTabTheme.applyWallpaperTheme();
+            }
             if (window.WallpaperTheme && window.WallpaperTheme.hasCurrent()) {
                 window.WallpaperTheme.applyCurrent();
             } else if (window.WallpaperShow && window.WallpaperShow.refreshTheme) {
                 window.WallpaperShow.refreshTheme(true);
             }
         } else {
-            root.removeProperty('--surface-base-rgb');
-            root.removeProperty('--surface-elevated-rgb');
-            root.removeProperty('--tint-rgb');
-            root.removeProperty('--stroke-rgb');
-            root.removeProperty('--on-surface-rgb');
-            root.removeProperty('--on-surface-muted-rgb');
-            root.removeProperty('--surface-rgb');
-            root.removeProperty('--surface-soft-rgb');
-            root.removeProperty('--surface-strong-rgb');
-            root.removeProperty('--border-rgb');
-            root.removeProperty('--text-primary-rgb');
-            root.removeProperty('--text-secondary-rgb');
-            root.removeProperty('--text-muted-rgb');
-            root.removeProperty('--theme-surface-base-rgb');
-            root.removeProperty('--theme-surface-elevated-rgb');
-            root.removeProperty('--theme-tint-rgb');
-            root.removeProperty('--theme-stroke-rgb');
-            root.removeProperty('--theme-on-surface-rgb');
-            root.removeProperty('--theme-on-surface-muted-rgb');
-            root.removeProperty('--theme-accent-rgb');
-            root.removeProperty('--theme-accent-contrast-rgb');
-            root.removeProperty('--accent-rgb');
-            root.removeProperty('--accent-contrast-rgb');
-            root.setProperty('--glass-bg', 'rgba(var(--surface-base-rgb), var(--panel-opacity))');
-            root.setProperty('--glass-tint', 'linear-gradient(180deg, rgba(var(--tint-rgb), 0.20), rgba(var(--surface-elevated-rgb), 0.08))');
-            root.setProperty('--glass-border', '1px solid rgba(var(--stroke-rgb), 0.72)');
+            applyDefaultSurfaceTheme();
         }
         applyAccentPreference();
         saveAllSettings();

@@ -172,12 +172,30 @@
         vignetteEl.style.background = 'radial-gradient(circle at center, rgba(0,0,0,0) 42%, rgba(0,0,0,0.55) 100%)';
     }
 
+    function customAccentThemePalette(value) {
+        return window.PlainTabTheme && window.PlainTabTheme.customAccentThemePalette
+            ? window.PlainTabTheme.customAccentThemePalette(value)
+            : null;
+    }
+
+    function applyCustomAccentTheme(value) {
+        if (window.PlainTabTheme && window.PlainTabTheme.applyCustomAccentTheme) {
+            return window.PlainTabTheme.applyCustomAccentTheme(value);
+        }
+        return false;
+    }
+
+    function applyDefaultSurfaceTheme() {
+        if (window.PlainTabTheme && window.PlainTabTheme.applyDefaultSurfaceTheme) {
+            window.PlainTabTheme.applyDefaultSurfaceTheme();
+        }
+    }
+
     function applyAccentPreference(appearance) {
         var mode = validValue(appearance.accentMode || DEFAULT_ACCENT_MODE, ['auto', 'custom'], DEFAULT_ACCENT_MODE);
         var rgb = hexToRgb(appearance.accentColor || DEFAULT_ACCENT_COLOR);
         if (mode === 'custom' && rgb) {
-            document.documentElement.style.setProperty('--accent-rgb', rgb);
-            document.documentElement.style.setProperty('--accent-contrast-rgb', '255, 255, 255');
+            applyCustomAccentTheme(rgb);
         }
     }
 
@@ -195,32 +213,15 @@
     }
 
     function applyThemeMode(on) {
-        var root = document.documentElement.style;
-        document.documentElement.setAttribute('data-wallpaper-theme', on ? 'on' : 'off');
         if (on) {
-            root.setProperty('--surface-base-rgb', 'var(--theme-surface-base-rgb)');
-            root.setProperty('--surface-elevated-rgb', 'var(--theme-surface-elevated-rgb)');
-            root.setProperty('--tint-rgb', 'var(--theme-tint-rgb)');
-            root.setProperty('--stroke-rgb', 'var(--theme-stroke-rgb)');
-            root.setProperty('--on-surface-rgb', 'var(--theme-on-surface-rgb)');
-            root.setProperty('--on-surface-muted-rgb', 'var(--theme-on-surface-muted-rgb)');
-            root.setProperty('--accent-rgb', 'var(--theme-accent-rgb)');
-            root.setProperty('--accent-contrast-rgb', 'var(--theme-accent-contrast-rgb)');
-            root.setProperty('--glass-bg', 'rgba(var(--surface-base-rgb), var(--panel-opacity))');
-            root.setProperty('--glass-tint', 'linear-gradient(180deg, rgba(var(--tint-rgb), 0.24), rgba(var(--surface-elevated-rgb), 0.10))');
+            if (window.PlainTabTheme && window.PlainTabTheme.applyWallpaperTheme) {
+                window.PlainTabTheme.applyWallpaperTheme();
+            }
             if (window.WallpaperShow && window.WallpaperShow.refreshTheme) {
                 window.WallpaperShow.refreshTheme(true);
             }
         } else {
-            [
-                '--surface-base-rgb', '--surface-elevated-rgb', '--tint-rgb', '--stroke-rgb',
-                '--on-surface-rgb', '--on-surface-muted-rgb', '--theme-surface-base-rgb',
-                '--theme-surface-elevated-rgb', '--theme-tint-rgb', '--theme-stroke-rgb',
-                '--theme-on-surface-rgb', '--theme-on-surface-muted-rgb', '--theme-accent-rgb',
-                '--theme-accent-contrast-rgb', '--accent-rgb', '--accent-contrast-rgb'
-            ].forEach(function (name) { root.removeProperty(name); });
-            root.setProperty('--glass-bg', 'rgba(var(--surface-base-rgb), var(--panel-opacity))');
-            root.setProperty('--glass-tint', 'linear-gradient(180deg, rgba(var(--tint-rgb), 0.20), rgba(var(--surface-elevated-rgb), 0.08))');
+            applyDefaultSurfaceTheme();
         }
     }
 
