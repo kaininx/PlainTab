@@ -21,6 +21,7 @@ EXCLUDE_DIRS = [
 # 排除的文件后缀
 EXCLUDE_SUFFIXES = [
     '.md',
+    '.py',
 ]
 
 # 排除的特定文件名（包含匹配）
