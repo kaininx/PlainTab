@@ -19,8 +19,7 @@
     // DOM 元素（在脚本加载时获取一次）
     var wallpaperBackEl = document.getElementById('wallpaperBack');
     var wallpaperFrontEl = document.getElementById('wallpaperFront');
-    var wallpaperVideoBackEl = null;
-    var wallpaperVideoFrontEl = null;
+    var wallpaperVideoEl = null;
 
     function imageSourceFromCssValue(value) {
         if (typeof value !== 'string') return value;
@@ -53,29 +52,24 @@
         return imageSourceFromCssValue(background);
     }
 
-    function ensureVideoLayers() {
-        if (wallpaperVideoBackEl && wallpaperVideoFrontEl) return;
+    function ensureVideoLayer() {
+        if (wallpaperVideoEl) return;
 
-        function createLayer(className) {
-            var video = document.createElement('video');
-            video.className = className;
-            video.muted = true;
-            video.loop = true;
-            video.autoplay = true;
-            video.playsInline = true;
-            video.setAttribute('muted', '');
-            video.setAttribute('loop', '');
-            video.setAttribute('autoplay', '');
-            video.setAttribute('playsinline', '');
-            video.setAttribute('aria-hidden', 'true');
-            video.preload = 'auto';
-            return video;
-        }
+        var video = document.createElement('video');
+        video.className = 'wallpaper-video-layer wallpaper-video-single';
+        video.muted = true;
+        video.loop = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.setAttribute('muted', '');
+        video.setAttribute('loop', '');
+        video.setAttribute('autoplay', '');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('aria-hidden', 'true');
+        video.preload = 'auto';
 
-        wallpaperVideoBackEl = createLayer('wallpaper-video-layer wallpaper-video-back');
-        wallpaperVideoFrontEl = createLayer('wallpaper-video-layer wallpaper-video-front');
-        document.body.insertBefore(wallpaperVideoBackEl, wallpaperFrontEl ? wallpaperFrontEl.nextSibling : document.body.firstChild);
-        document.body.insertBefore(wallpaperVideoFrontEl, wallpaperVideoBackEl.nextSibling);
+        wallpaperVideoEl = video;
+        document.body.insertBefore(wallpaperVideoEl, wallpaperFrontEl ? wallpaperFrontEl.nextSibling : document.body.firstChild);
     }
 
     function stopVideo(video) {
@@ -87,23 +81,20 @@
     }
 
     function clearVideoLayers() {
-        stopVideo(wallpaperVideoBackEl);
-        stopVideo(wallpaperVideoFrontEl);
+        stopVideo(wallpaperVideoEl);
     }
 
-    function shouldReduceMotion() {
-        return !!(window.WallpaperData &&
-            window.WallpaperData.loadUI &&
-            window.WallpaperData.loadUI().appearance &&
-            window.WallpaperData.loadUI().appearance.reducedMotion === true);
+    function handleVideoVisibilityChange() {
+        if (!wallpaperVideoEl || !wallpaperVideoEl.classList.contains('active') || !wallpaperVideoEl.currentSrc) return;
+        if (document.hidden) {
+            try { wallpaperVideoEl.pause(); } catch (e) { }
+            return;
+        }
+        playVideo(wallpaperVideoEl);
     }
 
     function playVideo(video) {
         if (!video) return Promise.resolve(false);
-        if (shouldReduceMotion()) {
-            try { video.pause(); } catch (e) { }
-            return Promise.resolve(true);
-        }
         var result;
         try { result = video.play(); } catch (e) { return Promise.resolve(false); }
         if (result && typeof result.then === 'function') {
@@ -132,6 +123,25 @@
             video.addEventListener('error', onError);
             setTimeout(function () { finish(video.readyState >= 2); }, 5000);
         });
+    }
+
+    function clearImageLayersAfterVideoTransition(transitionMs) {
+        if (!wallpaperVideoEl || !wallpaperBackEl || !wallpaperFrontEl) return;
+        var done = false;
+        function cleanup() {
+            if (done) return;
+            done = true;
+            wallpaperVideoEl.removeEventListener('transitionend', onTransitionEnd);
+            wallpaperBackEl.style.backgroundImage = '';
+            wallpaperFrontEl.classList.remove('active');
+            wallpaperFrontEl.style.backgroundImage = '';
+        }
+        function onTransitionEnd(e) {
+            if (e.propertyName !== 'opacity') return;
+            cleanup();
+        }
+        wallpaperVideoEl.addEventListener('transitionend', onTransitionEnd);
+        window.setTimeout(cleanup, transitionMs + 120);
     }
 
     // ================================================================
@@ -270,50 +280,31 @@
         });
     }
 
-    function applyVideoWallpaper(url, transitionMs, sourceId) {
+    function applyVideoWallpaper(url, transitionMs, sourceId, preparedThumb) {
         if (typeof transitionMs !== 'number' || !isFinite(transitionMs)) transitionMs = TRANSITION_MS;
-        ensureVideoLayers();
+        ensureVideoLayer();
 
-        wallpaperVideoFrontEl.classList.remove('active');
-        wallpaperVideoFrontEl.src = imageSourceFromCssValue(url);
-        try { wallpaperVideoFrontEl.currentTime = 0; } catch (e) { }
-        wallpaperVideoFrontEl.load();
+        if (preparedThumb && wallpaperBackEl) wallpaperBackEl.style.backgroundImage = preparedThumb;
+        wallpaperFrontEl.classList.remove('active');
+        wallpaperFrontEl.style.backgroundImage = '';
 
-        return waitForVideoReady(wallpaperVideoFrontEl).then(function (ready) {
+        wallpaperVideoEl.classList.remove('active');
+        wallpaperVideoEl.src = imageSourceFromCssValue(url);
+        try { wallpaperVideoEl.currentTime = 0; } catch (e) { }
+        wallpaperVideoEl.load();
+
+        return waitForVideoReady(wallpaperVideoEl).then(function (ready) {
             if (!ready) return false;
-            return playVideo(wallpaperVideoFrontEl).then(function () {
-                wallpaperVideoFrontEl.style.transition = 'opacity ' + transitionMs + 'ms ease-out';
-                void wallpaperVideoFrontEl.offsetWidth;
-                wallpaperVideoFrontEl.classList.add('active');
-
-                return new Promise(function (resolve) {
-                    var done = false;
-                    function onTransitionEnd(e) {
-                        if (e.propertyName !== 'opacity') return;
-                        finishTransition();
-                    }
-                    function finishTransition() {
-                        if (done) return;
-                        done = true;
-                        wallpaperVideoBackEl.src = imageSourceFromCssValue(url);
-                        try { wallpaperVideoBackEl.currentTime = wallpaperVideoFrontEl.currentTime || 0; } catch (e) { }
-                        wallpaperVideoBackEl.load();
-                        waitForVideoReady(wallpaperVideoBackEl).then(function () {
-                            wallpaperVideoBackEl.classList.add('active');
-                            playVideo(wallpaperVideoBackEl);
-                            stopVideo(wallpaperVideoFrontEl);
-                            wallpaperVideoFrontEl.removeEventListener('transitionend', onTransitionEnd);
-                            wallpaperBackEl.style.backgroundImage = '';
-                            wallpaperFrontEl.classList.remove('active');
-                            wallpaperFrontEl.style.backgroundImage = '';
-                            trackCurrentWallpaperUrl(url, sourceId);
-                            resolve(true);
-                        });
-                    }
-                    wallpaperVideoFrontEl.addEventListener('transitionend', onTransitionEnd);
-                    window.setTimeout(finishTransition, transitionMs + 120);
-                });
-            });
+            wallpaperVideoEl.style.transition = 'opacity ' + transitionMs + 'ms ease-out';
+            void wallpaperVideoEl.offsetWidth;
+            wallpaperVideoEl.classList.add('active');
+            clearImageLayersAfterVideoTransition(transitionMs);
+            trackCurrentWallpaperUrl(url, sourceId);
+            if (document.hidden) {
+                try { wallpaperVideoEl.pause(); } catch (e) { }
+                return true;
+            }
+            return playVideo(wallpaperVideoEl);
         }).then(function (ok) {
             if (!ok) return Promise.reject(new Error('video wallpaper failed'));
             return true;
@@ -497,7 +488,7 @@
     }
 
     function applyVideoAndSavePreview(url, sourceId, preparedThumb) {
-        return applyVideoWallpaper(url, undefined, sourceId).then(function () {
+        return applyVideoWallpaper(url, undefined, sourceId, preparedThumb).then(function () {
             if (preparedThumb) {
                 if (window.WallpaperData && window.WallpaperData.savePreview) {
                     window.WallpaperData.savePreview(preparedThumb);
@@ -535,20 +526,26 @@
 
     function showPreparedVideoUrl(url, id) {
         if (!url) return Promise.resolve(false);
-        ensureVideoLayers();
+        ensureVideoLayer();
         wallpaperBackEl.style.backgroundImage = '';
         wallpaperFrontEl.classList.remove('active');
         wallpaperFrontEl.style.backgroundImage = '';
-        wallpaperVideoBackEl.src = imageSourceFromCssValue(url);
-        try { wallpaperVideoBackEl.currentTime = 0; } catch (e) { }
-        wallpaperVideoBackEl.load();
-        return waitForVideoReady(wallpaperVideoBackEl).then(function (ready) {
+        wallpaperVideoEl.src = imageSourceFromCssValue(url);
+        try { wallpaperVideoEl.currentTime = 0; } catch (e) { }
+        wallpaperVideoEl.load();
+        return waitForVideoReady(wallpaperVideoEl).then(function (ready) {
             if (!ready) return false;
-            wallpaperVideoBackEl.classList.add('active');
+            wallpaperVideoEl.classList.add('active');
             trackCurrentWallpaperUrl(url, id);
-            return playVideo(wallpaperVideoBackEl);
+            if (document.hidden) {
+                try { wallpaperVideoEl.pause(); } catch (e) { }
+                return true;
+            }
+            return playVideo(wallpaperVideoEl);
         });
     }
+
+    document.addEventListener('visibilitychange', handleVideoVisibilityChange);
 
     window.WallpaperShow = {
         TRANSITION_MS: TRANSITION_MS,

@@ -46,12 +46,8 @@
     transform: translateZ(0);
 }
 
-.wallpaper-video-back {
+.wallpaper-video-single {
     z-index: 0;
-}
-
-.wallpaper-video-front {
-    z-index: 1;
     transition: opacity 0.5s ease;
 }
 

@@ -90,6 +90,13 @@ function testWallpaperFilterStaysOffTheDefaultCompositePath() {
   assert.ok(newtab.includes("applyWallpaperRespectingBlur(URL.createObjectURL(bingBlob), 'bing')"), 'cached Bing should use optimized blur preview mode');
   assert.ok(newtab.includes("applyWallpaperRespectingBlur(r.url, 'bing')"), 'network Bing should use optimized blur preview mode');
   assert.strictEqual(settingsCss.includes('.wallpaper-blur-active *'), false, 'wallpaper blur must not disable panel transitions globally');
+  assert.strictEqual(show.includes('function shouldReduceMotion'), false, 'reduced motion must not pause video wallpaper playback');
+  assert.strictEqual(show.includes('if (shouldReduceMotion())'), false, 'video playback should not branch into a paused reduced-motion state');
+  assert.strictEqual(show.includes('wallpaperVideoBackEl'), false, 'video wallpaper should not keep a back video handoff layer');
+  assert.strictEqual(show.includes('wallpaperVideoFrontEl'), false, 'video wallpaper should use a single video layer');
+  assert.ok(show.includes('handleVideoVisibilityChange'), 'video wallpaper should pause while the page is hidden and resume when visible');
+  assert.ok(show.includes('if (document.hidden)'), 'video wallpaper should not start playback while the page is hidden');
+  assert.ok(show.includes('applyVideoWallpaper(url, transitionMs, sourceId, preparedThumb)'), 'video wallpaper should accept a prepared cover preview before playback');
 }
 
 function testColdPaletteIsNotLoadedByIndex() {
