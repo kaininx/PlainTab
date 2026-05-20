@@ -59,8 +59,9 @@ Tab 是懒构建的。由于 `index.html` 里存在恢复 tab，`buildRestoreHTM
 
 壁纸来源以抽屉展示。当前交互契约：
 
+- 打开壁纸设置时默认不展开任何来源抽屉。
 - 点击抽屉 header 只展开/收起。
-- 每个抽屉最前面有选择器，用于改变 `draft.activeSource`。
+- 每个抽屉最前面有选择器，用于改变 `draft.activeSource`，但不展开抽屉。
 - 被选中的抽屉/选择器使用对应来源色，并显示当前选择提示。
 - 不要增加和抽屉 header 抢职责的独立下拉按钮。
 
@@ -75,6 +76,16 @@ Tab 是懒构建的。由于 `index.html` 里存在恢复 tab，`buildRestoreHTM
 - 删除非当前运行的 RSS/API source 只保存配置，不 reload 壁纸。
 - 删除当前运行的 RSS/API source 需要确认；应用后切回 Bing。
 - 如果当前 app 在其他壁纸模式，RSS/API 删除只保存配置，不影响可见壁纸。
+
+## Wallhaven
+
+- Wallhaven 是独立壁纸来源，不应塞进通用 API source 列表。
+- UI 沿用壁纸来源抽屉和草稿/应用模型，保持紧凑，不展示完整 API 参数表。
+- 配置修改后需要重新测试。测试只拉取 JSON 并检查是否存在可用 HTTPS 图片，不下载整批图片。
+- 应用 Wallhaven 时下载前 12 张可用图片并成功缓存至少 1 张，才切换当前来源。
+- Wallhaven 不展示独立拉取按钮或缓存数量；应用配置和到期自动刷新会整体替换 Wallhaven 队列。
+- Wallhaven 本地队列支持删除和拖拽移位，这些操作只影响本地缓存。
+- 颜色选择使用有限色值的紧凑色带，默认 Any，第一版单选。
 
 ## 界面和搜索设置
 

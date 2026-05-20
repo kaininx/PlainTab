@@ -170,12 +170,15 @@
     var wallpaperDraftOriginal = '';
     var wallpaperDraftApiTestResult = null;
     var wallpaperDraftRssTestResult = null;
+    var wallpaperDraftWallhavenTestResult = null;
     var wallpaperDraftFolderMount = null;
     var wallpaperDraftOpenSource = '';
     var rssNoticeTimer = null;
     var rssNoticeToken = 0;
     var apiNoticeTimer = null;
     var apiNoticeToken = 0;
+    var wallhavenNoticeTimer = null;
+    var wallhavenNoticeToken = 0;
     var FOLDER_GALLERY_LIMIT = 12;
     var FOLDER_THUMB_LOOKAHEAD = 12;
     var UPLOAD_IMAGE_LIMIT = 12;
@@ -477,7 +480,8 @@
             upload:tr('sourceUpload'),
             folder:tr('sourceFolder'),
             rss:tr('sourceRss'),
-            api:tr('sourceApi')};
+            api:tr('sourceApi'),
+            wallhaven:tr('sourceWallhaven')};
         return map[source] || source;
     }
 
@@ -492,18 +496,16 @@
 
     function httpsOnlyMessage(fallbackKey, value) {
         if (!isHttpUrl(value)) return tr(fallbackKey);
-        if (/^zh/i.test(currentLang || '')) return '不支持 http:// 链接，只能使用 https://。';
-        return 'http:// links are not supported. Use https:// only.';
+        return tr('httpsOnlyUrl');
     }
 
     function rssDisplayText(key) {
-        var zh = /^zh/i.test(currentLang || '');
         var map = {
-            displayMode: zh ? 'RSS 显示方式' : 'RSS Display',
-            latest: zh ? '固定最新一张' : 'Fixed latest image',
-            cycle: zh ? '循环显示' : 'Cycle cached images'
+            displayMode: 'rssDisplayMode',
+            latest: 'rssDisplayLatest',
+            cycle: 'rssDisplayCycle'
         };
-        return map[key] || key;
+        return map[key] ? tr(map[key]) : key;
     }
 
     function loadShortcutSettings() {
@@ -825,11 +827,13 @@
         wallpaperDraft = clonePlain(D.loadWallpaper());
         wallpaperDraft.providers.rss.config = clonePlain(D.loadRssConfig());
         wallpaperDraft.providers.api.config = clonePlain(D.loadApiConfig());
+        if (D.loadWallhavenConfig) wallpaperDraft.providers.wallhaven.config = clonePlain(D.loadWallhavenConfig());
         wallpaperDraftOriginal = JSON.stringify(wallpaperDraft);
         wallpaperDraftApiTestResult = null;
         wallpaperDraftRssTestResult = null;
+        wallpaperDraftWallhavenTestResult = null;
         wallpaperDraftFolderMount = null;
-        wallpaperDraftOpenSource = normalizeDraftSource(wallpaperDraft.activeSource);
+        wallpaperDraftOpenSource = 'none';
         return wallpaperDraft;
     }
 
@@ -838,6 +842,7 @@
         wallpaperDraftOriginal = '';
         wallpaperDraftApiTestResult = null;
         wallpaperDraftRssTestResult = null;
+        wallpaperDraftWallhavenTestResult = null;
         wallpaperDraftFolderMount = null;
         wallpaperDraftOpenSource = '';
     }
@@ -853,6 +858,7 @@
     }
 
     function draftOpenSource() {
+        if (wallpaperDraftOpenSource === 'none') return '';
         var source = normalizeDraftSource(wallpaperDraftOpenSource || draftActiveSource());
         return source === 'local' ? 'upload' : source;
     }
@@ -1015,6 +1021,12 @@
         return D.activeApiSource ? D.activeApiSource(config) : null;
     }
 
+    function selectedDraftWallhavenConfig() {
+        var draft = currentWallpaperDraft();
+        var config = draft.providers && draft.providers.wallhaven ? draft.providers.wallhaven.config : {};
+        return D.normalizeWallhavenConfig ? D.normalizeWallhavenConfig(config) : config;
+    }
+
     function validateWallpaperDraft() {
         var draft = currentWallpaperDraft();
         var source = D.compatMode ? D.compatMode(draft.activeSource) : draft.activeSource;
@@ -1044,6 +1056,12 @@
             var apiType = draft.providers.api.config.apiType;
             var apiHash = D.apiFieldHash(api, apiType);
             if (!D.isTestPassed(api, apiHash)) return { valid: false, reason: tr('apiNeedsTest') };
+            return { valid: true, reason: '' };
+        }
+        if (source === 'wallhaven') {
+            var wallhavenConfig = selectedDraftWallhavenConfig();
+            var wallhavenHash = D.wallhavenFieldHash ? D.wallhavenFieldHash(wallhavenConfig) : JSON.stringify(wallhavenConfig);
+            if (!D.isTestPassed(wallhavenConfig, wallhavenHash)) return { valid: false, reason: tr('wallhavenNeedsTest') };
             return { valid: true, reason: '' };
         }
         return { valid: false, reason: tr('sourcePendingHint') };
@@ -1127,6 +1145,13 @@
             return reloadAfterApply();
         }
 
+        function saveDraftAfterWallhavenCache() {
+            syncDraftRuntimeStateFromSaved();
+            draft.activeSource = 'wallhaven';
+            D.saveWallpaper(draft);
+            return reloadAfterApply();
+        }
+
         function saveDraftAfterFolderMount() {
             var mount = wallpaperDraftFolderMount;
             var folderId = mount.firstId;
@@ -1200,6 +1225,33 @@
                     };
                     return F.cacheApiResult(apiSource, apiConfig.apiType, wallpaperDraftApiTestResult).then(saveDraftAfterApiCache);
                 }
+            }
+            if (nextSource === 'wallhaven' && wallpaperDraftWallhavenTestResult) {
+                var wallhavenConfig = draft.providers.wallhaven.config;
+                wallhavenConfig.test = {
+                    status: 'passed',
+                    fieldHash: D.wallhavenFieldHash(wallhavenConfig),
+                    testedAt: Date.now(),
+                    imageUrl: wallpaperDraftWallhavenTestResult.first && wallpaperDraftWallhavenTestResult.first.imageUrl || '',
+                    error: ''
+                };
+                showRuntimeDownloadNotice('wallhaven', 'loading');
+                return F.cacheWallhavenItems(wallhavenConfig, wallpaperDraftWallhavenTestResult.items, {
+                    activate: true,
+                    queryUrl: wallpaperDraftWallhavenTestResult.queryUrl,
+                    onProgress: function (progress) {
+                        showRuntimeDownloadNotice('wallhaven', 'loading', progress);
+                    }
+                }).then(function (result) {
+                    showRuntimeDownloadNotice('wallhaven', 'done', {
+                        cached: result.cached || 0,
+                        total: result.total || 0
+                    });
+                    return saveDraftAfterWallhavenCache();
+                }).catch(function (err) {
+                    showRuntimeDownloadNotice('wallhaven', 'error');
+                    throw err;
+                });
             }
             syncDraftRuntimeStateFromSaved();
             D.saveWallpaper(draft);
@@ -1304,7 +1356,7 @@
         var rows = sources.map(function (source) { return apiSourceRowHTML(source, apiType, activeId); }).join('');
         function segment(value, label) {
             var active = String(value) === String(config.refreshIntervalMs);
-            return '<button type="button" data-api-refresh-interval="' + value + '" class="' + (active ? 'active' : '') + '">' + label + '</button>';
+            return '<button type="button" data-api-refresh-interval="' + value + '" class="' + (active ? 'active' : '') + '" aria-pressed="' + (active ? 'true' : 'false') + '">' + label + '</button>';
         }
         var refreshControl = '<div class="api-refresh-segments" role="group" aria-label="' + tr('rssRefreshInterval') + '">' +
             segment(0, tr('rssRefreshOff')) +
@@ -1321,6 +1373,124 @@
             '<div class="api-options">' +
             settingItem(tr('rssRefreshInterval'), '', refreshControl, 'setting-compact') +
             '</div>' +
+            '</div>';
+    }
+
+    function wallhavenOption(value, label, current) {
+        return '<option value="' + escapeHtml(value) + '"' + (String(value) === String(current) ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+    }
+
+    function wallhavenCategoryToggle(bit, label, index, categories) {
+        var active = categories.charAt(index) === '1';
+        return '<button type="button" class="wallhaven-category-card' + (active ? ' active' : '') + '" data-wallhaven-category="' + bit + '" aria-pressed="' + (active ? 'true' : 'false') + '">' +
+            '<span class="wallhaven-category-icon">' + escapeHtml(label.charAt(0)) + '</span>' +
+            '<span class="wallhaven-category-label">' + escapeHtml(label) + '</span>' +
+            '</button>';
+    }
+
+    function wallhavenColorClass(color) {
+        color = String(color || '').replace(/[^a-fA-F0-9]/g, '').toLowerCase();
+        if (!/^[a-f0-9]{6}$/.test(color)) return '';
+        if ((F.WALLHAVEN_COLORS || []).indexOf(color) === -1) return '';
+        return 'wallhaven-color-' + color;
+    }
+
+    function buildWallhavenColorStrip(config) {
+        var colors = F.WALLHAVEN_COLORS || [];
+        var buttons = [];
+        colors.forEach(function (color) {
+            var active = config.color === color;
+            buttons.push('<button type="button" class="wallhaven-color-swatch' + (active ? ' active' : '') + '" data-wallhaven-color="' + color + '" title="#' + color + '" aria-label="#' + color + '" aria-pressed="' + (active ? 'true' : 'false') + '"></button>');
+        });
+        return '<div class="wallhaven-color-picker">' +
+            '<button type="button" class="wallhaven-color-any' + (!config.color ? ' active' : '') + '" data-wallhaven-color="" aria-pressed="' + (!config.color ? 'true' : 'false') + '">' + tr('wallhavenColorAny') + '</button>' +
+            '<div class="wallhaven-color-strip" role="group" aria-label="' + tr('wallhavenColor') + '">' + buttons.join('') + '</div>' +
+            '</div>';
+    }
+
+    function wallhavenCustomQueryHTML(config) {
+        return '<div class="wallhaven-custom-query"><input id="wallhavenCustomQuery" type="text" value="' + escapeHtml(config.customQuery || '') + '" placeholder="+nature -city, type:jpg"></div>';
+    }
+
+    function wallhavenTopRangeHTML(config) {
+        return settingItem(tr('wallhavenTopRange'), '', '<select id="wallhavenTopRange">' +
+            wallhavenOption('1d', '1d', config.topRange) +
+            wallhavenOption('3d', '3d', config.topRange) +
+            wallhavenOption('1w', '1w', config.topRange) +
+            wallhavenOption('1M', '1M', config.topRange) +
+            wallhavenOption('3M', '3M', config.topRange) +
+            wallhavenOption('6M', '6M', config.topRange) +
+            wallhavenOption('1y', '1y', config.topRange) +
+            '</select>', 'setting-compact wallhaven-toprange-item');
+    }
+
+    function wallhavenSeedHTML(config) {
+        return settingItem(tr('wallhavenSeed'), tr('wallhavenSeedHint'), '<input id="wallhavenSeed" type="text" value="' + escapeHtml(config.seed || '0') + '" placeholder="0">', 'setting-compact wallhaven-seed-item');
+    }
+
+    function wallhavenColorCurrentHTML(color) {
+        color = String(color || '').replace(/[^a-fA-F0-9]/g, '').toLowerCase();
+        var colorClass = wallhavenColorClass(color);
+        if (!colorClass) {
+            return '<span class="wallhaven-color-current"><span class="wallhaven-color-chip any"></span><strong>' + tr('wallhavenColorAny') + '</strong></span>';
+        }
+        return '<span class="wallhaven-color-current"><span class="wallhaven-color-chip ' + colorClass + '"></span><strong>#' + escapeHtml(color) + '</strong></span>';
+    }
+
+    function buildWallhavenConfigHTML() {
+        var config = selectedDraftWallhavenConfig();
+        var url = F.wallhavenSearchUrl ? F.wallhavenSearchUrl(config) : 'https://wallhaven.cc/api/v1/search';
+        var presetOptions = ['nature', 'anime', 'landscape', 'city', 'space', 'forest', 'ocean', 'mountain', 'minimalism', 'abstract', 'cars', 'flowers']
+            .map(function (value) { return wallhavenOption(value, value, config.queryPreset); }).join('') +
+            wallhavenOption('custom', tr('wallhavenPresetCustom'), config.queryPreset);
+        var customRow = config.queryPreset === 'custom' ? wallhavenCustomQueryHTML(config) : '';
+        var sortingOptions =
+            wallhavenOption('random', tr('wallhavenSortRandom'), config.sorting) +
+            wallhavenOption('date_added', tr('wallhavenSortDateAdded'), config.sorting) +
+            wallhavenOption('relevance', tr('wallhavenSortRelevance'), config.sorting) +
+            wallhavenOption('views', tr('wallhavenSortViews'), config.sorting) +
+            wallhavenOption('favorites', tr('wallhavenSortFavorites'), config.sorting) +
+            wallhavenOption('toplist', tr('wallhavenSortToplist'), config.sorting);
+        var topRange = config.sorting === 'toplist' ? wallhavenTopRangeHTML(config) : '';
+        var seedRow = config.sorting === 'random' ? wallhavenSeedHTML(config) : '';
+        var resolutionOptions =
+            wallhavenOption('any', tr('wallhavenResolutionAny'), config.resolutionMode) +
+            wallhavenOption('atleast-1920x1080', tr('wallhavenAtleast1080'), config.resolutionMode) +
+            wallhavenOption('atleast-2560x1440', tr('wallhavenAtleast2k'), config.resolutionMode) +
+            wallhavenOption('atleast-3840x2160', tr('wallhavenAtleast4k'), config.resolutionMode) +
+            wallhavenOption('exact-1920x1080', tr('wallhavenExact1080'), config.resolutionMode) +
+            wallhavenOption('exact-2560x1440', tr('wallhavenExact2k'), config.resolutionMode) +
+            wallhavenOption('exact-3840x2160', tr('wallhavenExact4k'), config.resolutionMode);
+        var ratioOptions =
+            wallhavenOption('', tr('wallhavenAny'), config.ratio) +
+            wallhavenOption('16x9', '16:9', config.ratio) +
+            wallhavenOption('16x10', '16:10', config.ratio) +
+            wallhavenOption('21x9', '21:9', config.ratio) +
+            wallhavenOption('4x3', '4:3', config.ratio);
+        var refreshControl = '<div class="wallhaven-refresh-segments" role="group" aria-label="' + tr('rssRefreshInterval') + '">' +
+            '<button type="button" data-wallhaven-refresh-interval="0" class="' + (String(config.refreshIntervalMs) === '0' ? 'active' : '') + '" aria-pressed="' + (String(config.refreshIntervalMs) === '0' ? 'true' : 'false') + '">' + tr('rssRefreshOff') + '</button>' +
+            '<button type="button" data-wallhaven-refresh-interval="86400000" class="' + (String(config.refreshIntervalMs) === '86400000' ? 'active' : '') + '" aria-pressed="' + (String(config.refreshIntervalMs) === '86400000' ? 'true' : 'false') + '">' + tr('rssRefreshOneDay') + '</button>' +
+            '<button type="button" data-wallhaven-refresh-interval="259200000" class="' + (String(config.refreshIntervalMs) === '259200000' ? 'active' : '') + '" aria-pressed="' + (String(config.refreshIntervalMs) === '259200000' ? 'true' : 'false') + '">' + tr('rssRefreshThreeDays') + '</button>' +
+            '<button type="button" data-wallhaven-refresh-interval="604800000" class="' + (String(config.refreshIntervalMs) === '604800000' ? 'active' : '') + '" aria-pressed="' + (String(config.refreshIntervalMs) === '604800000' ? 'true' : 'false') + '">' + tr('rssRefreshSevenDays') + '</button>' +
+            '</div>';
+        return '<div class="wallhaven-config">' +
+            '<div class="wallhaven-controls">' +
+            settingItem(tr('wallhavenSearch'), tr('wallhavenSearchHint'), '<select id="wallhavenPreset">' + presetOptions + '</select>' + customRow, 'setting-compact') +
+            settingItem(tr('wallhavenCategories'), '', '<div class="wallhaven-category-grid" role="group" aria-label="' + tr('wallhavenCategories') + '">' +
+            wallhavenCategoryToggle('general', tr('wallhavenCategoryGeneral'), 0, config.categories) +
+            wallhavenCategoryToggle('anime', tr('wallhavenCategoryAnime'), 1, config.categories) +
+            wallhavenCategoryToggle('people', tr('wallhavenCategoryPeople'), 2, config.categories) +
+            '</div>', 'setting-compact wallhaven-category-item') +
+            settingItem(tr('wallhavenSorting'), '', '<select id="wallhavenSorting">' + sortingOptions + '</select>', 'setting-compact') +
+            topRange +
+            seedRow +
+            settingItem(tr('wallhavenResolution'), '', '<select id="wallhavenResolution">' + resolutionOptions + '</select>', 'setting-compact') +
+            settingItem(tr('wallhavenRatio'), '', '<select id="wallhavenRatio">' + ratioOptions + '</select>', 'setting-compact') +
+            settingItem(tr('wallhavenColor'), '', '<details class="wallhaven-color-details"' + (config.color ? ' open' : '') + '><summary>' + wallhavenColorCurrentHTML(config.color) + '<span class="wallhaven-color-chevron"></span></summary>' + buildWallhavenColorStrip(config) + '</details>', 'setting-compact wallhaven-color-item') +
+            settingItem(tr('rssRefreshInterval'), '', refreshControl, 'setting-compact wallhaven-refresh-item') +
+            '</div>' +
+            '<div class="wallhaven-url-row"><span>' + escapeHtml(url) + '</span><button id="wallhavenTestBtn" type="button">' + tr('apiTest') + '</button><a class="wallhaven-url-open" href="' + escapeHtml(url) + '" target="_blank" rel="noopener" aria-label="Wallhaven" title="' + escapeHtml(url) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 7H7a5 5 0 0 0 0 10h3m4-10h3a5 5 0 0 1 0 10h-3m-5-5h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>' +
+            '<div class="wallhaven-notice" id="wallhavenNotice" hidden></div>' +
             '</div>';
     }
 
@@ -1566,6 +1736,7 @@
             { id: 'upload', name: getSourceLabel('upload'), desc:tr('sourceUploadDesc')},
             { id: 'folder', name: getSourceLabel('folder'), desc:tr('sourceFolderDesc')},
             { id: 'rss',    name: getSourceLabel('rss'),    desc:tr('sourceRssDesc')},
+            { id: 'wallhaven', name: getSourceLabel('wallhaven'), desc:tr('sourceWallhavenDesc')},
             { id: 'api',    name: getSourceLabel('api'),    desc:tr('sourceApiDesc')}
         ];
 
@@ -1582,10 +1753,11 @@
                 '</ul>',
             folder: buildFolderConfigHTML(),
             rss:    buildRssConfigHTML(),
+            wallhaven: buildWallhavenConfigHTML(),
             api:    buildApiConfigHTML()
         };
         var selectedSourceLabel = getSourceLabel(activeSource);
-        var selectedSourceHint = escapeHtml(tr('wallpaperCurrentSource')).replace('{source}', '<strong>' + escapeHtml(selectedSourceLabel) + '</strong>');
+        var selectedSourceHint = escapeHtml(tr('wallpaperCurrentSource')).replace('{source}', '<strong class="wallpaper-current-source-name ' + activeSource + '">' + escapeHtml(selectedSourceLabel) + '</strong>');
 
         var drawers = sources.map(function (s) {
             var expandedClass = s.id === openSource ? ' active' : '';
@@ -1601,9 +1773,13 @@
                 '</div>';
         }).join('');
 
+        var sourceHTML = settingGroup(tr('settingsGroupWallpaperSource'),
+            '<div class="wallpaper-current-source">' + selectedSourceHint + '</div>' +
+            '<div class="source-accordion">' + drawers + '</div>');
+
         return '<div class="wallpaper-tab-shell">' +
             '<div class="wallpaper-tab-header"><h2>' + tr('tabWallpaper') + '</h2><p>' + modalCopy('modalSubtitleWallpaper') + '</p></div>' +
-            '<div class="wallpaper-tab-body">' + buildWallpaperDisplayHTML() + '<div class="wallpaper-current-source">' + selectedSourceHint + '</div><div class="source-accordion">' + drawers + '</div><div class="wallpaper-reset-row"><button class="danger-action" id="wallpaperResetBtn" type="button">' + tr('wallpaperResetDefaults') + '</button></div></div>' +
+            '<div class="wallpaper-tab-body">' + sourceHTML + '<div class="wallpaper-section-divider" aria-hidden="true"></div>' + buildWallpaperDisplayHTML() + '<div class="wallpaper-reset-row"><button class="danger-action" id="wallpaperResetBtn" type="button">' + tr('wallpaperResetDefaults') + '</button></div></div>' +
             wallpaperApplyFooterHTML() +
             '</div>';
     }
@@ -1655,8 +1831,9 @@
                 e.stopPropagation();
                 var source = normalizeDraftSource(button.dataset.sourceOption);
                 var draft = currentWallpaperDraft();
+                var openDrawer = modalContent.querySelector('.source-drawer.active');
                 draft.activeSource = source === 'local' ? 'upload' : source;
-                wallpaperDraftOpenSource = draft.activeSource;
+                wallpaperDraftOpenSource = openDrawer ? openDrawer.dataset.source : 'none';
                 refreshWallpaperDraftTab();
             });
         });
@@ -1667,7 +1844,7 @@
                 var drawer = header.parentElement;
                 var clickedSource = drawer.dataset.source;
                 var wasActive = drawer && drawer.classList.contains('active');
-                wallpaperDraftOpenSource = wasActive ? '' : clickedSource;
+                wallpaperDraftOpenSource = wasActive ? 'none' : clickedSource;
                 modalContent.querySelectorAll('.source-drawer').forEach(function (d) {
                     var open = !wasActive && d.dataset.source === clickedSource;
                     setDrawerOpen(d, open);
@@ -1676,6 +1853,7 @@
         });
         bindFolderConfigEvents();
         bindRssConfigEvents();
+        bindWallhavenConfigEvents();
         bindApiConfigEvents();
         var applyBtn = modalContent.querySelector('#wallpaperApplyBtn');
         if (applyBtn) applyBtn.addEventListener('click', applyWallpaperDraft);
@@ -1835,9 +2013,12 @@
                 folderState.lastError = '';
                 folderState.lastPermissionCheckAt = Date.now();
                 folderState.permissionStatus = 'granted';
+                folderState.usingLightCache = false;
                 if (D.saveFolderState) D.saveFolderState(folderState);
-                if (window.reloadWallpaper) return window.reloadWallpaper();
-                return true;
+                if (window.reloadWallpaper) {
+                    return Promise.resolve(window.reloadWallpaper()).then(function () { return folderState; });
+                }
+                return folderState;
             });
         });
     }
@@ -1846,13 +2027,17 @@
         var draft = currentWallpaperDraft();
         var config = draft.providers.folder.config || {};
         var state = draft.providers.folder.state || {};
+        function labeled(key, label) {
+            label = String(label || '').trim();
+            return label ? tr(key) + ': ' + label : tr(key);
+        }
         if (!WF || !WF.isSupported || !WF.isSupported()) return tr('folderUnsupported');
         if (wallpaperDraftFolderMount) {
-            return tr('folderReady') + (wallpaperDraftFolderMount.pathLabel || tr('sourceFolder')) + ' · ' + wallpaperDraftFolderMount.files.length + ' ' + tr('folderImagesUnit');
+            return labeled('folderReady', wallpaperDraftFolderMount.pathLabel || tr('sourceFolder')) + ' · ' + wallpaperDraftFolderMount.files.length + ' ' + tr('folderImagesUnit');
         }
-        if (state.usingLightCache) return tr('folderNeedsPermission') + ' · ' + tr('folderSaved') + (config.pathLabel || tr('sourceFolder'));
+        if (state.usingLightCache) return tr('folderNeedsPermission') + ' · ' + labeled('folderSaved', config.pathLabel || tr('sourceFolder'));
         if (state.status === 'needs-permission') return tr('folderNeedsPermission');
-        if (state.status === 'ready' && config.pathLabel) return tr('folderSaved') + config.pathLabel + (state.indexedCount ? (' · ' + state.indexedCount + ' ' + tr('folderImagesUnit')) : '');
+        if (state.status === 'ready' && config.pathLabel) return labeled('folderSaved', config.pathLabel) + (state.indexedCount ? (' · ' + state.indexedCount + ' ' + tr('folderImagesUnit')) : '');
         if (state.status === 'empty') return tr('folderEmpty');
         if (state.status === 'error' && state.lastError) return state.lastError;
         return tr('noFolderSelected');
@@ -1865,10 +2050,30 @@
         return '';
     }
 
+    function folderNeedsReauth(state) {
+        state = state || {};
+        return state.status === 'needs-permission' || state.usingLightCache;
+    }
+
+    function folderStatusToneClass(message) {
+        var draft = currentWallpaperDraft();
+        var state = draft.providers.folder.state || {};
+        if (!WF || !WF.isSupported || !WF.isSupported()) return ' is-error';
+        if (message) {
+            if (message === tr('folderNeedsPermission') || message === tr('folderEmpty')) return ' needs-attention';
+            if (message === tr('folderReady') || message.indexOf(tr('folderReady') + ':') === 0 || message.indexOf(tr('folderSaved') + ':') === 0) return ' is-ready';
+            return ' is-error';
+        }
+        if (wallpaperDraftFolderMount) return ' is-ready';
+        if (state.usingLightCache || state.status === 'needs-permission' || state.status === 'empty') return ' needs-attention';
+        if (state.status === 'ready') return ' is-ready';
+        if (state.status === 'error') return ' is-error';
+        return '';
+    }
+
     function folderReauthLabel(state) {
         state = state || {};
         if (state.status === 'needs-permission' || state.usingLightCache) return tr('folderNeedsPermission');
-        if (state.permissionStatus === 'granted' || state.status === 'ready') return tr('folderReady');
         return tr('folderNeedsPermission');
     }
 
@@ -1882,7 +2087,11 @@
 
     function setFolderStatus(message) {
         var el = document.getElementById('folderStatus');
-        if (el) el.textContent = message || folderStatusText();
+        if (!el) return;
+        el.classList.remove('is-ready', 'needs-attention', 'is-error');
+        var tone = folderStatusToneClass(message);
+        if (tone) tone.trim().split(/\s+/).forEach(function (className) { if (className) el.classList.add(className); });
+        el.textContent = message || folderStatusText();
     }
 
     function setFolderButtonState(button, busy) {
@@ -1898,19 +2107,19 @@
         var draft = currentWallpaperDraft();
         var config = draft.providers.folder.config || {};
         var state = draft.providers.folder.state || {};
-        var canReauth = supported && !!config.pathLabel;
+        var showReauth = supported && !!config.pathLabel && folderNeedsReauth(state);
         var label = wallpaperDraftFolderMount ? wallpaperDraftFolderMount.pathLabel : (config.pathLabel || tr('noFolderSelected'));
         return '<div class="folder-config">' +
             '<div class="folder-current' + folderPermissionStateClass(state) + '">' +
             '<div><span>' + tr('sourceFolder') + '</span><strong>' + escapeHtml(label) + '</strong></div>' +
             '<div class="folder-actions">' +
-            '<button id="folderReauthBtn" class="secondary-action" type="button"' + (canReauth ? '' : ' disabled') + '>' + folderReauthLabel(state) + '</button>' +
+            (showReauth ? '<button id="folderReauthBtn" class="secondary-action" type="button">' + folderReauthLabel(state) + '</button>' : '') +
             '<button id="folderChooseBtn" class="primary-action" type="button"' + (supported ? '' : ' disabled') + '>' + tr('chooseFolder') + '</button>' +
             '</div>' +
             '</div>' +
             '<div class="folder-strategy-readonly"><span>' + tr('folderRotation') + '</span><strong>' + tr('strategyRandom') + '</strong></div>' +
             '<div class="folder-notice" id="folderNotice" hidden></div>' +
-            '<div class="folder-status" id="folderStatus">' + escapeHtml(folderStatusText()) + '</div>' +
+            '<div class="folder-status' + folderStatusToneClass() + '" id="folderStatus">' + escapeHtml(folderStatusText()) + '</div>' +
             '</div>';
     }
 
@@ -1934,9 +2143,10 @@
             reauth.addEventListener('click', function () {
                 setFolderButtonState(reauth, true);
                 showFolderNotice(tr('folderPreparing'), 'info');
-                reauthorizeSavedFolder().then(function () {
-                    showFolderNotice(tr('folderReady'), 'success');
-                    setFolderStatus();
+                reauthorizeSavedFolder().then(function (state) {
+                    var draft = currentWallpaperDraft();
+                    draft.providers.folder.state = D.normalizeFolderState ? D.normalizeFolderState(state || (D.loadFolderState ? D.loadFolderState() : {})) : (state || {});
+                    refreshWallpaperDraftTab();
                     refreshGallery();
                 }).catch(function (err) {
                     var message = folderErrorMessage(err);
@@ -1982,7 +2192,6 @@
                     lastPermissionCheckAt: Date.now(),
                     currentName: ''
                 });
-                showFolderNotice(tr('folderReady') + (mount.pathLabel || tr('sourceFolder')), 'success');
                 refreshWallpaperDraftTab();
             }).catch(function (err) {
                 if (err && err.name === 'AbortError') {
@@ -2197,12 +2406,301 @@
         root.addEventListener('change', onApiConfigChange);
     }
 
+    function bindWallhavenConfigEvents() {
+        var root = modalContent.querySelector('.wallhaven-config');
+        if (!root) return;
+        root.addEventListener('click', onWallhavenConfigClick);
+        root.addEventListener('change', onWallhavenConfigChange);
+        root.addEventListener('input', function (e) {
+            if (e.target && e.target.id === 'wallhavenCustomQuery') {
+                var config = currentWallpaperDraft().providers.wallhaven.config;
+                config.customQuery = e.target.value.trim();
+                resetWallhavenTest(config);
+                updateWallhavenUrl(root);
+                refreshWallpaperApplyFooter();
+            } else if (e.target && e.target.id === 'wallhavenSeed') {
+                var seedConfig = currentWallpaperDraft().providers.wallhaven.config;
+                seedConfig.seed = e.target.value.trim() || '0';
+                resetWallhavenTest(seedConfig);
+                updateWallhavenUrl(root);
+                refreshWallpaperApplyFooter();
+            }
+        });
+        var colorDetails = root.querySelector('.wallhaven-color-details');
+        if (colorDetails) {
+            colorDetails.addEventListener('toggle', function () {
+                syncSourceDrawerHeight(root);
+            });
+        }
+    }
+
+    function resetWallhavenTest(config) {
+        wallpaperDraftWallhavenTestResult = null;
+        if (!config) return;
+        config.test = { status: 'untested', fieldHash: '', testedAt: 0, imageUrl: '', error: '' };
+    }
+
+    function showRuntimeDownloadNotice(kind, phase, progress) {
+        if (window.showWallpaperDownloadNotice) window.showWallpaperDownloadNotice(kind, phase, progress);
+    }
+
+    function syncSourceDrawerHeight(root) {
+        if (!root || !root.closest) return;
+        var drawer = root.closest('.source-drawer.active');
+        if (!drawer) return;
+        var body = drawer.querySelector('.source-drawer-body');
+        var inner = drawer.querySelector('.source-drawer-body-inner');
+        if (!body || !inner) return;
+        requestAnimationFrame(function () {
+            body.style.maxHeight = inner.scrollHeight + 'px';
+        });
+    }
+
+    function updateWallhavenUrl(root) {
+        if (!root || !F.wallhavenSearchUrl) return;
+        var url = F.wallhavenSearchUrl(selectedDraftWallhavenConfig());
+        var row = root.querySelector('.wallhaven-url-row span');
+        if (row) row.textContent = url;
+        var link = root.querySelector('.wallhaven-url-row a');
+        if (link) link.href = url;
+    }
+
+    function touchWallhavenConfig(root, config) {
+        resetWallhavenTest(config);
+        updateWallhavenUrl(root);
+        refreshWallpaperApplyFooter();
+    }
+
+    function updateWallhavenCategoryUI(root, categories) {
+        if (!root) return;
+        var indexMap = { general: 0, anime: 1, people: 2 };
+        root.querySelectorAll('[data-wallhaven-category]').forEach(function (button) {
+            var index = indexMap[button.dataset.wallhavenCategory];
+            var active = categories.charAt(index) === '1';
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+    }
+
+    function updateWallhavenColorUI(root, color) {
+        if (!root) return;
+        root.querySelectorAll('[data-wallhaven-color]').forEach(function (button) {
+            var active = (button.dataset.wallhavenColor || '') === (color || '');
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        var current = root.querySelector('.wallhaven-color-current');
+        if (current) current.outerHTML = wallhavenColorCurrentHTML(color);
+    }
+
+    function closeWallhavenColorPicker(root) {
+        if (!root) return;
+        var details = root.querySelector('.wallhaven-color-details');
+        if (!details || !details.open) return;
+        details.open = false;
+        syncSourceDrawerHeight(root);
+    }
+
+    function updateWallhavenCustomQueryUI(root, config) {
+        if (!root) return;
+        var row = root.querySelector('.wallhaven-custom-query');
+        if (config.queryPreset === 'custom') {
+            if (!row) {
+                var preset = root.querySelector('#wallhavenPreset');
+                var anchor = preset && (preset.closest('.custom-select') || preset);
+                if (anchor) anchor.insertAdjacentHTML('afterend', wallhavenCustomQueryHTML(config));
+                syncSourceDrawerHeight(root);
+            }
+        } else if (row) {
+            row.remove();
+            syncSourceDrawerHeight(root);
+        }
+    }
+
+    function updateWallhavenTopRangeUI(root, config) {
+        if (!root) return;
+        var row = root.querySelector('.wallhaven-toprange-item');
+        if (config.sorting === 'toplist') {
+            if (!row) {
+                var sorting = root.querySelector('#wallhavenSorting');
+                var sortingItem = sorting && sorting.closest('.setting-item');
+                if (sortingItem) {
+                    sortingItem.insertAdjacentHTML('afterend', wallhavenTopRangeHTML(config));
+                    enhanceModalSelects(root);
+                    syncSourceDrawerHeight(root);
+                }
+            }
+        } else if (row) {
+            row.remove();
+            syncSourceDrawerHeight(root);
+        }
+    }
+
+    function updateWallhavenSeedUI(root, config) {
+        if (!root) return;
+        var row = root.querySelector('.wallhaven-seed-item');
+        if (config.sorting === 'random') {
+            if (!row) {
+                var sorting = root.querySelector('#wallhavenSorting');
+                var sortingItem = sorting && sorting.closest('.setting-item');
+                if (sortingItem) {
+                    sortingItem.insertAdjacentHTML('afterend', wallhavenSeedHTML(config));
+                    syncSourceDrawerHeight(root);
+                }
+            }
+        } else if (row) {
+            row.remove();
+            syncSourceDrawerHeight(root);
+        }
+    }
+
+    function onWallhavenConfigChange(e) {
+        var config = currentWallpaperDraft().providers.wallhaven.config;
+        var root = e.currentTarget;
+        if (e.target.id === 'wallhavenPreset') {
+            config.queryPreset = e.target.value;
+            wallpaperDraftOpenSource = 'wallhaven';
+            updateWallhavenCustomQueryUI(root, config);
+            touchWallhavenConfig(root, config);
+            return;
+        }
+        if (e.target.id === 'wallhavenSorting') {
+            config.sorting = e.target.value;
+            wallpaperDraftOpenSource = 'wallhaven';
+            updateWallhavenTopRangeUI(root, config);
+            updateWallhavenSeedUI(root, config);
+            touchWallhavenConfig(root, config);
+            return;
+        }
+        if (e.target.id === 'wallhavenTopRange') config.topRange = e.target.value;
+        if (e.target.id === 'wallhavenSeed') config.seed = e.target.value.trim() || '0';
+        if (e.target.id === 'wallhavenResolution') config.resolutionMode = e.target.value;
+        if (e.target.id === 'wallhavenRatio') config.ratio = e.target.value;
+        touchWallhavenConfig(root, config);
+    }
+
+    function onWallhavenConfigClick(e) {
+        var target = e.target;
+        var config = currentWallpaperDraft().providers.wallhaven.config;
+        var category = target.closest('[data-wallhaven-category]');
+        if (category) {
+            e.preventDefault();
+            e.stopPropagation();
+            var indexMap = { general: 0, anime: 1, people: 2 };
+            var index = indexMap[category.dataset.wallhavenCategory];
+            var bits = (config.categories || '111').split('');
+            bits[index] = bits[index] === '1' ? '0' : '1';
+            if (bits.join('') === '000') bits[index] = '1';
+            config.categories = bits.join('');
+            updateWallhavenCategoryUI(category.closest('.wallhaven-config'), config.categories);
+            touchWallhavenConfig(category.closest('.wallhaven-config'), config);
+            return;
+        }
+        var color = target.closest('[data-wallhaven-color]');
+        if (color) {
+            e.preventDefault();
+            e.stopPropagation();
+            var colorRoot = color.closest('.wallhaven-config');
+            var nextColor = color.dataset.wallhavenColor || '';
+            if (config.color !== nextColor) {
+                config.color = nextColor;
+                updateWallhavenColorUI(colorRoot, config.color);
+                touchWallhavenConfig(colorRoot, config);
+            }
+            closeWallhavenColorPicker(colorRoot);
+            return;
+        }
+        var refreshBtn = target.closest('[data-wallhaven-refresh-interval]');
+        if (refreshBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            config.refreshIntervalMs = parseInt(refreshBtn.dataset.wallhavenRefreshInterval, 10);
+            refreshBtn.parentNode.querySelectorAll('[data-wallhaven-refresh-interval]').forEach(function (button) {
+                button.classList.toggle('active', button === refreshBtn);
+                button.setAttribute('aria-pressed', button === refreshBtn ? 'true' : 'false');
+            });
+            refreshWallpaperApplyFooter();
+            return;
+        }
+        if (target.id === 'wallhavenTestBtn') {
+            runWallhavenTest(config, target);
+            return;
+        }
+    }
+
+    function showWallhavenNotice(message, type) {
+        var el = document.getElementById('wallhavenNotice');
+        if (!el) return;
+        clearTimeout(wallhavenNoticeTimer);
+        wallhavenNoticeTimer = null;
+        wallhavenNoticeToken += 1;
+        el.textContent = message || '';
+        el.dataset.type = type || 'info';
+        el.hidden = !message;
+        syncSourceDrawerHeight(el.closest('.wallhaven-config'));
+    }
+
+    function wallhavenErrorMessage(err) {
+        var map = {
+            NO_WALLHAVEN_IMAGES: tr('wallhavenNoImages'),
+            NO_USABLE_WALLHAVEN_IMAGES: tr('wallhavenNoUsableImages'),
+            WALLHAVEN_JSON_PARSE_FAILED: tr('apiJsonParseFailed'),
+            WALLHAVEN_THUMBNAIL_FAILED: tr('wallhavenThumbnailFailed'),
+            API_CORS_OR_NETWORK: tr('apiCorsFailed'),
+            API_TIMEOUT: tr('apiTimeout'),
+            API_FETCH_FAILED: tr('apiLoadFailed'),
+            API_NOT_IMAGE: tr('apiNotImage'),
+            API_IMAGE_DOWNLOAD_FAILED: tr('apiImageDownloadFailed')
+        };
+        return map[err && err.code] || (err && err.message ? err.message : String(err || tr('wallhavenLoadFailed')));
+    }
+
+    function runWallhavenTest(config, button) {
+        if (!F.testWallhavenSource || !D.wallhavenFieldHash) return;
+        button.disabled = true;
+        button.classList.add('testing');
+        showWallhavenNotice(tr('rssTesting'), 'info');
+        F.testWallhavenSource(config).then(function (result) {
+            var normalized = selectedDraftWallhavenConfig();
+            config.test = {
+                status: 'passed',
+                fieldHash: D.wallhavenFieldHash(normalized),
+                testedAt: Date.now(),
+                imageUrl: result.first && result.first.imageUrl || '',
+                error: ''
+            };
+            wallpaperDraftWallhavenTestResult = result;
+            showWallhavenNotice(tr('wallhavenTestOk') + ' ' + result.count, 'success');
+            refreshWallpaperApplyFooter();
+        }).catch(function (err) {
+            var message = wallhavenErrorMessage(err);
+            config.test = {
+                status: 'failed',
+                fieldHash: D.wallhavenFieldHash(selectedDraftWallhavenConfig()),
+                testedAt: Date.now(),
+                imageUrl: '',
+                error: message
+            };
+            wallpaperDraftWallhavenTestResult = null;
+            showWallhavenNotice(message, 'error');
+            refreshWallpaperApplyFooter();
+        }).finally(function () {
+            button.disabled = false;
+            button.classList.remove('testing');
+        });
+    }
+
     function syncApiAddButtonState(root) {
         var urlInput = root && root.querySelector('#apiUrlInput');
         var addBtn = root && root.querySelector('#apiAddBtn');
         if (!urlInput || !addBtn) return;
         var valid = F.isHttpsUrl(urlInput.value.trim());
         addBtn.disabled = !valid;
+    }
+
+    function touchApiConfig(root, config) {
+        wallpaperDraftOpenSource = 'api';
+        refreshWallpaperApplyFooter();
     }
 
     function onApiConfigChange(e) {
@@ -2234,11 +2732,14 @@
         }
         var refreshBtn = target.closest('[data-api-refresh-interval]');
         if (refreshBtn && root) {
+            e.preventDefault();
+            e.stopPropagation();
             config.refreshIntervalMs = parseInt(refreshBtn.dataset.apiRefreshInterval, 10);
             root.querySelectorAll('[data-api-refresh-interval]').forEach(function (button) {
                 button.classList.toggle('active', button === refreshBtn);
+                button.setAttribute('aria-pressed', button === refreshBtn ? 'true' : 'false');
             });
-            refreshWallpaperApplyFooter();
+            touchApiConfig(root, config);
             return;
         }
         if (target.id === 'apiAddBtn') {
@@ -2419,10 +2920,10 @@
     }
 
     function buildDataHTML() {
-        var jsonControl = '<button class="primary-action" id="dataExportJsonBtn" type="button">' + tr('dataExportJson') + '</button>';
+        var jsonControl = '<div class="data-inline-control data-single-control"><button class="primary-action" id="dataExportJsonBtn" type="button">' + tr('dataExportJson') + '</button></div>';
         var encryptedControl = '<div class="data-inline-control"><input id="dataExportPass" type="password" autocomplete="new-password" placeholder="' + tr('dataPassphrase') + '"><button class="primary-action" id="dataExportEncryptedBtn" type="button">' + tr('dataExportEncrypted') + '</button></div>';
-        var importControl = '<button class="primary-action" id="dataImportChooseBtn" type="button">' + tr('dataChooseFile') + '</button><span class="data-file-name" id="dataImportFileName"></span>';
-        var importPassControl = '<input id="dataImportPass" type="password" autocomplete="current-password" placeholder="' + tr('dataPassphrase') + '">';
+        var importControl = '<div class="data-inline-control"><span class="data-file-name" id="dataImportFileName"></span><button class="primary-action" id="dataImportChooseBtn" type="button">' + tr('dataChooseFile') + '</button></div>';
+        var importPassControl = '<div class="data-inline-control"><input id="dataImportPass" type="password" autocomplete="current-password" placeholder="' + tr('dataPassphrase') + '"><button class="primary-action" id="dataImportRunBtn" type="button" disabled>' + tr('dataImport') + '</button></div>';
         var body = settingGroup(tr('dataExport'),
             settingItem('JSON', modalCopy('modalDescDataJson'), jsonControl, 'setting-compact') +
             settingItem(tr('dataEncrypted'), modalCopy('modalDescDataEncrypted'), encryptedControl)) +
@@ -2434,11 +2935,11 @@
     }
 
     function buildRestoreHTML() {
-        var searchControl = '<button class="reset-defaults-btn" id="restoreSearchBtn" type="button">' + tr('resetSearchDefaults') + '</button>';
-        var appearanceControl = '<button class="reset-defaults-btn" id="restoreAppearanceBtn" type="button">' + tr('resetAppearanceDefaults') + '</button>';
-        var wallpaperControl = '<button class="danger-action" id="restoreWallpaperBtn" type="button">' + tr('wallpaperResetDefaults') + '</button>';
-        var shortcutsControl = '<button class="reset-defaults-btn" id="restoreShortcutsBtn" type="button">' + tr('resetShortcutsDefaults') + '</button>';
-        var allControl = '<button class="danger-action" id="restoreAllBtn" type="button">' + tr('resetAllDefaults') + '</button>';
+        var searchControl = '<button class="restore-action" id="restoreSearchBtn" type="button">' + tr('resetSearchDefaults') + '</button>';
+        var appearanceControl = '<button class="restore-action" id="restoreAppearanceBtn" type="button">' + tr('resetAppearanceDefaults') + '</button>';
+        var wallpaperControl = '<button class="restore-action danger" id="restoreWallpaperBtn" type="button">' + tr('wallpaperResetDefaults') + '</button>';
+        var shortcutsControl = '<button class="restore-action" id="restoreShortcutsBtn" type="button">' + tr('resetShortcutsDefaults') + '</button>';
+        var allControl = '<button class="restore-action danger" id="restoreAllBtn" type="button">' + tr('resetAllDefaults') + '</button>';
         var body =
             settingGroup(tr('settingsGroupRestoreScoped'),
             settingItem(tr('tabAppearance'), modalCopy('modalDescResetAppearance'), appearanceControl, 'setting-compact') +
@@ -2509,7 +3010,9 @@
         var jsonBtn = document.getElementById('dataExportJsonBtn');
         var encryptedBtn = document.getElementById('dataExportEncryptedBtn');
         var chooseBtn = document.getElementById('dataImportChooseBtn');
+        var importBtn = document.getElementById('dataImportRunBtn');
         var fileName = document.getElementById('dataImportFileName');
+        var selectedImportFile = null;
         var input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json,.ptab,application/json';
@@ -2518,12 +3021,20 @@
         if (jsonBtn) jsonBtn.addEventListener('click', exportPlainDataBackup);
         if (encryptedBtn) encryptedBtn.addEventListener('click', exportEncryptedDataBackup);
         if (chooseBtn) chooseBtn.addEventListener('click', function () { input.click(); });
+        if (importBtn) importBtn.addEventListener('click', function () {
+            if (!selectedImportFile) {
+                setDataStatus(tr('dataChooseBackupFirst'), 'error');
+                return;
+            }
+            importDataBackup(selectedImportFile);
+        });
         input.addEventListener('change', function () {
             var file = input.files && input.files[0];
             input.value = '';
             if (!file) return;
+            selectedImportFile = file;
             if (fileName) fileName.textContent = file.name;
-            importDataBackup(file);
+            if (importBtn) importBtn.disabled = false;
         });
     }
 
@@ -3558,7 +4069,8 @@
                     return null;
                 });
             }).then(function () {
-                saveNextPreviewFromOrder(D.loadOrder(), D.loadThumbs());
+                var order = isWallhavenWallpaperMode() && D.activeWallhavenOrder ? D.activeWallhavenOrder() : D.loadOrder();
+                saveNextPreviewFromOrder(order, D.loadThumbs());
             }).catch(function () { });
         };
 
@@ -3582,6 +4094,11 @@
         return source === 'rss' || currentMode === 'rss';
     }
 
+    function isWallhavenWallpaperMode() {
+        var source = D.compatMode ? D.compatMode(D.getActiveSource()) : currentMode;
+        return source === 'wallhaven' || currentMode === 'wallhaven';
+    }
+
     function activeRssOrder() {
         if (D.activeRssOrder) return D.activeRssOrder();
         var meta = D.loadMeta();
@@ -3596,18 +4113,19 @@
         var source = D.compatMode ? D.compatMode(D.getActiveSource()) : currentMode;
         if (source === 'bing' || source === 'api') return source;
         if (source === 'local' && uploadConfig().activeMedia === 'video' && hasUploadVideo()) return uploadVideoId();
-        var order = isRssWallpaperMode() ? activeRssOrder() : D.loadOrder();
+        var order = isRssWallpaperMode() ? activeRssOrder() : (isWallhavenWallpaperMode() && D.activeWallhavenOrder ? D.activeWallhavenOrder() : D.loadOrder());
         if (!order.length) return null;
         if (isRssWallpaperMode() && D.loadRssConfig && D.loadRssConfig().displayMode === 'latest') return order[0];
         var index = D.getActiveIndex();
-        var currentIndex = isLocalWallpaperMode() || isRssWallpaperMode() ? (index - 1 + order.length) % order.length : index % order.length;
+        var currentIndex = isLocalWallpaperMode() || isRssWallpaperMode() || isWallhavenWallpaperMode() ? (index - 1 + order.length) % order.length : index % order.length;
         return order[currentIndex];
     }
 
     function updateStoredPreviewAfterBlurChange(id, preview) {
-        if (isLocalWallpaperMode()) {
-            saveNextPreviewFromOrder(D.loadOrder(), D.loadThumbs());
-            scheduleNextBlurPreviewFromOrder(D.loadOrder());
+        if (isLocalWallpaperMode() || isWallhavenWallpaperMode()) {
+            var order = isWallhavenWallpaperMode() && D.activeWallhavenOrder ? D.activeWallhavenOrder() : D.loadOrder();
+            saveNextPreviewFromOrder(order, D.loadThumbs());
+            scheduleNextBlurPreviewFromOrder(order);
             return;
         }
         if (preview && D.savePreview) D.savePreview(preview);
@@ -3873,6 +4391,24 @@
         });
     }
 
+    function wallhavenGalleryItems() {
+        var order = D.activeWallhavenOrder ? D.activeWallhavenOrder() : [];
+        var thumbs = D.loadThumbs();
+        var meta = D.loadMeta();
+        if (!order.length) return singleGalleryItems('wallhaven');
+        return order.slice(0, 12).map(function (id) {
+            var item = meta[id] || {};
+            return {
+                id: id,
+                source: 'wallhaven',
+                title: item.wallhavenId || id,
+                bg: thumbs[id] || '',
+                deletable: true,
+                draggable: true
+            };
+        });
+    }
+
     function refreshGallery() {
         updateModeChip();
 
@@ -3883,6 +4419,13 @@
 
         if (currentMode === 'folder') return renderGallery(folderGalleryItems(), { source: 'folder' });
         if (currentMode === 'rss') return renderGallery(rssGalleryItems(), { source: 'rss' });
+        if (currentMode === 'wallhaven') return renderGallery(wallhavenGalleryItems(), {
+            source: 'wallhaven',
+            draggable: true,
+            deleteItem: function (id) { deleteWallhavenImage(id); },
+            loadOrder: function () { return D.activeWallhavenOrder ? D.activeWallhavenOrder() : []; },
+            saveOrder: function (order) { if (D.saveWallhavenOrder) D.saveWallhavenOrder(order); }
+        });
         if (currentMode === 'api') return renderGallery(singleGalleryItems('api'), { source: 'api' });
         return renderGallery(singleGalleryItems('bing'), { source: 'bing' });
     }
@@ -4026,7 +4569,8 @@
                 delBtn.setAttribute('data-media-type', item.mediaType || 'image');
                 delBtn.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    if (this.dataset.mediaType === 'video') deleteUploadVideo();
+                    if (typeof options.deleteItem === 'function') options.deleteItem(this.dataset.id, this.dataset.mediaType || 'image');
+                    else if (this.dataset.mediaType === 'video') deleteUploadVideo();
                     else deleteLocalImage(this.dataset.id);
                 });
                 card.appendChild(delBtn);
@@ -4038,7 +4582,8 @@
         return grid;
     }
 
-    function setupGalleryDrag(grid) {
+    function setupGalleryDrag(grid, options) {
+        options = options || {};
         if (!grid || grid.children.length < 2) return;
         var pressTimer = null;
         grid.style.touchAction = 'none';
@@ -4182,10 +4727,12 @@
                         Array.prototype.forEach.call(grid.querySelectorAll('.wallpaper-thumb[data-id]'), function (c) {
                             newOrder.push(c.dataset.id);
                         });
-                        var oldOrder = D.loadOrder();
+                        var loadOrder = options.loadOrder || D.loadOrder;
+                        var saveOrder = options.saveOrder || D.saveOrder;
+                        var oldOrder = loadOrder();
                         if (newOrder.length === oldOrder.length &&
                             newOrder.some(function (id, i) { return id !== oldOrder[i]; })) {
-                            D.saveOrder(newOrder);
+                            saveOrder(newOrder);
                             var idx = D.getActiveIndex();
                             var thumbs = D.loadThumbs();
                             var nextId = newOrder[idx % newOrder.length];
@@ -4232,7 +4779,7 @@
         var grid = buildGalleryGrid(items, options);
         gallery.appendChild(grid);
 
-        if (options.draggable) setupGalleryDrag(grid);
+        if (options.draggable) setupGalleryDrag(grid, options);
         if (uploadBtn) uploadBtn.style.display = options.canAdd ? '' : 'none';
     }
 
@@ -4527,6 +5074,43 @@
             alert(e && e.message ? e.message : tr('uploadVideoUnsupported'));
             return null;
         });
+    }
+
+    function deleteWallhavenImage(id) {
+        if (!D.isWallhavenId || !D.isWallhavenId(id)) return;
+        var order = D.activeWallhavenOrder ? D.activeWallhavenOrder() : [];
+        if (!order.length) return;
+        var newOrder = order.filter(function (oid) { return oid !== id; });
+        if (D.saveWallhavenOrder) D.saveWallhavenOrder(newOrder);
+
+        var thumbs = D.loadThumbs();
+        delete thumbs[id];
+        D.saveThumbs(thumbs);
+        if (D.deleteBlurThumb) D.deleteBlurThumb(id);
+
+        var meta = D.loadMeta();
+        delete meta[id];
+        D.saveMeta(meta);
+
+        if (!newOrder.length) {
+            D.saveActiveIndex(0);
+            D.savePreview(null);
+            D.setActiveSource('bing');
+            currentMode = 'bing';
+            updateModeChip();
+            return D.idbDelete(D.imgKey(id)).then(function () {
+                refreshGallery();
+                if (window.reloadWallpaper) window.reloadWallpaper();
+            }).catch(function () { });
+        }
+
+        var nextId = newOrder[D.getActiveIndex() % newOrder.length];
+        saveNextPreviewFromOrder(newOrder, thumbs);
+        scheduleBlurThumbForId(nextId, wallpaperBlur);
+
+        return D.idbDelete(D.imgKey(id)).then(function () {
+            refreshGallery();
+        }).catch(function (e) { warn('Wallhaven', 'delete blob failed: ' + (e && e.message)); });
     }
 
     function deleteLocalImage(id) {

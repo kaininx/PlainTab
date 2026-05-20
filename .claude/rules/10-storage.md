@@ -33,6 +33,7 @@ PlainTab 3.2.0 不承诺兼容更早的实验性布局。除非任务明确要�
 - `ptab_wallpaper_blob_api`
 - `ptab_wallpaper_blob_upload_*`
 - `ptab_wallpaper_blob_rss_*`
+- `ptab_wallpaper_blob_wallhaven_*`
 - `ptab_wallpaper_folder_handle`
 - `ptab_wallpaper_folder_files`
 - `ptab_wallpaper_folder_light_*`
@@ -41,11 +42,12 @@ PlainTab 3.2.0 不承诺兼容更早的实验性布局。除非任务明确要�
 
 `ptab_wallpaper` 是按来源组织的模型：
 
-- `activeSource`：`bing`、`upload`、`folder`、`rss` 或 `api`
+- `activeSource`：`bing`、`upload`、`folder`、`rss`、`wallhaven` 或 `api`
 - `providers.bing.config/state`
 - `providers.upload.config/state`：上传图片队列配置，以及互斥的 `activeMedia` / `galleryView`；上传视频固定记录在 `state.videoId`
 - `providers.folder.config/state`
 - `providers.rss.config/state`
+- `providers.wallhaven.config/state`：Wallhaven 搜索配置、SFW-only 纯净度、测试状态、刷新时间戳和本地缓存数量
 - `providers.api.config/state`
 - `cache.order`、`cache.index`、`cache.meta`
 
@@ -73,11 +75,12 @@ PlainTab 3.2.0 不承诺兼容更早的实验性布局。除非任务明确要�
 - 内置 RSS 源允许用户删除。`resetWallpaperDefaults()` 会恢复它们。
 - API 分为 image 和 JSON 两套 source 列表，每套最多 5 个，并有各自 active id。
 - API 自动拉取间隔允许 `-1`、`0`、`1d`、`3d`、`7d`。RSS 允许 `0`、`1d`、`3d`、`7d`。
+- Wallhaven 固定 `purity=100`，缓存 ID 使用 `wallhaven_<id>`，自动刷新只允许 `0`、`1d`、`3d`、`7d`。
 - 搜索历史数量归一化为 `0`、`5` 或 `10`；历史项大小写不敏感去重，并裁剪到上限。
 
 ## 恢复默认和导入导出
 
-- `resetWallpaperDefaults()` 回到 Bing，尽量保留 Bing 缓存/预览，并删除 upload/folder/RSS/API 的数据和引用。
+- `resetWallpaperDefaults()` 回到 Bing，尽量保留 Bing 缓存/预览，并删除 upload/folder/RSS/Wallhaven/API 的数据和引用。
 - `defaultUISection(section)` 返回界面、搜索、壁纸等默认分区。
 - `resetShortcutSettings()` 只恢复命令面板设置，不删除快捷链接。
 - `exportUserData()` 导出 PlainTab 备份外壳，包含语言、壁纸模型、缩略图、预览、UI、快捷链接和快捷图标。

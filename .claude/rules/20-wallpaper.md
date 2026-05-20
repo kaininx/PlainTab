@@ -20,6 +20,7 @@
 - `upload`：用户上传的本地图片和唯一视频壁纸，作为 Blob 保存。图片和视频是互斥媒体模式，视频不进入图片轮播队列。
 - `folder`：File System Access API 文件夹来源，保存 handle、索引和轻量缓存状态。
 - `rss`：RSS 图片源，带图片提取、RSS Blob 缓存，以及可选摘要/链接浮层。
+- `wallhaven`：Wallhaven 搜索源，SFW-only，测试配置后下载前 12 张可用结果并按本地队列顺序轮换。
 - `api`：图片直链 API 或 JSON API，通过 JSON path 提取图片地址。
 
 `local` 只是 `upload` 的兼容标签。
@@ -56,6 +57,16 @@
 - 运行时是否刷新由 API state 时间戳和配置间隔决定。`-1` 表示每次打开检查，但实现必须避免一次打开期间反复下载和切换。
 - 删除非当前运行来源的 API source 只保存配置，不 reload 壁纸。删除当前运行的 API source 需要确认，应用后回退到 Bing。
 
+## Wallhaven
+
+- Wallhaven 使用 `https://wallhaven.cc/api/v1/search`，第一版固定 `purity=100`，不保存 API key。
+- 设置项包括搜索预设/自定义搜索、分类、排序、topRange、分辨率模式、比例、颜色和刷新间隔。
+- 测试只验证 JSON 结果里至少有一张带 HTTPS `path` 的图片；测试通过后才允许应用配置。
+- 应用或刷新时下载返回结果前 12 张可用图片。至少成功缓存 1 张才算成功。
+- 成功写入新 Blob、缩略图和引用后，才能删除旧 Wallhaven Blob。
+- 本地展示按 `cache.order` 顺序轮换。删除和拖拽移位只影响本地 Wallhaven 队列。
+- 自动刷新只支持关闭、1 天、3 天、7 天，不支持每次打开新标签页。
+
 ## 上传和文件夹
 
 - 上传图片保存在 `ptab_wallpaper_blob_upload_*`；顺序保存在 `cache.order`。
@@ -73,6 +84,6 @@
 ## 缓存安全
 
 - 先保存大 Blob，再写指向它的元数据。
-- 恢复默认时，尽量保留 Bing 缓存/预览，并删除 upload/folder/RSS/API 数据。
+- 恢复默认时，尽量保留 Bing 缓存/预览，并删除 upload/folder/RSS/Wallhaven/API 数据。
 - 图片加载完成或放弃后释放 object URL。
 - 模糊缩略图是派生缓存，可以重新生成；不要把它当作来源真相。
