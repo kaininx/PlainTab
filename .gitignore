@@ -6,6 +6,8 @@ __pycache__/
 .worktrees/
 .playwright-mcp/
 .playwright-cli/
+release/
+skills/
 wasm/*.wasm
 wasm/*.js
 ISSUES.md
