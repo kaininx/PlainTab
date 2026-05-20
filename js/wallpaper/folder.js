@@ -248,6 +248,90 @@
         });
     }
 
+    function prewarmThumbs(handle, names, blur, limit) {
+        if (!handle || !D || !S || !readImageFile || !preparePreviewFromFile || !names || !names.length) return Promise.resolve(false);
+        limit = parseInt(limit, 10) || PREVIEW_WINDOW_LIMIT;
+        var chain = Promise.resolve(false);
+        names.slice(0, limit).forEach(function (name) {
+            chain = chain.then(function (changed) {
+                var id = D.folderId(name);
+                var hasThumb = !!D.loadThumbs()[id];
+                var hasBlur = blur < 5 || !D.blurThumbFor || !!D.blurThumbFor(id, blur);
+                if (hasThumb && hasBlur) return changed;
+                return readImageFile(handle, name).then(function (file) {
+                    return preparePreviewFromFile(file, id, blur);
+                }).then(function (prepared) {
+                    var thumbs = D.loadThumbs();
+                    if (prepared.thumb) thumbs[id] = prepared.thumb;
+                    D.saveThumbs(thumbs);
+                    if (blur >= 5 && prepared.preview && D.saveBlurThumb) D.saveBlurThumb(id, blur, prepared.preview);
+                    return true;
+                }).catch(function () {
+                    return changed;
+                });
+            });
+        });
+        return chain;
+    }
+
+    function prewarmLightCache(handle, names, limit) {
+        if (!handle || !D || !readImageFile || !prepareLightCacheFromFile || !D.saveFolderLightCache || !names || !names.length) {
+            return Promise.resolve(false);
+        }
+        limit = parseInt(limit, 10) || PREVIEW_WINDOW_LIMIT;
+        var chain = Promise.resolve(false);
+        names.slice(0, limit).forEach(function (name) {
+            chain = chain.then(function (changed) {
+                var id = D.folderId(name);
+                return readImageFile(handle, name).then(function (file) {
+                    return (D.loadFolderLightCache ? D.loadFolderLightCache(name) : Promise.resolve(null)).then(function (existing) {
+                        if (existing && existing.blob && existing.size === file.size && existing.lastModified === file.lastModified) return changed;
+                        return prepareLightCacheFromFile(file, id).then(function (prepared) {
+                            return D.saveFolderLightCache(name, prepared.record).then(function () {
+                                return true;
+                            });
+                        });
+                    });
+                }).catch(function () {
+                    return changed;
+                });
+            });
+        });
+        return chain;
+    }
+
+    function pruneThumbs(names) {
+        if (!D || !D.loadThumbs || !D.saveThumbs || !D.folderId) return false;
+        var keep = {};
+        (names || []).forEach(function (name) { keep[D.folderId(name)] = true; });
+        var thumbs = D.loadThumbs();
+        var changed = false;
+        Object.keys(thumbs).forEach(function (id) {
+            if (D.isFolderId && D.isFolderId(id) && !keep[id]) {
+                delete thumbs[id];
+                if (D.deleteBlurThumb) D.deleteBlurThumb(id);
+                changed = true;
+            }
+        });
+        if (changed) D.saveThumbs(thumbs);
+        return changed;
+    }
+
+    function pruneLightCache(names) {
+        if (!D || !D.idbKeys || !D.idbDeleteMany || !D.DB || !D.DB.FOLDER_LIGHT_PREFIX) return Promise.resolve(false);
+        var keep = {};
+        (names || []).forEach(function (name) {
+            if (D.folderLightKey) keep[D.folderLightKey(name)] = true;
+        });
+        return D.idbKeys().then(function (keys) {
+            var deletes = keys.filter(function (key) {
+                return String(key).indexOf(D.DB.FOLDER_LIGHT_PREFIX) === 0 && !keep[key];
+            });
+            if (!deletes.length) return false;
+            return D.idbDeleteMany(deletes).then(function () { return true; });
+        }).catch(function () { return false; });
+    }
+
     function prepareMount(handle, options) {
         options = options || {};
         return scanFirstBatch(handle, options.limit || FIRST_BATCH_LIMIT).then(function (scan) {
@@ -307,6 +391,10 @@
         fileRecord: fileRecord,
         buildShuffleBag: buildShuffleBag,
         buildPreviewWindow: buildPreviewWindow,
+        prewarmThumbs: prewarmThumbs,
+        prewarmLightCache: prewarmLightCache,
+        pruneThumbs: pruneThumbs,
+        pruneLightCache: pruneLightCache,
         prepareMount: prepareMount,
         preparePreviewFromFile: preparePreviewFromFile,
         prepareLightCacheFromFile: prepareLightCacheFromFile,

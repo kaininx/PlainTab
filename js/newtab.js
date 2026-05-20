@@ -452,105 +452,21 @@
         });
     }
 
-    function buildFolderPreviewWindow(files, currentName, shuffleBag, limit) {
-        limit = parseInt(limit, 10) || FOLDER_GALLERY_LIMIT;
-        if (WF && WF.buildPreviewWindow) return WF.buildPreviewWindow(files, currentName, shuffleBag, limit);
-        var names = [];
-        function add(name) {
-            name = String(name || '').trim();
-            if (name && names.indexOf(name) === -1 && names.length < limit) names.push(name);
-        }
-        add(currentName);
-        (Array.isArray(shuffleBag) ? shuffleBag : []).forEach(add);
-        (Array.isArray(files) ? files : []).forEach(function (file) { add(file && file.name); });
-        return names;
-    }
-
-    function prewarmFolderThumbs(handle, names, blur) {
-        if (!handle || !names || !names.length || !WF || !WF.readImageFile || !WF.preparePreviewFromFile) return;
+    function scheduleFolderCacheWarmup(handle, names, blur) {
+        if (!handle || !names || !names.length || !WF) return;
         var run = function () {
-            var chain = Promise.resolve(false);
-            names.slice(0, FOLDER_THUMB_LOOKAHEAD).forEach(function (name) {
-                chain = chain.then(function (changed) {
-                    var id = D.folderId(name);
-                    var hasThumb = !!D.loadThumbs()[id];
-                    var hasBlur = blur < 5 || !D.blurThumbFor || !!D.blurThumbFor(id, blur);
-                    if (hasThumb && hasBlur) return changed;
-                    return WF.readImageFile(handle, name).then(function (file) {
-                        return WF.preparePreviewFromFile(file, id, blur);
-                    }).then(function (prepared) {
-                        var thumbs = D.loadThumbs();
-                        if (prepared.thumb) thumbs[id] = prepared.thumb;
-                        D.saveThumbs(thumbs);
-                        if (blur >= 5 && prepared.preview && D.saveBlurThumb) D.saveBlurThumb(id, blur, prepared.preview);
-                        return true;
-                    }).catch(function () { return changed; });
-                });
-            });
-            return chain.then(function (changed) {
+            return Promise.resolve(WF.prewarmThumbs ? WF.prewarmThumbs(handle, names, blur, FOLDER_THUMB_LOOKAHEAD) : false).then(function (changed) {
                 if (changed) {
                     var state = D.loadFolderState ? D.loadFolderState() : {};
                     var nextName = (state.shuffleBag || [])[0];
                     saveFolderNextPreview(nextName, blur);
                 }
+                return WF.prewarmLightCache ? WF.prewarmLightCache(handle, names, FOLDER_THUMB_LOOKAHEAD) : false;
             }).catch(function () { });
         };
 
         if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 1800 });
         else setTimeout(run, 300);
-    }
-
-    function prewarmFolderLightCache(handle, names) {
-        if (!handle || !names || !names.length || !WF || !WF.readImageFile || !WF.prepareLightCacheFromFile || !D.saveFolderLightCache) return;
-        var run = function () {
-            var chain = Promise.resolve(false);
-            names.slice(0, FOLDER_THUMB_LOOKAHEAD).forEach(function (name) {
-                chain = chain.then(function (changed) {
-                    var id = D.folderId(name);
-                    return WF.readImageFile(handle, name).then(function (file) {
-                        return (D.loadFolderLightCache ? D.loadFolderLightCache(name) : Promise.resolve(null)).then(function (existing) {
-                            if (existing && existing.blob && existing.size === file.size && existing.lastModified === file.lastModified) return changed;
-                            return WF.prepareLightCacheFromFile(file, id).then(function (prepared) {
-                                return D.saveFolderLightCache(name, prepared.record).then(function () { return true; });
-                            });
-                        });
-                    }).catch(function () { return changed; });
-                });
-            });
-            return chain.catch(function () { });
-        };
-
-        if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 2200 });
-        else setTimeout(run, 500);
-    }
-
-    function pruneFolderThumbs(names) {
-        var keep = {};
-        (names || []).forEach(function (name) { keep[D.folderId(name)] = true; });
-        var thumbs = D.loadThumbs();
-        var changed = false;
-        Object.keys(thumbs).forEach(function (id) {
-            if (D.isFolderId && D.isFolderId(id) && !keep[id]) {
-                delete thumbs[id];
-                if (D.deleteBlurThumb) D.deleteBlurThumb(id);
-                changed = true;
-            }
-        });
-        if (changed) D.saveThumbs(thumbs);
-    }
-
-    function pruneFolderLightCache(names) {
-        if (!D.idbKeys || !D.idbDeleteMany || !D.DB || !D.DB.FOLDER_LIGHT_PREFIX) return;
-        var keep = {};
-        (names || []).forEach(function (name) {
-            if (D.folderLightKey) keep[D.folderLightKey(name)] = true;
-        });
-        D.idbKeys().then(function (keys) {
-            var deletes = keys.filter(function (key) {
-                return String(key).indexOf(D.DB.FOLDER_LIGHT_PREFIX) === 0 && !keep[key];
-            });
-            if (deletes.length) return D.idbDeleteMany(deletes);
-        }).catch(function () { });
     }
 
     function hideFolderPermissionNotice() {
@@ -668,7 +584,7 @@
             }
             var nextBag = candidate.remaining;
             if (!nextBag.length && WF && WF.buildShuffleBag) nextBag = WF.buildShuffleBag(files, name);
-            var previewWindow = buildFolderPreviewWindow(files, name, nextBag, FOLDER_GALLERY_LIMIT);
+            var previewWindow = WF.buildPreviewWindow(files, name, nextBag, FOLDER_GALLERY_LIMIT);
             var nextName = nextBag[0] || '';
             var pathLabel = D.loadFolderConfig ? D.loadFolderConfig().pathLabel : '';
             return applyWallpaperRespectingBlur(URL.createObjectURL(blob), id).then(function () {
@@ -744,7 +660,7 @@
                         next.shuffleBag = (next.shuffleBag || []).filter(function (name) {
                             return scan.files.some(function (file) { return file.name === name; });
                         });
-                        next.previewWindow = buildFolderPreviewWindow(scan.files, next.currentName, next.shuffleBag, FOLDER_GALLERY_LIMIT);
+                        next.previewWindow = WF.buildPreviewWindow(scan.files, next.currentName, next.shuffleBag, FOLDER_GALLERY_LIMIT);
                     });
                 });
             }).catch(function (err) {
@@ -778,8 +694,8 @@
                 });
                 var nextBag = candidate.remaining;
                 if (!nextBag.length && WF && WF.buildShuffleBag) nextBag = WF.buildShuffleBag(nextFiles, record.name);
-                var previewWindow = buildFolderPreviewWindow(nextFiles, record.name, nextBag, FOLDER_GALLERY_LIMIT);
-                var thumbLookahead = buildFolderPreviewWindow(nextFiles, record.name, nextBag, FOLDER_THUMB_LOOKAHEAD);
+                var previewWindow = WF.buildPreviewWindow(nextFiles, record.name, nextBag, FOLDER_GALLERY_LIMIT);
+                var thumbLookahead = WF.buildPreviewWindow(nextFiles, record.name, nextBag, FOLDER_THUMB_LOOKAHEAD);
                 D.saveFolderFiles(nextFiles).catch(function () { });
                 updateFolderMeta(id, record, pathLabel);
                 updateFolderState(function (next) {
@@ -807,10 +723,9 @@
                 var nextName = nextBag[0] || '';
                 saveFolderNextPreview(nextName, blur);
                 scheduleFolderNextPreview(handle, nextName, blur);
-                prewarmFolderThumbs(handle, thumbLookahead, blur);
-                prewarmFolderLightCache(handle, thumbLookahead);
-                pruneFolderThumbs(thumbLookahead);
-                pruneFolderLightCache(thumbLookahead);
+                scheduleFolderCacheWarmup(handle, thumbLookahead, blur);
+                if (WF.pruneThumbs) WF.pruneThumbs(thumbLookahead);
+                if (WF.pruneLightCache) WF.pruneLightCache(thumbLookahead);
                 hideFolderPermissionNotice();
                 cacheBingInBackground();
                 log('Folder', 'image ' + record.name);
@@ -836,7 +751,7 @@
             updateFolderState(function (next) {
                 next.indexedCount = remainingFiles.length;
                 next.shuffleBag = state.shuffleBag;
-                next.previewWindow = buildFolderPreviewWindow(remainingFiles, next.currentName, state.shuffleBag, FOLDER_GALLERY_LIMIT);
+                next.previewWindow = WF.buildPreviewWindow(remainingFiles, next.currentName, state.shuffleBag, FOLDER_GALLERY_LIMIT);
                 next.lastError = err && err.message ? err.message : String(err || '');
                 if (!remainingFiles.length) next.status = 'empty';
             });
