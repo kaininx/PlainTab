@@ -101,6 +101,16 @@
             if (api.test && api.test.status === 'failed' && api.test.error) return blocked('wallpaperStatusTestFailed', api.test.error);
             return blocked('wallpaperStatusTestApi');
         }
+        if (source === 'wallhaven') {
+            var wallhavenConfig = D && D.normalizeWallhavenConfig ? D.normalizeWallhavenConfig(config) : config;
+            if (D && D.isTestPassed && D.wallhavenFieldHash && D.isTestPassed(wallhavenConfig, D.wallhavenFieldHash(wallhavenConfig))) {
+                return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
+            }
+            if (wallhavenConfig.test && wallhavenConfig.test.status === 'failed' && wallhavenConfig.test.error) {
+                return blocked('wallpaperStatusTestFailed', wallhavenConfig.test.error);
+            }
+            return blocked('wallpaperStatusTestWallhaven');
+        }
         return blocked('sourcePendingHint');
     }
 

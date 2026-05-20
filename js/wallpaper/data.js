@@ -32,6 +32,7 @@
         API_BLOB: 'ptab_wallpaper_blob_api',
         UPLOAD_PREFIX: 'ptab_wallpaper_blob_upload_',
         RSS_PREFIX: 'ptab_wallpaper_blob_rss_',
+        WALLHAVEN_PREFIX: 'ptab_wallpaper_blob_wallhaven_',
         FOLDER_HANDLE: 'ptab_wallpaper_folder_handle',
         FOLDER_FILES: 'ptab_wallpaper_folder_files',
         FOLDER_LIGHT_PREFIX: 'ptab_wallpaper_folder_light_'
@@ -202,6 +203,31 @@
                     jsonSources: []
                 },
                 state: { lastCheckedAt: 0, lastSuccessAt: 0, lastError: '', lastSourceId: '', lastImageUrl: '' }
+            },
+            wallhaven: {
+                config: {
+                    queryPreset: 'nature',
+                    customQuery: '',
+                    categories: '111',
+                    sorting: 'toplist',
+                    topRange: '1M',
+                    seed: '0',
+                    resolutionMode: 'atleast-1920x1080',
+                    ratio: '',
+                    color: '',
+                    refreshIntervalMs: 86400000
+                },
+                state: {
+                    lastCheckedAt: 0,
+                    lastSuccessAt: 0,
+                    lastError: '',
+                    lastTestAt: 0,
+                    lastTestMessage: '',
+                    lastQueryUrl: '',
+                    lastWallpaperId: '',
+                    lastImageUrl: '',
+                    cachedCount: 0
+                }
             }
         },
         cache: {
@@ -370,6 +396,7 @@
         if (id === 'bing') return DB.BING_BLOB;
         if (id === 'api') return DB.API_BLOB;
         if (id && id.indexOf('rss_') === 0) return DB.RSS_PREFIX + id.slice(4);
+        if (id && id.indexOf('wallhaven_') === 0) return DB.WALLHAVEN_PREFIX + id.slice(10);
         if (id && id.indexOf('upload_') === 0) return DB.UPLOAD_PREFIX + id.slice(7);
         return DB.UPLOAD_PREFIX + id;
     }
@@ -434,6 +461,21 @@
         var url = String(source && source.url || '').trim();
         var path = apiType === 'json' ? String(source && source.jsonPath || '').trim() : '';
         return stableHash(apiType + '|' + url + '|' + path);
+    }
+
+    function wallhavenFieldHash(config) {
+        config = normalizeWallhavenConfig(config || {});
+        return stableHash([
+            config.queryPreset,
+            config.customQuery,
+            config.categories,
+            config.sorting,
+            config.topRange,
+            config.sorting === 'random' ? config.seed : '',
+            config.resolutionMode,
+            config.ratio,
+            config.color
+        ].join('|'));
     }
 
     function isTestPassed(source, expectedHash) {
@@ -548,6 +590,78 @@
         return merged;
     }
 
+    function normalizeWallhavenCategories(value) {
+        var raw = String(value || '').replace(/[^01]/g, '');
+        if (raw.length !== 3 || raw === '000') return DEFAULT_WALLPAPER.providers.wallhaven.config.categories;
+        return raw;
+    }
+
+    function normalizeWallhavenConfig(config) {
+        var defaults = clone(DEFAULT_WALLPAPER.providers.wallhaven.config);
+        var merged = mergeDefaults(config || {}, defaults);
+        var presets = {
+            nature: true,
+            anime: true,
+            landscape: true,
+            city: true,
+            space: true,
+            forest: true,
+            ocean: true,
+            mountain: true,
+            minimalism: true,
+            abstract: true,
+            cars: true,
+            flowers: true,
+            custom: true
+        };
+        merged.queryPreset = presets[merged.queryPreset] ? merged.queryPreset : defaults.queryPreset;
+        merged.customQuery = String(merged.customQuery || '').trim().slice(0, 120);
+        merged.categories = normalizeWallhavenCategories(merged.categories);
+        var sorting = { random: true, date_added: true, relevance: true, views: true, favorites: true, toplist: true };
+        merged.sorting = sorting[merged.sorting] ? merged.sorting : defaults.sorting;
+        var ranges = { '1d': true, '3d': true, '1w': true, '1M': true, '3M': true, '6M': true, '1y': true };
+        merged.topRange = ranges[merged.topRange] ? merged.topRange : defaults.topRange;
+        merged.seed = String(merged.seed === undefined || merged.seed === null ? defaults.seed : merged.seed).trim().slice(0, 64) || defaults.seed;
+        var resolutions = {
+            any: true,
+            'atleast-1920x1080': true,
+            'atleast-2560x1440': true,
+            'atleast-3840x2160': true,
+            'exact-1920x1080': true,
+            'exact-2560x1440': true,
+            'exact-3840x2160': true
+        };
+        merged.resolutionMode = resolutions[merged.resolutionMode] ? merged.resolutionMode : defaults.resolutionMode;
+        var ratios = { '': true, '16x9': true, '16x10': true, '21x9': true, '4x3': true };
+        merged.ratio = ratios[merged.ratio] ? merged.ratio : '';
+        merged.color = String(merged.color || '').replace(/[^a-fA-F0-9]/g, '').toLowerCase();
+        if (!/^[a-f0-9]{6}$/.test(merged.color)) merged.color = '';
+        var allowedIntervals = [0, 86400000, 259200000, 604800000];
+        if (allowedIntervals.indexOf(parseInt(merged.refreshIntervalMs, 10)) === -1) merged.refreshIntervalMs = defaults.refreshIntervalMs;
+        else merged.refreshIntervalMs = parseInt(merged.refreshIntervalMs, 10);
+        merged.test = sourceTest(
+            merged.test && merged.test.status,
+            merged.test && merged.test.fieldHash,
+            merged.test && merged.test.testedAt,
+            merged.test && merged.test.imageUrl,
+            merged.test && merged.test.error
+        );
+        return merged;
+    }
+
+    function normalizeWallhavenState(state) {
+        var defaults = clone(DEFAULT_WALLPAPER.providers.wallhaven.state);
+        var merged = mergeDefaults(state || {}, defaults);
+        merged.lastCheckedAt = parseInt(merged.lastCheckedAt, 10) || 0;
+        merged.lastSuccessAt = parseInt(merged.lastSuccessAt, 10) || 0;
+        merged.lastTestAt = parseInt(merged.lastTestAt, 10) || 0;
+        merged.cachedCount = Math.max(0, Math.min(12, parseInt(merged.cachedCount, 10) || 0));
+        ['lastError', 'lastTestMessage', 'lastQueryUrl', 'lastWallpaperId', 'lastImageUrl'].forEach(function (key) {
+            merged[key] = String(merged[key] || '').slice(0, 260);
+        });
+        return merged;
+    }
+
     function normalizeFolderConfig(config) {
         var defaults = clone(DEFAULT_WALLPAPER.providers.folder.config);
         var merged = mergeDefaults(config || {}, defaults);
@@ -631,6 +745,8 @@
         _wallpaperCache.providers.folder.state = normalizeFolderState(_wallpaperCache.providers.folder.state);
         _wallpaperCache.providers.rss.config = normalizeRssConfig(_wallpaperCache.providers.rss.config);
         _wallpaperCache.providers.api.config = normalizeApiConfig(_wallpaperCache.providers.api.config);
+        _wallpaperCache.providers.wallhaven.config = normalizeWallhavenConfig(_wallpaperCache.providers.wallhaven.config);
+        _wallpaperCache.providers.wallhaven.state = normalizeWallhavenState(_wallpaperCache.providers.wallhaven.state);
         return _wallpaperCache;
     }
 
@@ -643,6 +759,8 @@
         _wallpaperCache.providers.folder.state = normalizeFolderState(_wallpaperCache.providers.folder.state);
         _wallpaperCache.providers.rss.config = normalizeRssConfig(_wallpaperCache.providers.rss.config);
         _wallpaperCache.providers.api.config = normalizeApiConfig(_wallpaperCache.providers.api.config);
+        _wallpaperCache.providers.wallhaven.config = normalizeWallhavenConfig(_wallpaperCache.providers.wallhaven.config);
+        _wallpaperCache.providers.wallhaven.state = normalizeWallhavenState(_wallpaperCache.providers.wallhaven.state);
         return writeJSON(KEYS.WALLPAPER, _wallpaperCache);
     }
 
@@ -670,6 +788,26 @@
     function saveApiConfig(config) {
         updateWallpaper(function (model) {
             model.providers.api.config = normalizeApiConfig(config);
+        });
+    }
+
+    function loadWallhavenConfig() {
+        return loadWallpaper().providers.wallhaven.config;
+    }
+
+    function saveWallhavenConfig(config) {
+        updateWallpaper(function (model) {
+            model.providers.wallhaven.config = normalizeWallhavenConfig(config);
+        });
+    }
+
+    function loadWallhavenState() {
+        return loadWallpaper().providers.wallhaven.state;
+    }
+
+    function saveWallhavenState(state) {
+        updateWallpaper(function (model) {
+            model.providers.wallhaven.state = normalizeWallhavenState(state);
         });
     }
 
@@ -941,8 +1079,12 @@
         return !!(id && id.indexOf('rss_') === 0);
     }
 
+    function isWallhavenId(id) {
+        return !!(id && id.indexOf('wallhaven_') === 0);
+    }
+
     function isUploadId(id) {
-        return !!(id && id !== 'bing' && id !== 'api' && !isRssId(id) && String(id).indexOf('folder:') !== 0);
+        return !!(id && id !== 'bing' && id !== 'api' && !isRssId(id) && !isWallhavenId(id) && String(id).indexOf('folder:') !== 0);
     }
 
     function isUploadVideoId(id) {
@@ -1030,6 +1172,7 @@
         }
         if (source === 'rss') return order.some(isRssId) || Object.keys(thumbs).some(isRssId) || Object.keys(blurThumbs).some(isRssId) || Object.keys(meta).some(isRssId);
         if (source === 'api') return !!(thumbs.api || blurThumbs.api || meta.api || (model.providers.api.state && model.providers.api.state.lastImageUrl));
+        if (source === 'wallhaven') return order.some(isWallhavenId) || Object.keys(thumbs).some(isWallhavenId) || Object.keys(blurThumbs).some(isWallhavenId) || Object.keys(meta).some(isWallhavenId);
         return false;
     }
 
@@ -1043,6 +1186,24 @@
         var meta = loadMeta();
         return (loadWallpaper().cache.order || []).filter(isRssId).filter(function (id) {
             return !activeSourceId || !meta[id] || meta[id].sourceId === activeSourceId;
+        });
+    }
+
+    function wallhavenBlobKey(id) {
+        return DB.WALLHAVEN_PREFIX + String(id || '').replace(/^wallhaven_/, '');
+    }
+
+    function activeWallhavenOrder() {
+        return (loadWallpaper().cache.order || []).filter(isWallhavenId);
+    }
+
+    function saveWallhavenOrder(order) {
+        updateWallpaper(function (model) {
+            model.activeSource = order && order.length ? 'wallhaven' : 'bing';
+            model.cache.order = (order || []).filter(isWallhavenId);
+            if (!model.cache.order.length) model.cache.order = ['bing'];
+            model.cache.index = Math.min(model.cache.index || 0, Math.max(model.cache.order.length - 1, 0));
+            model.providers.wallhaven.state.cachedCount = model.cache.order.filter(isWallhavenId).length;
         });
     }
 
@@ -1103,6 +1264,13 @@
             model.cache.order = order.filter(function (id) { return id !== 'api'; });
             model.providers.api.state = mergeDefaults({}, DEFAULT_WALLPAPER.providers.api.state);
             idbDeletes.push(DB.API_BLOB);
+        } else if (source === 'wallhaven') {
+            deleteMatching(isWallhavenId);
+            model.cache.order = order.filter(function (id) { return !isWallhavenId(id); });
+            model.providers.wallhaven.state = mergeDefaults({}, DEFAULT_WALLPAPER.providers.wallhaven.state);
+            idbDeletePromise = idbDeleteMatching(function (key) {
+                return String(key).indexOf(DB.WALLHAVEN_PREFIX) === 0;
+            });
         } else {
             return Promise.resolve(false);
         }
@@ -1153,7 +1321,8 @@
                 key === DB.FOLDER_FILES ||
                 String(key).indexOf(DB.FOLDER_LIGHT_PREFIX) === 0 ||
                 String(key).indexOf(DB.UPLOAD_PREFIX) === 0 ||
-                String(key).indexOf(DB.RSS_PREFIX) === 0;
+                String(key).indexOf(DB.RSS_PREFIX) === 0 ||
+                String(key).indexOf(DB.WALLHAVEN_PREFIX) === 0;
         }).then(function () {
             clearCaches();
             return model;
@@ -1336,6 +1505,7 @@
         defaultRssConfig: defaultRssConfig,
         rssFieldHash: rssFieldHash,
         apiFieldHash: apiFieldHash,
+        wallhavenFieldHash: wallhavenFieldHash,
         isTestPassed: isTestPassed,
         normalizeSource: normalizeSource,
         loadRssConfig: loadRssConfig,
@@ -1344,6 +1514,12 @@
         saveApiConfig: saveApiConfig,
         activeApiSource: activeApiSource,
         normalizeApiConfig: normalizeApiConfig,
+        normalizeWallhavenConfig: normalizeWallhavenConfig,
+        normalizeWallhavenState: normalizeWallhavenState,
+        loadWallhavenConfig: loadWallhavenConfig,
+        saveWallhavenConfig: saveWallhavenConfig,
+        loadWallhavenState: loadWallhavenState,
+        saveWallhavenState: saveWallhavenState,
         normalizeFolderConfig: normalizeFolderConfig,
         normalizeFolderState: normalizeFolderState,
         loadFolderConfig: loadFolderConfig,
@@ -1359,6 +1535,7 @@
         saveFolderLightCache: saveFolderLightCache,
         deleteFolderLightCache: deleteFolderLightCache,
         isRssId: isRssId,
+        isWallhavenId: isWallhavenId,
         isUploadId: isUploadId,
         isUploadImageId: isUploadImageId,
         isUploadVideoId: isUploadVideoId,
@@ -1367,6 +1544,9 @@
         clearWallpaperSourceCache: clearWallpaperSourceCache,
         rssBlobKey: rssBlobKey,
         activeRssOrder: activeRssOrder,
+        wallhavenBlobKey: wallhavenBlobKey,
+        activeWallhavenOrder: activeWallhavenOrder,
+        saveWallhavenOrder: saveWallhavenOrder,
         resetWallpaperDefaults: resetWallpaperDefaults,
         loadUI: loadUI,
         saveUI: saveUI,

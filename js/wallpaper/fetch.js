@@ -13,6 +13,15 @@
     function log() { window.log.apply(window, arguments); }
     function warn() { window.warn.apply(window, arguments); }
     var RSS_IMAGE_TIMEOUT_MS = 30000;
+    var WALLHAVEN_API = 'https://wallhaven.cc/api/v1/search';
+    var WALLHAVEN_CACHE_LIMIT = 12;
+    var WALLHAVEN_COLORS = [
+        '660000', '990000', 'cc0000', 'cc3333', 'ea4c88', '993399',
+        '663399', '333399', '0066cc', '0099cc', '66cccc', '77cc33',
+        '669900', '336600', '666600', '999900', 'cccc33', 'ffff00',
+        'ffcc33', 'ff9900', 'ff6600', 'cc6633', '996633', '663300',
+        '000000', '999999', 'cccccc', 'ffffff', '424153'
+    ];
 
     // ================================================================
     // Bing 端点
@@ -115,6 +124,12 @@
     }
 
     function apiError(code, message) {
+        var err = new Error(message);
+        err.code = code;
+        return err;
+    }
+
+    function wallhavenError(code, message) {
         var err = new Error(message);
         err.code = code;
         return err;
@@ -593,6 +608,239 @@
         });
     }
 
+    function wallhavenQuery(config) {
+        config = D.normalizeWallhavenConfig ? D.normalizeWallhavenConfig(config || {}) : (config || {});
+        if (config.queryPreset === 'custom') return String(config.customQuery || '').trim() || 'nature';
+        return String(config.queryPreset || 'nature').trim() || 'nature';
+    }
+
+    function wallhavenResolutionParam(config) {
+        var mode = config && config.resolutionMode || 'atleast-1920x1080';
+        if (mode === 'any') return null;
+        if (mode.indexOf('atleast-') === 0) return { key: 'atleast', value: mode.slice(8) };
+        if (mode.indexOf('exact-') === 0) return { key: 'resolutions', value: mode.slice(6) };
+        return { key: 'atleast', value: '1920x1080' };
+    }
+
+    function wallhavenSeedParam(config) {
+        var seed = String(config && config.seed !== undefined && config.seed !== null ? config.seed : '0').trim();
+        if (!seed || seed === '0') return String(Math.floor(Math.random() * 1000000000));
+        return seed;
+    }
+
+    function wallhavenSearchUrl(config) {
+        config = D.normalizeWallhavenConfig ? D.normalizeWallhavenConfig(config || {}) : (config || {});
+        var url = new URL(WALLHAVEN_API);
+        var query = wallhavenQuery(config);
+        if (query) url.searchParams.set('q', query);
+        url.searchParams.set('categories', config.categories || '111');
+        url.searchParams.set('purity', '100');
+        url.searchParams.set('sorting', config.sorting || 'toplist');
+        url.searchParams.set('order', 'desc');
+        if (config.sorting === 'toplist') url.searchParams.set('topRange', config.topRange || '1M');
+        if (config.sorting === 'random') url.searchParams.set('seed', wallhavenSeedParam(config));
+        var resolution = wallhavenResolutionParam(config);
+        if (resolution) url.searchParams.set(resolution.key, resolution.value);
+        if (config.ratio) url.searchParams.set('ratios', config.ratio);
+        if (config.color) url.searchParams.set('colors', config.color);
+        return url.toString();
+    }
+
+    function normalizeWallhavenItems(data) {
+        return (data && Array.isArray(data.data) ? data.data : []).map(function (item) {
+            if (!item || !item.id || !isHttpsUrl(item.path)) return null;
+            var id = 'wallhaven_' + String(item.id).trim();
+            return {
+                id: id,
+                wallhavenId: String(item.id).trim(),
+                pageUrl: item.url || '',
+                shortUrl: item.short_url || '',
+                imageUrl: item.path,
+                purity: item.purity || '',
+                category: item.category || '',
+                resolution: item.resolution || '',
+                width: parseInt(item.dimension_x, 10) || 0,
+                height: parseInt(item.dimension_y, 10) || 0,
+                fileType: item.file_type || '',
+                fileSize: parseInt(item.file_size, 10) || 0,
+                colors: Array.isArray(item.colors) ? item.colors.slice(0, 8) : [],
+                thumbs: item.thumbs || {},
+                createdAt: item.created_at || '',
+                source: item.source || '',
+                fetchedAt: Date.now()
+            };
+        }).filter(Boolean);
+    }
+
+    function parseWallhavenJson(text) {
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw wallhavenError('WALLHAVEN_JSON_PARSE_FAILED', 'json parse failed');
+        }
+    }
+
+    function testWallhavenSource(config) {
+        var url = wallhavenSearchUrl(config);
+        return fetchApiResponse(url, 8000).then(function (response) {
+            return response.text();
+        }).then(function (text) {
+            var data = parseWallhavenJson(text);
+            var items = normalizeWallhavenItems(data);
+            if (!items.length) throw wallhavenError('NO_WALLHAVEN_IMAGES', 'no usable image entries');
+            return {
+                ok: true,
+                count: items.length,
+                first: items[0],
+                items: items,
+                queryUrl: url,
+                meta: data && data.meta ? data.meta : {}
+            };
+        }).catch(function (err) {
+            if (err && err.code) throw err;
+            throw classifyFetchError(err);
+        });
+    }
+
+    function downloadWallhavenItemBlob(item) {
+        return fetchApiResponse(item.imageUrl, RSS_IMAGE_TIMEOUT_MS).then(function (response) {
+            return blobFromImageResponse(response, item.imageUrl);
+        }).then(function (result) {
+            return result.blob;
+        });
+    }
+
+    function cacheWallhavenItems(config, items, options) {
+        options = options || {};
+        config = D.normalizeWallhavenConfig ? D.normalizeWallhavenConfig(config || {}) : (config || {});
+        var usable = (items || []).filter(function (item) { return item && item.id && isHttpsUrl(item.imageUrl); }).slice(0, WALLHAVEN_CACHE_LIMIT);
+        var cached = [];
+        var thumbs = D.loadThumbs();
+        var blurThumbs = D.loadBlurThumbs ? D.loadBlurThumbs() : {};
+        var meta = D.loadMeta();
+        var oldOrder = D.activeWallhavenOrder ? D.activeWallhavenOrder() : [];
+        var total = usable.length;
+        var queryUrl = options.queryUrl || wallhavenSearchUrl(config);
+
+        function report(index) {
+            if (typeof options.onProgress === 'function') {
+                options.onProgress({
+                    current: Math.min(index + 1, Math.max(total, 1)),
+                    total: total,
+                    cached: cached.length,
+                    source: 'wallhaven'
+                });
+            }
+        }
+
+        function next(index) {
+            report(index);
+            if (index >= usable.length) return Promise.resolve(cached);
+            var item = usable[index];
+            return D.idbGet(D.imgKey(item.id)).then(function (existing) {
+                if (existing && existing.blob && thumbs[item.id]) {
+                    cached.push(item);
+                    return next(index + 1);
+                }
+                return downloadWallhavenItemBlob(item).then(function (blob) {
+                    var objectUrl = URL.createObjectURL(blob);
+                    return S.thumbnail(objectUrl).then(function (thumb) {
+                        URL.revokeObjectURL(objectUrl);
+                        if (!thumb) throw wallhavenError('WALLHAVEN_THUMBNAIL_FAILED', 'thumbnail failed');
+                        return D.idbPut(D.imgKey(item.id), {
+                            blob: blob,
+                            mime: blob.type || item.fileType || '',
+                            name: item.wallhavenId || item.id,
+                            source: 'wallhaven',
+                            id: item.id,
+                            src: item.imageUrl
+                        }).then(function () {
+                            thumbs[item.id] = thumb;
+                            cached.push(item);
+                        });
+                    }, function (err) {
+                        URL.revokeObjectURL(objectUrl);
+                        throw err || wallhavenError('WALLHAVEN_THUMBNAIL_FAILED', 'thumbnail failed');
+                    });
+                }).catch(function (err) {
+                    warn('Wallhaven', 'skipped image: ' + item.imageUrl + ' (' + (err && err.message ? err.message : err) + ')');
+                    return null;
+                }).then(function () {
+                    return next(index + 1);
+                });
+            });
+        }
+
+        return next(0).then(function () {
+            var order = cached.map(function (item) { return item.id; });
+            if (!order.length) throw wallhavenError('NO_USABLE_WALLHAVEN_IMAGES', 'no usable images');
+            var keep = {};
+            order.forEach(function (id) { keep[id] = true; });
+            oldOrder.forEach(function (id) {
+                if (keep[id]) return;
+                delete thumbs[id];
+                delete blurThumbs[id];
+                delete meta[id];
+            });
+            cached.forEach(function (item) {
+                meta[item.id] = {
+                    source: 'wallhaven',
+                    wallhavenId: item.wallhavenId,
+                    pageUrl: item.pageUrl,
+                    shortUrl: item.shortUrl,
+                    imageUrl: item.imageUrl,
+                    purity: item.purity,
+                    category: item.category,
+                    resolution: item.resolution,
+                    width: item.width,
+                    height: item.height,
+                    fileType: item.fileType,
+                    fileSize: item.fileSize,
+                    colors: item.colors,
+                    thumbs: item.thumbs,
+                    createdAt: item.createdAt,
+                    fetchedAt: item.fetchedAt
+                };
+            });
+            D.saveThumbs(thumbs);
+            if (D.saveBlurThumbs) D.saveBlurThumbs(blurThumbs);
+            if (thumbs[order[0]]) D.savePreview(thumbs[order[0]]);
+            D.updateWallpaper(function (model) {
+                if (options.activate === true || model.activeSource === 'wallhaven') model.activeSource = 'wallhaven';
+                model.cache.order = order;
+                model.cache.index = 0;
+                model.cache.meta = meta;
+                var now = Date.now();
+                model.providers.wallhaven.config = D.normalizeWallhavenConfig ? D.normalizeWallhavenConfig(config) : config;
+                model.providers.wallhaven.state.lastCheckedAt = now;
+                model.providers.wallhaven.state.lastSuccessAt = now;
+                model.providers.wallhaven.state.lastError = '';
+                model.providers.wallhaven.state.lastQueryUrl = queryUrl;
+                model.providers.wallhaven.state.lastWallpaperId = cached[0].wallhavenId;
+                model.providers.wallhaven.state.lastImageUrl = cached[0].imageUrl;
+                model.providers.wallhaven.state.cachedCount = order.length;
+            });
+            var stale = oldOrder.filter(function (id) { return !keep[id]; }).map(function (id) { return D.imgKey(id); });
+            return D.idbDeleteMany(stale).then(function () {
+                return { order: order, meta: meta, thumbs: thumbs, items: cached, total: total, cached: order.length, queryUrl: queryUrl };
+            });
+        });
+    }
+
+    function refreshWallhavenSource(config, options) {
+        options = options || {};
+        return testWallhavenSource(config).then(function (result) {
+            options.queryUrl = result.queryUrl;
+            return cacheWallhavenItems(config, result.items, options);
+        }).catch(function (err) {
+            D.updateWallpaper(function (model) {
+                model.providers.wallhaven.state.lastCheckedAt = Date.now();
+                model.providers.wallhaven.state.lastError = err && err.message ? err.message : String(err || 'Wallhaven refresh failed');
+            });
+            throw err;
+        });
+    }
+
     function testApiSource(source, apiType) {
         if (!source || !isHttpsUrl(source.url)) return Promise.reject(apiError('INVALID_API_URL', 'invalid url'));
         apiType = apiType === 'json' ? 'json' : 'image';
@@ -681,11 +929,19 @@
         generateId: generateId,
         isHttpsUrl: isHttpsUrl,
         apiError: apiError,
+        wallhavenError: wallhavenError,
         resolveJsonPath: resolveJsonPath,
         findApiImageUrl: findApiImageUrl,
+        WALLHAVEN_COLORS: WALLHAVEN_COLORS,
+        wallhavenQuery: wallhavenQuery,
+        wallhavenSearchUrl: wallhavenSearchUrl,
+        normalizeWallhavenItems: normalizeWallhavenItems,
         parseRssItems: parseRssItems,
         testRssSource: testRssSource,
         refreshRssSource: refreshRssSource,
+        testWallhavenSource: testWallhavenSource,
+        cacheWallhavenItems: cacheWallhavenItems,
+        refreshWallhavenSource: refreshWallhavenSource,
         testApiSource: testApiSource,
         cacheApiResult: cacheApiResult,
         refreshApiSource: refreshApiSource

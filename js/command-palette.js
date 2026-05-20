@@ -240,8 +240,7 @@
 
     function invalidUrlMessage(value, fallbackKey) {
         if (!isHttpUrl(value)) return t(fallbackKey);
-        if (/^zh/i.test(currentLanguageCode())) return '不支持 http:// 链接，只能使用 https://。';
-        return 'http:// links are not supported. Use https:// only.';
+        return t('httpsOnlyUrl');
     }
 
     function normalizeHttpsUrl(value) {
@@ -641,10 +640,15 @@
         var commands = ['open <name>', 'ls', 'add <url>', 'recent', 'import', 'export', 'clear', 'restore', 'help'];
         if (isHiddenMode) commands.splice(7, 0, 'unhide');
         else commands.splice(7, 0, 'hide');
-        return '<div class="cp-shell-section"># commands</div>' +
+        return '<div class="cp-shell-section"># ' + escapeHTML(t('cpShellCommands')) + '</div>' +
             '<div class="cp-shell-help-grid">' + commands.map(function (cmd) {
                 return '<span class="cp-shell-help-cmd">' + escapeHTML(cmd) + '</span>';
             }).join('') + '</div>';
+    }
+
+    function shellTagLabel(tag) {
+        if (tag === 'tab') return t('cpShellTagTab');
+        return commandTerminalTagLabel(tag);
     }
 
     function buildShellShortcutHTML(shortcut, tag) {
@@ -656,7 +660,7 @@
             '<span class="cp-shell-freq">' + freq + '</span>' +
             '<span class="cp-shell-name">' + escapeHTML(shortcut.name) + '</span>' +
             '<span class="cp-shell-target">' + escapeHTML(shellPathLabel(shortcut)) + '</span>' +
-            '<span class="cp-shell-tag">' + tag + '</span>' +
+            '<span class="cp-shell-tag">' + escapeHTML(shellTagLabel(tag)) + '</span>' +
             '</button>';
     }
 
@@ -677,10 +681,10 @@
         }
 
         var html = '<div class="cp-shell-buffer">' +
-            '<div class="cp-shell-line cp-shell-boot">PlainTab shell ready. Type help or h for commands.</div>';
+            '<div class="cp-shell-line cp-shell-boot">' + escapeHTML(t('cpShellBoot')) + '</div>';
 
         if (!state.raw || state.type === 'help') {
-            html += '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> aliases</span></div>' +
+            html += '<div class="cp-shell-line"><span class="cp-shell-prompt">' + shellPrompt() + '</span><span class="cp-shell-command"> ' + escapeHTML(t('cpShellAliases')) + '</span></div>' +
                 '<div class="cp-shell-alias-grid">' + shellCommandButtons() + '</div>';
         }
 
@@ -691,23 +695,23 @@
         } else if (state.type === 'add') {
             html += '<div class="cp-shell-empty">' + escapeHTML(formatText('commandTerminalPromptAdd', { value: state.query || '<url>' })) + '</div>';
         } else if (state.raw && (state.type === 'open' || state.type === 'shortcut') && rest.length) {
-            html += '<div class="cp-shell-section"># completions</div>';
+            html += '<div class="cp-shell-section"># ' + escapeHTML(t('cpShellCompletions')) + '</div>';
             rest.forEach(function (s) { html += buildShellShortcutHTML(s, 'tab'); });
         } else if (recommended.length) {
-            html += '<div class="cp-shell-section"># recommended</div>';
+            html += '<div class="cp-shell-section"># ' + escapeHTML(t('cpShellRecommended')) + '</div>';
             recommended.forEach(function (s) { html += buildShellShortcutHTML(s, 'hot'); });
         }
 
         if (!state.raw && rest.length) {
-            html += '<div class="cp-shell-section"># all shortcuts</div>';
+            html += '<div class="cp-shell-section"># ' + escapeHTML(t('cpShellAllShortcuts')) + '</div>';
             rest.forEach(function (s) { html += buildShellShortcutHTML(s, 'link'); });
         } else if (state.type === 'ls' && rest.length) {
-            html += '<div class="cp-shell-section"># ' + (state.query ? 'matches' : 'shortcuts') + '</div>';
+            html += '<div class="cp-shell-section"># ' + escapeHTML(state.query ? t('cpShellMatches') : t('cpShellShortcuts')) + '</div>';
             rest.forEach(function (s) { html += buildShellShortcutHTML(s, state.query ? 'match' : 'link'); });
         }
 
         if (state.type !== 'help' && state.type !== 'add' && !recommended.length && !rest.length) {
-            html += '<div class="cp-shell-empty">exit code 1: ' + escapeHTML(state.raw ? t('noResults') : t('noShortcuts')) + '</div>';
+            html += '<div class="cp-shell-empty">' + escapeHTML(formatText('cpShellExitCode', { message: state.raw ? t('noResults') : t('noShortcuts') })) + '</div>';
         }
 
         html += '</div>';
@@ -823,7 +827,7 @@
             return target ? formatText('commandTerminalUpdateNamed', { name: target.name }) : t('commandTerminalNoMatchEdit');
         }
         if (candidates.length) return t('commandTerminalEditTargetHint');
-        return 'Type edit <name>, or edit <name> <new name/url>.';
+        return t('commandTerminalEditUsage');
     }
 
     function commandTerminalMatchScore(shortcut, query) {
@@ -887,8 +891,26 @@
             commandTerminalIconHTML(shortcut, icons) +
             '<span class="cp-command-terminal-name">' + escapeHTML(shortcut.name) + '</span>' +
             '<span class="cp-command-terminal-path">' + escapeHTML(shellPathLabel(shortcut)) + '</span>' +
-            '<span class="cp-command-terminal-tag">' + escapeHTML(tag || 'link') + '</span>' +
+            '<span class="cp-command-terminal-tag">' + escapeHTML(commandTerminalTagLabel(tag || 'link')) + '</span>' +
             '</button>';
+    }
+
+    function commandTerminalTagLabel(tag) {
+        var map = {
+            link: 'commandTerminalTagLink',
+            target: 'commandTerminalTagTarget',
+            match: 'commandTerminalTagMatch',
+            hot: 'commandTerminalTagHot',
+            best: 'commandTerminalTagBest',
+            recent: 'commandTerminalSectionRecent'
+        };
+        return t(map[tag] || 'commandTerminalTagLink');
+    }
+
+    function commandTerminalSectionLabel(type) {
+        if (type === 'ls') return t('commandTerminalSectionShortcuts');
+        if (type === 'recent') return t('commandTerminalSectionRecent');
+        return t('commandTerminalSectionMatches');
     }
 
     function commandTerminalHelpHTML() {
@@ -949,13 +971,13 @@
         var icons = loadIcons();
         var candidates = commandTerminalCandidates(state);
         var html = '<div class="cp-command-terminal-buffer">';
-        html += '<div class="cp-command-terminal-boot">PlainTab terminal ready.</div>';
-        html += '<div class="cp-command-terminal-boot">Type help or h to show commands. Try: ls, open github, add example.com</div>';
+        html += '<div class="cp-command-terminal-boot">' + escapeHTML(t('commandTerminalBootReady')) + '</div>';
+        html += '<div class="cp-command-terminal-boot">' + escapeHTML(t('commandTerminalBootHint')) + '</div>';
         if (state.type !== 'boot') {
-            html += '<div class="cp-command-terminal-line"><span class="cp-command-terminal-prompt">' + commandTerminalPrompt() + '</span><span class="cp-command-terminal-command">' + escapeHTML(commandTerminalDisplayCommand(state)) + '</span><span class="cp-command-terminal-state">' + (committed ? 'executed' : 'preview') + '</span></div>';
+            html += '<div class="cp-command-terminal-line"><span class="cp-command-terminal-prompt">' + commandTerminalPrompt() + '</span><span class="cp-command-terminal-command">' + escapeHTML(commandTerminalDisplayCommand(state)) + '</span><span class="cp-command-terminal-state">' + escapeHTML(committed ? t('commandTerminalStateExecuted') : t('commandTerminalStatePreview')) + '</span></div>';
         }
         if (state.type === 'boot') {
-            html += '<div class="cp-command-terminal-line"><span class="cp-command-terminal-prompt">' + commandTerminalPrompt() + '</span><span class="cp-command-terminal-command">help</span><span class="cp-command-terminal-state">hint</span></div>';
+            html += '<div class="cp-command-terminal-line"><span class="cp-command-terminal-prompt">' + commandTerminalPrompt() + '</span><span class="cp-command-terminal-command">help</span><span class="cp-command-terminal-state">' + escapeHTML(t('commandTerminalStateHint')) + '</span></div>';
             html += commandTerminalHelpHTML();
         } else if (state.type === 'help') {
             html += commandTerminalHelpHTML();
@@ -976,19 +998,19 @@
         } else if (state.type === 'edit') {
             html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + escapeHTML(commandTerminalEditHint(state, candidates)) + '</div>';
             if (candidates.length) {
-                html += '<div class="cp-command-terminal-section">target</div>';
+                html += '<div class="cp-command-terminal-section">' + escapeHTML(t('commandTerminalSectionTarget')) + '</div>';
                 candidates.forEach(function (shortcut, index) { html += buildCommandTerminalRow(shortcut, index === 0 ? 'target' : 'match', icons); });
             }
         } else if (state.type === 'delete' || state.type === 'hide' || state.type === 'unhide') {
             html += commandTerminalMessageHTML(result) || '<div class="cp-command-terminal-message">' + escapeHTML(commandTerminalActionHint(state)) + '</div>';
             if (candidates.length) {
-                html += '<div class="cp-command-terminal-section">target</div>';
+                html += '<div class="cp-command-terminal-section">' + escapeHTML(t('commandTerminalSectionTarget')) + '</div>';
                 candidates.forEach(function (shortcut, index) { html += buildCommandTerminalRow(shortcut, index === 0 ? 'target' : 'match', icons); });
             }
         } else {
             if (result) html += commandTerminalMessageHTML(result);
             if (candidates.length) {
-                html += '<div class="cp-command-terminal-section">' + (state.type === 'ls' ? 'shortcuts' : (state.type === 'recent' ? 'recent' : 'matches')) + '</div>';
+                html += '<div class="cp-command-terminal-section">' + escapeHTML(commandTerminalSectionLabel(state.type)) + '</div>';
                 candidates.forEach(function (shortcut, index) {
                     var tag = state.type === 'recent' ? 'recent' : (state.type === 'ls' && (shortcut.freq || 0) > 0 ? 'hot' : (index === 0 ? 'best' : 'match'));
                     html += buildCommandTerminalRow(shortcut, tag, icons);
@@ -1284,7 +1306,10 @@
         var target = selectedCommandTerminalShortcut(commandTerminalCandidates(state));
         if (!target) return { ok: false, message: t('commandTerminalNoMatch') };
         saveHidden(setShortcutScope(target.id, scope, loadHidden().slice()));
-        return { ok: true, message: (scope === 'hidden' ? 'Hidden ' : 'Unhid ') + target.name + '.' };
+        return {
+            ok: true,
+            message: formatText(scope === 'hidden' ? 'commandTerminalMovedHidden' : 'commandTerminalMovedNormal', { name: target.name })
+        };
     }
 
     function editShortcutFromCommandTerminal(state) {

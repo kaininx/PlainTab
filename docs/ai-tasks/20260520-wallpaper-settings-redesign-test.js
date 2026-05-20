@@ -45,6 +45,9 @@ function createStorage(initialWallpaper, options = {}) {
       },
       wallhavenFieldHash(config) {
         return 'wallhaven:' + [config.queryPreset || '', config.customQuery || '', config.categories || '', config.sorting || ''].join('|');
+      },
+      normalizeWallhavenConfig(config) {
+        return JSON.parse(JSON.stringify(config || {}));
       }
     }
   };
@@ -108,6 +111,29 @@ async function testUploadReadyUsesSourceCache() {
   });
   assert.strictEqual(result.state, 'Ready');
   assert.deepStrictEqual(storage.calls, [['hasSourceCache', 'upload']]);
+}
+
+async function testWallhavenRequiresMatchingPassedTest() {
+  const storage = createStorage(baseWallpaper('bing'));
+  const Apply = loadApplyModule(storage);
+  const config = { queryPreset: 'nature', customQuery: '', categories: '111', sorting: 'random', test: { status: 'untested', fieldHash: '' } };
+  const workOrder = {
+    pendingSource: 'wallhaven',
+    pendingConfig: config,
+    baseline: {}
+  };
+  let result = Apply.validateWorkOrder(workOrder);
+  assert.strictEqual(result.state, 'Blocked');
+  assert.strictEqual(result.reasonKey, 'wallpaperStatusTestWallhaven');
+
+  config.test = { status: 'passed', fieldHash: 'wallhaven:stale-hash', testedAt: 1 };
+  result = Apply.validateWorkOrder(workOrder);
+  assert.strictEqual(result.state, 'Blocked');
+  assert.strictEqual(result.reasonKey, 'wallpaperStatusTestWallhaven');
+
+  config.test = { status: 'passed', fieldHash: storage.api.wallhavenFieldHash(config), testedAt: 1 };
+  result = Apply.validateWorkOrder(workOrder);
+  assert.strictEqual(result.state, 'Ready');
 }
 
 async function testApplyPreparesBeforeCleanup() {
@@ -207,6 +233,7 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
 (async function run() {
   await testRssRequiresMatchingPassedTest();
   await testUploadReadyUsesSourceCache();
+  await testWallhavenRequiresMatchingPassedTest();
   await testApplyPreparesBeforeCleanup();
   await testCommitFailureSkipsReloadAndCleanup();
   await testReloadFailureSkipsCleanupAndRollsBack();

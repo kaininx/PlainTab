@@ -162,7 +162,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 14px;
+    margin-top: 0;
     padding-top: 13px;
     border-top: 1px solid rgba(var(--stroke-rgb), 0.32);
     gap: 14px;
@@ -525,8 +525,10 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
+    justify-content: flex-start;
+    width: 100%;
     min-height: 34px;
-    padding: 7px 11px;
+    padding: 8px 10px 8px 11px;
     border: 0;
     background: transparent;
     color: var(--text-primary);
@@ -535,6 +537,17 @@
     font-weight: 650;
     cursor: pointer;
     text-align: left;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.folder-permission-pill:hover {
+    background: rgba(234, 179, 8, 0.14);
+}
+
+.folder-permission-pill:focus-visible {
+    outline: none;
+    background: rgba(234, 179, 8, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(234, 179, 8, 0.46);
 }
 
 .folder-permission-dot {
@@ -544,6 +557,32 @@
     background: #eab308;
     box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.14);
     flex-shrink: 0;
+}
+
+.folder-permission-label {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.folder-permission-chevron {
+    width: 8px;
+    height: 8px;
+    margin-left: 4px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    opacity: 0.72;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    flex-shrink: 0;
+}
+
+.folder-permission-pill:hover .folder-permission-chevron,
+.folder-permission-pill:focus-visible .folder-permission-chevron {
+    opacity: 1;
+}
+
+.folder-permission-notice.expanded .folder-permission-chevron {
+    transform: translateY(2px) rotate(225deg);
 }
 
 .folder-permission-expanded {
@@ -1563,7 +1602,7 @@ input[type="file"] {
     flex-direction: column;
     gap: 0;
     padding-top: 0;
-    margin-top: 14px;
+    margin-top: 10px;
     border-top: 1px solid rgba(var(--stroke-rgb), 0.52);
     border-bottom: 1px solid rgba(var(--stroke-rgb), 0.52);
     border-radius: 0;
@@ -1573,7 +1612,7 @@ input[type="file"] {
 }
 
 .wallpaper-current-source {
-    margin-top: 14px;
+    margin-top: 0;
     padding: 9px 12px;
     border: 1px solid rgba(var(--stroke-rgb), 0.44);
     border-radius: var(--radius-sm);
@@ -1582,9 +1621,22 @@ input[type="file"] {
     font-size: calc(12px * var(--app-font-scale, 1));
 }
 
-.wallpaper-current-source strong {
-    color: rgb(var(--accent-rgb));
+.wallpaper-current-source-name {
+    color: rgb(var(--source-rgb, var(--accent-rgb)));
     font-weight: 700;
+}
+
+.wallpaper-current-source-name.bing { --source-rgb: 59, 130, 246; }
+.wallpaper-current-source-name.upload { --source-rgb: 34, 197, 94; }
+.wallpaper-current-source-name.folder { --source-rgb: 234, 179, 8; }
+.wallpaper-current-source-name.rss { --source-rgb: 249, 115, 22; }
+.wallpaper-current-source-name.wallhaven { --source-rgb: 6, 182, 212; }
+.wallpaper-current-source-name.api { --source-rgb: 168, 85, 247; }
+
+.wallpaper-section-divider {
+    height: 1px;
+    margin: 30px 0 24px;
+    background: rgba(var(--stroke-rgb), 0.46);
 }
 
 .source-drawer {
@@ -1639,6 +1691,7 @@ input[type="file"] {
 }
 
 .source-selector {
+    --source-rgb: var(--accent-rgb);
     display: grid;
     place-items: center;
     width: 22px;
@@ -1670,6 +1723,7 @@ input[type="file"] {
 .source-selector.upload { --source-rgb: 34, 197, 94; }
 .source-selector.folder { --source-rgb: 234, 179, 8; }
 .source-selector.rss { --source-rgb: 249, 115, 22; }
+.source-selector.wallhaven { --source-rgb: 6, 182, 212; }
 .source-selector.api { --source-rgb: 168, 85, 247; }
 
 .source-selector[aria-checked="true"] {
@@ -1688,6 +1742,7 @@ input[type="file"] {
     height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
+    background: rgb(var(--accent-rgb));
     box-shadow: 0 0 0 3px rgba(var(--surface-base-rgb), 0.72);
 }
 
@@ -1695,6 +1750,7 @@ input[type="file"] {
 .source-drawer-dot.upload { background: #22c55e; }
 .source-drawer-dot.folder { background: #eab308; }
 .source-drawer-dot.rss    { background: #f97316; }
+.source-drawer-dot.wallhaven { background: #06b6d4; }
 .source-drawer-dot.api    { background: #a855f7; }
 
 .source-drawer-info {
@@ -1852,6 +1908,24 @@ input[type="file"] {
     display: none;
 }
 
+.folder-status.needs-attention {
+    border-color: rgba(234, 179, 8, 0.34);
+    background: rgba(234, 179, 8, 0.10);
+    color: #fde68a;
+}
+
+.folder-status.is-ready {
+    border-color: rgba(34, 197, 94, 0.34);
+    background: rgba(34, 197, 94, 0.10);
+    color: #86efac;
+}
+
+.folder-status.is-error {
+    border-color: rgba(248, 113, 113, 0.36);
+    background: rgba(248, 113, 113, 0.10);
+    color: #fca5a5;
+}
+
 .folder-notice[data-type="info"] {
     border-color: rgba(234, 179, 8, 0.34);
     background: rgba(234, 179, 8, 0.10);
@@ -1882,7 +1956,7 @@ input[type="file"] {
 }
 
 .source-drawer .config-row button,
-.source-drawer-body-inner button {
+.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]) {
     min-height: 34px;
     padding: 8px 13px;
     border-radius: 8px;
@@ -1898,15 +1972,15 @@ input[type="file"] {
 }
 
 .source-drawer .config-row button:hover,
-.source-drawer-body-inner button:hover {
+.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]):hover {
     background: rgba(var(--surface-base-rgb), 0.32);
     border-color: var(--control-border-hover);
 }
 
 .source-drawer .config-row button:disabled,
-.source-drawer-body-inner button:disabled,
+.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]):disabled,
 .source-drawer .config-row button:disabled:hover,
-.source-drawer-body-inner button:disabled:hover {
+.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]):disabled:hover {
     cursor: not-allowed;
     opacity: 0.45;
     color: var(--text-muted);
@@ -2360,17 +2434,34 @@ input[type="file"] {
     max-width: 420px;
 }
 
-.api-refresh-segments button {
+.api-refresh-segments button,
+.source-drawer-body-inner .api-refresh-segments button {
     min-height: 30px;
     padding: 6px 10px;
+    border: 1px solid var(--control-border);
+    border-radius: 8px;
+    background: rgba(var(--surface-base-rgb), 0.22);
+    color: var(--text-secondary);
     font-size: 11.5px;
+    font-weight: 650;
     white-space: nowrap;
 }
 
-.api-refresh-segments button.active {
+.api-refresh-segments button:hover,
+.source-drawer-body-inner .api-refresh-segments button:hover {
+    border-color: rgba(var(--accent-rgb), 0.42);
+    background: rgba(var(--accent-rgb), 0.10);
     color: var(--text-primary);
-    border-color: rgba(168, 85, 247, 0.48);
-    background: rgba(168, 85, 247, 0.12);
+}
+
+.api-refresh-segments button.active,
+.source-drawer-body-inner .api-refresh-segments button.active {
+    color: var(--text-primary);
+    border-color: rgba(var(--accent-rgb), 0.68);
+    background: rgba(var(--accent-rgb), 0.22);
+    box-shadow:
+        inset 0 0 0 1px rgba(var(--accent-rgb), 0.18),
+        0 0 0 2px rgba(var(--accent-rgb), 0.10);
 }
 
 .api-notice {
@@ -2400,6 +2491,490 @@ input[type="file"] {
 }
 
 .api-notice[data-type="error"] {
+    border-color: rgba(248, 113, 113, 0.36);
+    background: rgba(248, 113, 113, 0.10);
+    color: #fca5a5;
+}
+
+.wallhaven-config {
+    --wallhaven-control-width: 132px;
+    --wallhaven-color-panel-width: min(560px, calc(100vw - 72px));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.wallhaven-controls {
+    border-top: 1px solid rgba(var(--stroke-rgb), 0.38);
+    border-bottom: 1px solid rgba(var(--stroke-rgb), 0.38);
+}
+
+.wallhaven-controls .setting-item {
+    min-height: 54px;
+    padding: 11px 4px;
+}
+
+.wallhaven-controls .setting-item:hover {
+    background: transparent;
+}
+
+.wallhaven-controls .setting-desc:empty {
+    display: none;
+}
+
+.wallhaven-controls .setting-control {
+    justify-content: flex-end;
+}
+
+.wallhaven-controls .custom-select,
+.wallhaven-controls .setting-control > input[type="text"],
+.wallhaven-color-details {
+    width: var(--wallhaven-control-width);
+    min-width: var(--wallhaven-control-width);
+    max-width: var(--wallhaven-control-width);
+}
+
+.wallhaven-category-item .setting-control {
+    flex: 1 1 auto;
+}
+
+.wallhaven-custom-query {
+    margin-top: 8px;
+}
+
+.wallhaven-url-row,
+.wallhaven-notice {
+    border-radius: 8px;
+    border: 1px solid rgba(var(--stroke-rgb), 0.38);
+    background: rgba(var(--surface-base-rgb), 0.16);
+}
+
+.wallhaven-color-any {
+    min-height: 30px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--control-border);
+    background: rgba(var(--surface-base-rgb), 0.22);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.wallhaven-refresh-segments {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    max-width: 420px;
+}
+
+.wallhaven-refresh-segments button {
+    min-height: 30px;
+    min-width: 0;
+    padding: 6px 10px;
+    border: 1px solid var(--control-border);
+    border-radius: 8px;
+    background: rgba(var(--surface-base-rgb), 0.22);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 650;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.source-drawer-body-inner .wallhaven-refresh-segments button {
+    width: auto;
+    min-width: 0;
+}
+
+.wallhaven-category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    width: min(370px, 100%);
+    margin-left: auto;
+}
+
+.wallhaven-category-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 0;
+    min-height: 38px;
+    padding: 7px 10px;
+    border: 1px solid rgba(var(--stroke-rgb), 0.46);
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.04), transparent),
+        rgba(var(--surface-base-rgb), 0.20);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font: inherit;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.wallhaven-category-card:hover {
+    border-color: rgba(var(--accent-rgb), 0.42);
+    background:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.055), transparent),
+        rgba(var(--accent-rgb), 0.08);
+    color: var(--text-primary);
+}
+
+.wallhaven-category-card.active {
+    border-color: rgba(var(--accent-rgb), 0.58);
+    background: rgba(var(--accent-rgb), 0.14);
+    color: var(--text-primary);
+    box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.18);
+}
+
+.wallhaven-category-icon {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+    border-radius: 6px;
+    background: rgba(var(--surface-base-rgb), 0.36);
+    color: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1;
+}
+
+.wallhaven-category-card.active .wallhaven-category-icon {
+    background: rgba(var(--accent-rgb), 0.24);
+}
+
+.wallhaven-category-label {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.15;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wallhaven-refresh-segments button:hover,
+.source-drawer-body-inner .wallhaven-refresh-segments button:hover {
+    background: rgba(var(--surface-base-rgb), 0.28);
+    color: var(--text-primary);
+}
+
+.wallhaven-refresh-segments button.active,
+.source-drawer-body-inner .wallhaven-refresh-segments button.active {
+    color: var(--text-primary);
+    border-color: rgba(var(--accent-rgb), 0.48);
+    background: rgba(var(--accent-rgb), 0.15);
+}
+
+.wallhaven-color-item {
+    align-items: start;
+}
+
+.wallhaven-color-item .setting-copy {
+    padding-top: 7px;
+}
+
+.wallhaven-color-details {
+    color: var(--text-primary);
+}
+
+.wallhaven-color-details summary {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 7px 32px 7px 10px;
+    border: 1px solid var(--control-border);
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.035), transparent),
+        rgba(var(--surface-base-rgb), 0.26);
+    cursor: pointer;
+    list-style: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.wallhaven-color-details summary:hover {
+    border-color: var(--control-border-hover);
+    background:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.052), transparent),
+        rgba(var(--surface-base-rgb), 0.34);
+}
+
+.wallhaven-color-details summary:focus-visible {
+    outline: none;
+    border-color: rgba(var(--accent-rgb), 0.70);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.16);
+}
+
+.wallhaven-color-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.wallhaven-color-current {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    gap: 8px;
+}
+
+.wallhaven-color-current strong {
+    color: var(--text-primary);
+    font-size: 12.5px;
+    font-weight: 650;
+}
+
+.wallhaven-color-chip {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    border-radius: 4px;
+    border: 1px solid rgba(var(--stroke-rgb), 0.56);
+    background: rgba(var(--surface-base-rgb), 0.28);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.wallhaven-color-chip.any {
+    background:
+        linear-gradient(135deg, #ef4444 0 18%, #f59e0b 18% 34%, #22c55e 34% 50%, #06b6d4 50% 66%, #6366f1 66% 82%, #f8fafc 82%);
+}
+
+.wallhaven-color-660000 { background: #660000; }
+.wallhaven-color-990000 { background: #990000; }
+.wallhaven-color-cc0000 { background: #cc0000; }
+.wallhaven-color-cc3333 { background: #cc3333; }
+.wallhaven-color-ea4c88 { background: #ea4c88; }
+.wallhaven-color-993399 { background: #993399; }
+.wallhaven-color-663399 { background: #663399; }
+.wallhaven-color-333399 { background: #333399; }
+.wallhaven-color-0066cc { background: #0066cc; }
+.wallhaven-color-0099cc { background: #0099cc; }
+.wallhaven-color-66cccc { background: #66cccc; }
+.wallhaven-color-77cc33 { background: #77cc33; }
+.wallhaven-color-669900 { background: #669900; }
+.wallhaven-color-336600 { background: #336600; }
+.wallhaven-color-666600 { background: #666600; }
+.wallhaven-color-999900 { background: #999900; }
+.wallhaven-color-cccc33 { background: #cccc33; }
+.wallhaven-color-ffff00 { background: #ffff00; }
+.wallhaven-color-ffcc33 { background: #ffcc33; }
+.wallhaven-color-ff9900 { background: #ff9900; }
+.wallhaven-color-ff6600 { background: #ff6600; }
+.wallhaven-color-cc6633 { background: #cc6633; }
+.wallhaven-color-996633 { background: #996633; }
+.wallhaven-color-663300 { background: #663300; }
+.wallhaven-color-000000 { background: #000000; }
+.wallhaven-color-999999 { background: #999999; }
+.wallhaven-color-cccccc { background: #cccccc; }
+.wallhaven-color-ffffff { background: #ffffff; }
+.wallhaven-color-424153 { background: #424153; }
+
+.wallhaven-color-chevron {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    opacity: 0.64;
+    transform: translateY(-62%) rotate(45deg);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.wallhaven-color-details[open] .wallhaven-color-chevron {
+    opacity: 0.9;
+    transform: translateY(-28%) rotate(225deg);
+}
+
+.wallhaven-color-picker {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+    margin-left: calc(100% - var(--wallhaven-color-panel-width));
+    width: var(--wallhaven-color-panel-width);
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.wallhaven-color-strip {
+    display: flex;
+    width: 100%;
+    height: 42px;
+    overflow: hidden;
+    border: 1px solid rgba(var(--stroke-rgb), 0.45);
+    border-radius: 8px;
+    background:
+        linear-gradient(90deg,
+            #660000 0% 3.448%,
+            #990000 3.448% 6.897%,
+            #cc0000 6.897% 10.345%,
+            #cc3333 10.345% 13.793%,
+            #ea4c88 13.793% 17.241%,
+            #993399 17.241% 20.69%,
+            #663399 20.69% 24.138%,
+            #333399 24.138% 27.586%,
+            #0066cc 27.586% 31.034%,
+            #0099cc 31.034% 34.483%,
+            #66cccc 34.483% 37.931%,
+            #77cc33 37.931% 41.379%,
+            #669900 41.379% 44.828%,
+            #336600 44.828% 48.276%,
+            #666600 48.276% 51.724%,
+            #999900 51.724% 55.172%,
+            #cccc33 55.172% 58.621%,
+            #ffff00 58.621% 62.069%,
+            #ffcc33 62.069% 65.517%,
+            #ff9900 65.517% 68.966%,
+            #ff6600 68.966% 72.414%,
+            #cc6633 72.414% 75.862%,
+            #996633 75.862% 79.31%,
+            #663300 79.31% 82.759%,
+            #000000 82.759% 86.207%,
+            #999999 86.207% 89.655%,
+            #cccccc 89.655% 93.103%,
+            #ffffff 93.103% 96.552%,
+            #424153 96.552% 100%);
+}
+
+.wallhaven-color-any {
+    justify-content: center;
+    width: 100%;
+    background: rgba(var(--surface-base-rgb), 0.20);
+}
+
+.source-drawer-body-inner .wallhaven-color-swatch {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 8px;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    background-color: transparent;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.source-drawer-body-inner .wallhaven-color-swatch:hover {
+    box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0.12);
+}
+
+.wallhaven-color-any.active,
+.wallhaven-color-swatch.active {
+    outline: 2px solid rgba(var(--accent-rgb), 0.72);
+    outline-offset: 2px;
+}
+
+.wallhaven-color-swatch.active {
+    box-shadow:
+        inset 0 0 0 2px rgba(var(--surface-base-rgb), 0.92),
+        inset 0 -4px 0 rgba(var(--accent-rgb), 0.96);
+}
+
+.wallhaven-url-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 10px;
+}
+
+.wallhaven-url-row span {
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wallhaven-url-row button,
+.wallhaven-url-open {
+    display: inline-grid;
+    place-items: center;
+    min-height: 32px;
+    border: 1px solid var(--control-border);
+    border-radius: 8px;
+    background: rgba(var(--surface-base-rgb), 0.22);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 650;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.wallhaven-url-row button {
+    padding: 6px 12px;
+}
+
+.wallhaven-url-open {
+    width: 32px;
+    padding: 0;
+}
+
+.wallhaven-url-open svg {
+    width: 15px;
+    height: 15px;
+}
+
+.wallhaven-url-row button:hover,
+.wallhaven-url-open:hover {
+    border-color: rgba(var(--accent-rgb), 0.44);
+    background: rgba(var(--accent-rgb), 0.10);
+    color: var(--text-primary);
+}
+
+.wallhaven-url-row button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.wallhaven-url-row button.testing {
+    cursor: wait;
+    border-color: rgba(var(--accent-rgb), 0.48);
+    background: rgba(var(--accent-rgb), 0.12);
+}
+
+.wallhaven-notice {
+    min-height: 34px;
+    padding: 9px 11px;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    line-height: 1.35;
+}
+
+.wallhaven-notice[hidden] {
+    display: none;
+}
+
+.wallhaven-notice[data-type="info"] {
+    border-color: rgba(var(--accent-rgb), 0.34);
+    background: rgba(var(--accent-rgb), 0.10);
+    color: var(--text-primary);
+}
+
+.wallhaven-notice[data-type="success"] {
+    border-color: rgba(34, 197, 94, 0.34);
+    background: rgba(34, 197, 94, 0.10);
+    color: #86efac;
+}
+
+.wallhaven-notice[data-type="error"] {
     border-color: rgba(248, 113, 113, 0.36);
     background: rgba(248, 113, 113, 0.10);
     color: #fca5a5;
@@ -2487,20 +3062,37 @@ input[type="file"] {
 .data-inline-control {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 8px;
+    width: 360px;
+    max-width: 100%;
 }
 
 .data-inline-control input {
-    width: 150px;
+    flex: 1 1 180px;
+    min-width: 0;
+}
+
+.data-inline-control .primary-action {
+    flex: 0 0 auto;
+    min-width: 132px;
+    text-align: center;
+}
+
+.data-single-control .primary-action {
+    margin-left: auto;
 }
 
 .data-file-name {
-    max-width: 180px;
+    flex: 1 1 180px;
+    min-width: 0;
+    max-width: none;
     color: var(--text-muted);
     font-size: 11.5px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: right;
 }
 
 .permission-card {
@@ -2832,6 +3424,12 @@ input[type="file"] {
         width: 100%;
     }
 
+    .wallhaven-controls .setting-control > input[type="text"] {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+    }
+
     .custom-select-menu {
         width: 100%;
     }
@@ -2850,7 +3448,7 @@ input[type="file"] {
     }
 
     .source-drawer .config-row button,
-    .source-drawer-body-inner button {
+    .source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]) {
         width: 100%;
     }
 
@@ -2863,6 +3461,26 @@ input[type="file"] {
     .api-refresh-segments button {
         width: auto;
         flex: 1 1 120px;
+    }
+
+    .source-drawer-body-inner .api-refresh-segments button {
+        width: auto;
+    }
+
+    .source-drawer-body-inner .wallhaven-refresh-segments {
+        justify-content: stretch;
+        max-width: none;
+        width: 100%;
+    }
+
+    .source-drawer-body-inner .wallhaven-refresh-segments button {
+        width: auto;
+        flex: 1 1 120px;
+    }
+
+    .wallhaven-category-grid {
+        width: 100%;
+        margin-left: 0;
     }
 
     .rss-source-row,

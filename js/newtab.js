@@ -26,6 +26,11 @@
     window.warn = warn;
 
     function t() { return window.t.apply(window, arguments); }
+    function formatText(key, values) {
+        return String(t(key)).replace(/\{([a-zA-Z0-9_]+)\}/g, function (_, name) {
+            return values && Object.prototype.hasOwnProperty.call(values, name) ? values[name] : '';
+        });
+    }
 
     // ================================================================
     // 搜索引擎图标 SVG（settings.js 通过 window.ENGINE_SVG 引用）
@@ -168,11 +173,10 @@
         var title = escapeText(meta.title || meta.sourceName || 'RSS');
         var desc = escapeText(meta.description || '');
         var openLabel = t('rssOpenArticle');
-        if (!openLabel || openLabel === 'rssOpenArticle') openLabel = 'Open article';
         var link = config.showLink && meta.link ? '<a href="' + escapeText(meta.link) + '" target="_blank" rel="noopener">' + escapeText(openLabel) + '</a>' : '';
 
         if (config.summaryMode === 'icon') {
-            rssInfoEl.innerHTML = '<button class="rss-info-toggle" aria-label="RSS info">i</button><div class="rss-info-popover"><div class="rss-info-title">' + title + '</div><div class="rss-info-desc">' + desc + '</div>' + link + '</div>';
+            rssInfoEl.innerHTML = '<button class="rss-info-toggle" aria-label="' + escapeText(t('rssInfoLabel')) + '">i</button><div class="rss-info-popover"><div class="rss-info-title">' + title + '</div><div class="rss-info-desc">' + desc + '</div>' + link + '</div>';
         } else {
             rssInfoEl.innerHTML = '<div class="rss-info-title">' + title + '</div><div class="rss-info-desc">' + desc + '</div>' + link;
         }
@@ -180,23 +184,27 @@
     }
 
     function downloadNoticeCopy(kind, phase, progress) {
-        var lang = SP && SP.getCurrentLang ? SP.getCurrentLang() : 'en';
-        var zh = /^zh/i.test(lang || '');
-        var sourceName = kind === 'api' ? t('sourceApi') : t('sourceRss');
-        if (!sourceName || sourceName === 'sourceApi' || sourceName === 'sourceRss') sourceName = kind === 'api' ? 'API' : 'RSS';
+        var sourceName = kind === 'api' ? t('sourceApi') : (kind === 'wallhaven' ? t('sourceWallhaven') : t('sourceRss'));
+        if (!sourceName || sourceName === 'sourceApi' || sourceName === 'sourceRss' || sourceName === 'sourceWallhaven') {
+            sourceName = kind === 'api' ? 'API' : (kind === 'wallhaven' ? 'Wallhaven' : 'RSS');
+        }
         if (phase === 'done' && progress && progress.total) {
-            return zh ?
-                sourceName + ' 图片已更新 ' + progress.cached + '/' + progress.total :
-                sourceName + ' images updated ' + progress.cached + '/' + progress.total;
+            return formatText('wallpaperDownloadDoneWithCount', {
+                source: sourceName,
+                cached: progress.cached,
+                total: progress.total
+            });
         }
-        if (phase === 'done') return zh ? sourceName + ' 图片已更新' : sourceName + ' images updated';
-        if (phase === 'error') return zh ? sourceName + ' 图片下载失败' : sourceName + ' image download failed';
+        if (phase === 'done') return formatText('wallpaperDownloadDone', { source: sourceName });
+        if (phase === 'error') return formatText('wallpaperDownloadError', { source: sourceName });
         if (progress && progress.total) {
-            return zh ?
-                sourceName + ' 正在下载图片 ' + progress.current + '/' + progress.total :
-                sourceName + ' downloading images ' + progress.current + '/' + progress.total;
+            return formatText('wallpaperDownloadProgressWithCount', {
+                source: sourceName,
+                current: progress.current,
+                total: progress.total
+            });
         }
-        return zh ? sourceName + ' 正在下载图片' : sourceName + ' downloading images';
+        return formatText('wallpaperDownloadProgress', { source: sourceName });
     }
 
     function showWallpaperDownloadNotice(kind, phase, progress) {
@@ -222,6 +230,7 @@
             }, phase === 'done' ? 1600 : 2600);
         }
     }
+    window.showWallpaperDownloadNotice = showWallpaperDownloadNotice;
 
     function activeRssSource() {
         var config = D.loadRssConfig();
@@ -251,6 +260,12 @@
         var interval = parseInt(config.refreshIntervalMs, 10);
         if (interval === 0) return false;
         if (interval === -1) return true;
+        return !state.lastSuccessAt || Date.now() - state.lastSuccessAt >= interval;
+    }
+
+    function isWallhavenRefreshDue(config, state) {
+        var interval = parseInt(config.refreshIntervalMs, 10);
+        if (!interval) return false;
         return !state.lastSuccessAt || Date.now() - state.lastSuccessAt >= interval;
     }
 
@@ -332,7 +347,8 @@
         if (source === 'local' && D.loadUploadConfig && D.loadUploadConfig().activeMedia === 'video') {
             return id === (D.uploadVideoId ? D.uploadVideoId() : 'upload_video');
         }
-        var order = D.loadOrder();
+        var order = source === 'rss' && D.activeRssOrder ? D.activeRssOrder() :
+            (source === 'wallhaven' && D.activeWallhavenOrder ? D.activeWallhavenOrder() : D.loadOrder());
         if (!order.length) return false;
         var currentIndex = (D.getActiveIndex() - 1 + order.length) % order.length;
         return order[currentIndex] === id;
@@ -535,18 +551,27 @@
         if (notice) notice.hidden = true;
     }
 
+    function isFolderSourceActive() {
+        return D.compatMode(D.getActiveSource()) === 'folder';
+    }
+
     function showFolderPermissionNotice() {
+        if (!isFolderSourceActive()) {
+            hideFolderPermissionNotice();
+            return;
+        }
         if (folderPermissionNoticeDismissed) return;
         var notice = document.getElementById('folderPermissionNotice');
         if (!notice) {
             notice = document.createElement('div');
             notice.id = 'folderPermissionNotice';
             notice.className = 'folder-permission-notice';
-            notice.innerHTML = '<button type="button" class="folder-permission-pill">' +
+            notice.innerHTML = '<button type="button" class="folder-permission-pill" aria-expanded="false" aria-controls="folderPermissionExpanded">' +
                 '<span class="folder-permission-dot"></span>' +
-                '<span>' + t('folderNeedsPermission') + '</span>' +
+                '<span class="folder-permission-label">' + t('folderNeedsPermission') + '</span>' +
+                '<span class="folder-permission-chevron" aria-hidden="true"></span>' +
                 '</button>' +
-                '<div class="folder-permission-expanded">' +
+                '<div class="folder-permission-expanded" id="folderPermissionExpanded">' +
                 '<div class="folder-permission-copy">' +
                 '<strong>' + t('folderNeedsPermission') + '</strong>' +
                 '<span>' + t('folderPendingHint') + '</span>' +
@@ -559,6 +584,7 @@
             document.body.appendChild(notice);
             notice.querySelector('.folder-permission-pill').addEventListener('click', function () {
                 notice.classList.toggle('expanded');
+                this.setAttribute('aria-expanded', notice.classList.contains('expanded') ? 'true' : 'false');
             });
             notice.querySelector('.folder-permission-primary').addEventListener('click', function () {
                 reauthorizeFolderFromNotice();
@@ -1029,6 +1055,35 @@
         });
     }
 
+    function tryLoadWallhavenWallpaper(order) {
+        order = (order || []).filter(function (id) { return D.isWallhavenId && D.isWallhavenId(id); });
+        if (!order.length) return Promise.resolve(false);
+
+        hideRssOverlay();
+        SP.setCurrentMode('wallhaven');
+
+        var idx = D.getActiveIndex() % order.length;
+        var id = order[idx];
+        var nextId = order[(idx + 1) % order.length];
+        var thumbs = D.loadThumbs();
+        if (thumbs[nextId]) D.savePreview(thumbs[nextId]);
+
+        return D.idbGet(D.imgKey(id)).then(function (record) {
+            if (!record || !record.blob) return false;
+            var blob = record.blob;
+            if ((!blob.type || blob.type === '') && record.mime) {
+                try { blob = new Blob([blob], { type: record.mime }); } catch (e) { }
+            }
+            D.saveActiveIndex((idx + 1) % order.length);
+            log('Wallhaven', 'image ' + (idx + 1) + '/' + order.length);
+            return applyWallpaperRespectingBlur(URL.createObjectURL(blob), id).then(function () {
+                if (thumbs[nextId]) D.savePreview(thumbs[nextId]);
+                cacheBingInBackground();
+                return true;
+            });
+        });
+    }
+
     function refreshApiInBackground(force) {
         var config = D.loadApiConfig();
         var state = D.loadWallpaper().providers.api.state || {};
@@ -1048,6 +1103,30 @@
         }).catch(function (err) {
             warn('API', 'refresh failed: ' + (err && err.message ? err.message : err));
             showWallpaperDownloadNotice('api', 'error');
+            return false;
+        });
+    }
+
+    function refreshWallhavenInBackground(force) {
+        var config = D.loadWallhavenConfig ? D.loadWallhavenConfig() : null;
+        if (!config || !F.refreshWallhavenSource) return Promise.resolve(false);
+        var state = D.loadWallpaper().providers.wallhaven.state || {};
+        if (!force && !isWallhavenRefreshDue(config, state)) return Promise.resolve(false);
+        showWallpaperDownloadNotice('wallhaven', 'loading');
+        return F.refreshWallhavenSource(config, {
+            activate: true,
+            onProgress: function (progress) {
+                showWallpaperDownloadNotice('wallhaven', 'loading', progress);
+            }
+        }).then(function (result) {
+            showWallpaperDownloadNotice('wallhaven', 'done', {
+                cached: result.cached || result.order.length,
+                total: result.total || result.order.length
+            });
+            return true;
+        }).catch(function (err) {
+            warn('Wallhaven', 'refresh failed: ' + (err && err.message ? err.message : err));
+            showWallpaperDownloadNotice('wallhaven', 'error');
             return false;
         });
     }
@@ -1093,6 +1172,8 @@
         var today = new Date().toDateString();
         var order = D.loadOrder();
         var rssOrder = D.activeRssOrder ? D.activeRssOrder() : [];
+        var wallhavenOrder = D.activeWallhavenOrder ? D.activeWallhavenOrder() : [];
+        if (lastMode !== 'folder') hideFolderPermissionNotice();
 
         return D.idbGet(D.DB.BING_BLOB).then(function (bingRecord) {
             var bingBlob = D.imageBlob(bingRecord);
@@ -1131,6 +1212,18 @@
                 return tryLoadApiWallpaper().then(function (loaded) {
                     refreshApiInBackground(!loaded).then(function (updated) {
                         if (updated && D.compatMode(D.getActiveSource()) === 'api') loadWallpaper();
+                    });
+                    if (loaded) return;
+                    return tryLoadCachedBing(bingBlob, meta, today).then(function (loadedBing) {
+                        if (!loadedBing) return loadBingFromNetwork(meta, today);
+                    });
+                });
+            }
+
+            if (lastMode === 'wallhaven') {
+                return tryLoadWallhavenWallpaper(wallhavenOrder).then(function (loaded) {
+                    refreshWallhavenInBackground(!loaded).then(function (updated) {
+                        if (updated && D.compatMode(D.getActiveSource()) === 'wallhaven') loadWallpaper();
                     });
                     if (loaded) return;
                     return tryLoadCachedBing(bingBlob, meta, today).then(function (loadedBing) {
