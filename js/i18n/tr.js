@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "Önce geçerli API kaynağını test edin",
     "wallpaperStatusTestWallhaven": "Önce geçerli Wallhaven ayarlarını test edin",
     "wallpaperStatusTestFailed": "Son kaynak testi başarısız oldu",
+    "wallpaperStatusApplying": "Duvar kağıdı kaynağı uygulanıyor...",
         "wallpaperBlur": "Arka Plan Bulanıklığı",
         "wallpaperCurrentSource": "Seçili: {source}",
         "wallpaperActiveSourceDeletedConfirm": "Bu işlem duvar kağıdı için kullanılan mevcut RSS/API kaynağını siler. Yine de uygulayıp Bing'e dönülsün mü?",

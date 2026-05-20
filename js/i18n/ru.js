@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "Сначала проверьте текущий API-источник",
     "wallpaperStatusTestWallhaven": "Сначала проверьте текущие настройки Wallhaven",
     "wallpaperStatusTestFailed": "Последняя проверка источника не удалась",
+    "wallpaperStatusApplying": "Применение источника обоев...",
         "wallpaperBlur": "Размытие фона",
         "wallpaperCurrentSource": "Выбрано: {source}",
         "wallpaperActiveSourceDeletedConfirm": "Будет удален источник RSS/API, который сейчас используется для обоев. Применить и вернуться к Bing?",

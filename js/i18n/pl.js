@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "Najpierw przetestuj bieżące źródło API",
     "wallpaperStatusTestWallhaven": "Najpierw przetestuj bieżące ustawienia Wallhaven",
     "wallpaperStatusTestFailed": "Ostatni test źródła nie powiódł się",
+    "wallpaperStatusApplying": "Stosowanie źródła tapety...",
         "wallpaperBlur": "Rozmycie Tła",
         "wallpaperCurrentSource": "Wybrano: {source}",
         "wallpaperActiveSourceDeletedConfirm": "To usunie źródło RSS/API używane obecnie jako tapeta. Zastosować mimo to i wrócić do Bing?",

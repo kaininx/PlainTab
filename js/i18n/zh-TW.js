@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "請先測試目前 API 來源",
     "wallpaperStatusTestWallhaven": "請先測試目前 Wallhaven 設定",
     "wallpaperStatusTestFailed": "最近一次來源測試失敗",
+    "wallpaperStatusApplying": "正在套用桌布來源...",
         "wallpaperBlur": "背景模糊",
         "wallpaperCurrentSource": "目前選擇了 {source}",
         "wallpaperActiveSourceDeletedConfirm": "這會刪除目前正在使用的 RSS/API 桌布來源。套用後將切回 Bing，繼續嗎？",

@@ -965,13 +965,13 @@
             wallpaperWorkOrderStatus = {
                 state: 'Applying',
                 valid: false,
-                reasonKey: workOrder.health.reasonKey || 'wallpaperApplyReady',
-                message: workOrder.health.message || (tr('wallpaperApply') + '...')
+                reasonKey: workOrder.health.reasonKey || 'wallpaperStatusApplying',
+                message: workOrder.health.message || ''
             };
         }
         if (workOrder.health && workOrder.health.state === 'Error') {
             wallpaperWorkOrderStatus = {
-                state: 'Blocked',
+                state: 'Error',
                 valid: false,
                 reasonKey: workOrder.health.reasonKey || 'wallpaperStatusTestFailed',
                 message: workOrder.health.message || ''
@@ -1049,10 +1049,18 @@
         return tr(status.reasonKey || 'wallpaperApplyNoChanges');
     }
 
+    function wallpaperStatusState(status) {
+        status = status || validateWallpaperWorkOrder();
+        var state = status.state || 'Clean';
+        if (state === 'Dirty' || state === 'Applied') return 'Clean';
+        if (['Clean', 'Blocked', 'Testing', 'Ready', 'Applying', 'Error'].indexOf(state) === -1) return 'Blocked';
+        return state;
+    }
+
     function wallpaperApplyFooterHTML() {
         var validation = validateWallpaperWorkOrder();
         return '<div class="wallpaper-apply-footer">' +
-            '<div class="wallpaper-apply-status" id="wallpaperApplyStatus">' + escapeHtml(wallpaperStatusText(validation)) + '</div>' +
+            '<div class="wallpaper-apply-status" id="wallpaperApplyStatus" data-state="' + wallpaperStatusState(validation) + '">' + escapeHtml(wallpaperStatusText(validation)) + '</div>' +
             '<button id="wallpaperApplyBtn" class="primary-action" type="button"' + (validation.valid ? '' : ' disabled') + '>' + tr('wallpaperApply') + '</button>' +
             '</div>';
     }
@@ -1063,6 +1071,7 @@
         if (!status || !button) return;
         var validation = validateWallpaperWorkOrder();
         status.textContent = wallpaperStatusText(validation);
+        status.dataset.state = wallpaperStatusState(validation);
         button.disabled = !validation.valid;
     }
 
@@ -1297,7 +1306,7 @@
 
         var applyBtn = document.getElementById('wallpaperApplyBtn');
         if (applyBtn) applyBtn.disabled = true;
-        workOrder.health = { state: 'Applying', reasonKey: 'wallpaperApplyReady', message: tr('wallpaperApply') + '...' };
+        workOrder.health = { state: 'Applying', reasonKey: 'wallpaperStatusApplying', message: '' };
         refreshWallpaperApplyFooter();
 
         return Apply.apply(workOrder, {

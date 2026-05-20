@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "現在の API ソースを先にテストしてください",
     "wallpaperStatusTestWallhaven": "現在の Wallhaven 設定を先にテストしてください",
     "wallpaperStatusTestFailed": "直近のソーステストに失敗しました",
+    "wallpaperStatusApplying": "壁紙ソースを適用しています...",
         "wallpaperBlur": "背景ぼかし",
         "wallpaperCurrentSource": "現在の選択: {source}",
         "wallpaperActiveSourceDeletedConfirm": "現在壁紙に使用中の RSS/API ソースを削除します。適用して Bing に戻しますか？",

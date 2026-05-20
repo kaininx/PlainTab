@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "पहले मौजूदा API स्रोत की जांच करें",
     "wallpaperStatusTestWallhaven": "पहले मौजूदा Wallhaven सेटिंग्स की जांच करें",
     "wallpaperStatusTestFailed": "पिछली स्रोत जांच विफल रही",
+    "wallpaperStatusApplying": "वॉलपेपर स्रोत लागू किया जा रहा है...",
         "wallpaperBlur": "पृष्ठभूमि धुंधलापन",
         "wallpaperCurrentSource": "चयनित: {source}",
         "wallpaperActiveSourceDeletedConfirm": "यह उस RSS/API स्रोत को हटाएगा जो अभी वॉलपेपर के लिए उपयोग हो रहा है। फिर भी लागू करके Bing पर वापस जाएं?",

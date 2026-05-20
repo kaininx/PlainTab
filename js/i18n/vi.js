@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "Trước tiên hãy kiểm tra nguồn API hiện tại",
     "wallpaperStatusTestWallhaven": "Trước tiên hãy kiểm tra cài đặt Wallhaven hiện tại",
     "wallpaperStatusTestFailed": "Lần kiểm tra nguồn gần nhất đã thất bại",
+    "wallpaperStatusApplying": "Đang áp dụng nguồn hình nền...",
         "wallpaperBlur": "Làm Mờ Nền",
         "wallpaperCurrentSource": "Đang chọn: {source}",
         "wallpaperActiveSourceDeletedConfirm": "Thao tác này sẽ xoá nguồn RSS/API đang dùng cho hình nền. Vẫn áp dụng và quay về Bing?",

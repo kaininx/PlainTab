@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "请先测试当前 API 来源",
     "wallpaperStatusTestWallhaven": "请先测试当前 Wallhaven 设置",
     "wallpaperStatusTestFailed": "最近一次来源测试失败",
+    "wallpaperStatusApplying": "正在应用壁纸来源...",
         "wallpaperBlur": "背景模糊",
         "wallpaperCurrentSource": "当前选择了 {source}",
         "wallpaperActiveSourceDeletedConfirm": "这会删除当前正在使用的 RSS/API 壁纸源。应用后将切回 Bing，继续吗？",

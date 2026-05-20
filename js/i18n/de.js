@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "Zuerst die aktuelle API-Quelle testen",
     "wallpaperStatusTestWallhaven": "Zuerst die aktuellen Wallhaven-Einstellungen testen",
     "wallpaperStatusTestFailed": "Der letzte Quellentest ist fehlgeschlagen",
+    "wallpaperStatusApplying": "Hintergrundquelle wird angewendet...",
         "wallpaperBlur": "Hintergrundunschärfe",
         "wallpaperCurrentSource": "Ausgewählt: {source}",
         "wallpaperActiveSourceDeletedConfirm": "Dadurch wird die RSS/API-Quelle gelöscht, die aktuell als Hintergrund verwendet wird. Trotzdem anwenden und zu Bing zurückkehren?",

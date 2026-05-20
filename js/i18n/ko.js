@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "먼저 현재 API 소스를 테스트하세요",
     "wallpaperStatusTestWallhaven": "먼저 현재 Wallhaven 설정을 테스트하세요",
     "wallpaperStatusTestFailed": "최근 소스 테스트에 실패했습니다",
+    "wallpaperStatusApplying": "배경화면 소스를 적용하는 중...",
         "wallpaperBlur": "배경 블러",
         "wallpaperCurrentSource": "현재 선택: {source}",
         "wallpaperActiveSourceDeletedConfirm": "현재 배경화면에 사용 중인 RSS/API 소스를 삭제합니다. 적용하고 Bing으로 돌아갈까요?",

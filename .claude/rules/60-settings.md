@@ -43,24 +43,24 @@ Tab 是懒构建的。由于 `index.html` 里存在恢复 tab，`buildRestoreHTM
 - invalidate/re-render 壁纸 tab，让内置 RSS/API 默认值立即出现；
 - reload 可见壁纸。
 
-## 壁纸草稿模型
+## 壁纸来源 Work Order
 
-壁纸 tab 使用草稿/应用模型：
+壁纸 tab 的来源切换使用当前来源 work order，而不是全局大草稿：
 
-- 打开壁纸 tab 时克隆 `D.loadWallpaper()`，并使用归一化后的 RSS/API 配置。
-- `wallpaperDraftOriginal` 是 JSON 基线，用于判断是否变更。
-- 任何有效真实草稿变更都应点亮应用按钮。
-- 无效 URL 或测试失败如果没有改变草稿，不应点亮应用按钮。
-- 关闭模态窗口或恢复壁纸默认时清理草稿。
-
-除非任务明确重做模型，不要把来源选择改成即时持久化。
+- 打开壁纸 tab 时建立 `pendingSource`、`pendingConfig`、`baseline`、`health`。
+- 来源选择器只改变 `pendingSource` 和对应 `pendingConfig`，不立即写入 `activeSource`。
+- 展示类设置即时保存；来源切换和当前来源配置通过应用按钮提交。
+- RSS/API 应用必须有当前字段 hash 对应的成功测试记录；测试失败或字段过期时不能应用。
+- 应用按钮只在 work order 通过 health gate 且相对 baseline 有真实变更时可用。
+- 关闭模态窗口或恢复壁纸默认时清理 work order。
 
 ## 来源抽屉
 
 壁纸来源以抽屉展示。当前交互契约：
 
 - 点击抽屉 header 只展开/收起。
-- 每个抽屉最前面有选择器，用于改变 `draft.activeSource`。
+- 打开壁纸 tab 时所有来源抽屉默认收起。
+- 每个抽屉最前面有选择器，用于改变 `pendingSource`。
 - 被选中的抽屉/选择器使用对应来源色，并显示当前选择提示。
 - 不要增加和抽屉 header 抢职责的独立下拉按钮。
 
@@ -72,9 +72,11 @@ Tab 是懒构建的。由于 `index.html` 里存在恢复 tab，`buildRestoreHTM
 - 缺 URL 或 URL 无效的 source 行，应在合适位置禁用测试/应用相关操作。
 - HTTP URL 无效；只接受 HTTPS source URL。
 - JSON API source 的 JSON 图片路径是可选高级项；为空时自动探测常见字段，UI 需要明确说明这一点。
-- 删除非当前运行的 RSS/API source 只保存配置，不 reload 壁纸。
-- 删除当前运行的 RSS/API source 需要确认；应用后切回 Bing。
+- RSS/API source 列表新增、删除、选择行等 CRUD 即时保存列表配置，并同步当前 work order 的 list baseline，避免产生幽灵 dirty。
+- 删除非当前运行的 RSS/API source 只保存配置，不 reload 壁纸，不要求确认。
+- 删除当前运行的 RSS/API source 需要确认；确认后立即切回 Bing。
 - 如果当前 app 在其他壁纸模式，RSS/API 删除只保存配置，不影响可见壁纸。
+- 是否“当前运行”必须以 `D.getActiveSource()`/已保存 `activeSource` 和运行配置判断，不能以当前打开抽屉或 `pendingSource` 判断。
 
 ## 界面和搜索设置
 

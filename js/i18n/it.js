@@ -301,6 +301,7 @@
     "wallpaperStatusTestApi": "Testa prima la fonte API attuale",
     "wallpaperStatusTestWallhaven": "Testa prima le impostazioni Wallhaven attuali",
     "wallpaperStatusTestFailed": "L'ultimo test della fonte non è riuscito",
+    "wallpaperStatusApplying": "Applicazione della fonte sfondo...",
         "wallpaperBlur": "Sfocatura Sfondo",
         "wallpaperCurrentSource": "Selezionato: {source}",
         "wallpaperActiveSourceDeletedConfirm": "Questo elimina la sorgente RSS/API attualmente usata per lo sfondo. Applicare comunque e tornare a Bing?",
