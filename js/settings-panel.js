@@ -1531,11 +1531,10 @@
         return '<option value="' + escapeHtml(value) + '"' + (String(value) === String(current) ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
     }
 
-    function wallhavenCategoryToggle(bit, label, index, categories) {
+    function wallhavenCategoryToggle(bit, glyph, index, categories) {
         var active = categories.charAt(index) === '1';
-        return '<button type="button" class="wallhaven-category-card' + (active ? ' active' : '') + '" data-wallhaven-category="' + bit + '" aria-pressed="' + (active ? 'true' : 'false') + '">' +
-            '<span class="wallhaven-category-icon">' + escapeHtml(label.charAt(0)) + '</span>' +
-            '<span class="wallhaven-category-label">' + escapeHtml(label) + '</span>' +
+        return '<button type="button" class="wallhaven-category-card' + (active ? ' active' : '') + '" data-wallhaven-category="' + bit + '" aria-label="Wallhaven ' + escapeHtml(glyph) + '" aria-pressed="' + (active ? 'true' : 'false') + '">' +
+            '<span class="wallhaven-category-icon" aria-hidden="true">' + escapeHtml(glyph) + '</span>' +
             '</button>';
     }
 
@@ -1564,7 +1563,7 @@
     }
 
     function wallhavenTopRangeHTML(config) {
-        return settingItem(tr('wallhavenTopRange'), '', '<select id="wallhavenTopRange">' +
+        return settingItem(tr('wallhavenTopRange'), tr('wallhavenTopRangeHint'), '<select id="wallhavenTopRange">' +
             wallhavenOption('1d', '1d', config.topRange) +
             wallhavenOption('3d', '3d', config.topRange) +
             wallhavenOption('1w', '1w', config.topRange) +
@@ -1627,18 +1626,18 @@
         return '<div class="wallhaven-config">' +
             '<div class="wallhaven-controls">' +
             settingItem(tr('wallhavenSearch'), tr('wallhavenSearchHint'), '<select id="wallhavenPreset">' + presetOptions + '</select>' + customRow, 'setting-compact') +
-            settingItem(tr('wallhavenCategories'), '', '<div class="wallhaven-category-grid" role="group" aria-label="' + tr('wallhavenCategories') + '">' +
-            wallhavenCategoryToggle('general', tr('wallhavenCategoryGeneral'), 0, config.categories) +
-            wallhavenCategoryToggle('anime', tr('wallhavenCategoryAnime'), 1, config.categories) +
-            wallhavenCategoryToggle('people', tr('wallhavenCategoryPeople'), 2, config.categories) +
+            settingItem(tr('wallhavenCategories'), tr('wallhavenCategoriesHint'), '<div class="wallhaven-category-grid" role="group" aria-label="' + tr('wallhavenCategories') + '">' +
+            wallhavenCategoryToggle('general', 'G', 0, config.categories) +
+            wallhavenCategoryToggle('anime', 'A', 1, config.categories) +
+            wallhavenCategoryToggle('people', 'P', 2, config.categories) +
             '</div>', 'setting-compact wallhaven-category-item') +
-            settingItem(tr('wallhavenSorting'), '', '<select id="wallhavenSorting">' + sortingOptions + '</select>', 'setting-compact') +
+            settingItem(tr('wallhavenSorting'), tr('wallhavenSortingHint'), '<select id="wallhavenSorting">' + sortingOptions + '</select>', 'setting-compact') +
             topRange +
             seedRow +
-            settingItem(tr('wallhavenResolution'), '', '<select id="wallhavenResolution">' + resolutionOptions + '</select>', 'setting-compact') +
-            settingItem(tr('wallhavenRatio'), '', '<select id="wallhavenRatio">' + ratioOptions + '</select>', 'setting-compact') +
-            settingItem(tr('wallhavenColor'), '', '<details class="wallhaven-color-details"' + (config.color ? ' open' : '') + '><summary>' + wallhavenColorCurrentHTML(config.color) + '<span class="wallhaven-color-chevron"></span></summary>' + buildWallhavenColorStrip(config) + '</details>', 'setting-compact wallhaven-color-item') +
-            settingItem(tr('rssRefreshInterval'), '', refreshControl, 'setting-compact wallhaven-refresh-item') +
+            settingItem(tr('wallhavenResolution'), tr('wallhavenResolutionHint'), '<select id="wallhavenResolution">' + resolutionOptions + '</select>', 'setting-compact') +
+            settingItem(tr('wallhavenRatio'), tr('wallhavenRatioHint'), '<select id="wallhavenRatio">' + ratioOptions + '</select>', 'setting-compact') +
+            settingItem(tr('wallhavenColor'), tr('wallhavenColorHint'), '<details class="wallhaven-color-details"' + (config.color ? ' open' : '') + '><summary>' + wallhavenColorCurrentHTML(config.color) + '<span class="wallhaven-color-chevron"></span></summary>' + buildWallhavenColorStrip(config) + '</details>', 'setting-compact wallhaven-color-item') +
+            settingItem(tr('rssRefreshInterval'), tr('wallhavenRefreshHint'), refreshControl, 'setting-compact wallhaven-refresh-item') +
             '</div>' +
             '<div class="wallhaven-url-row"><span>' + escapeHtml(url) + '</span><button id="wallhavenTestBtn" type="button">' + tr('apiTest') + '</button><a class="wallhaven-url-open" href="' + escapeHtml(url) + '" target="_blank" rel="noopener" aria-label="Wallhaven" title="' + escapeHtml(url) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 7H7a5 5 0 0 0 0 10h3m4-10h3a5 5 0 0 1 0 10h-3m-5-5h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>' +
             '<div class="wallhaven-notice" id="wallhavenNotice" hidden></div>' +

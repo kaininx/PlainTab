@@ -1,5 +1,8 @@
 const assert = require('assert');
+const fs = require('fs');
 const path = require('path');
+
+const repoRoot = path.join(__dirname, '..', '..');
 
 function createStorage(initialWallpaper, options = {}) {
   const calls = [];
@@ -76,6 +79,28 @@ function loadApplyModule(storage, prepare = {}) {
   delete require.cache[require.resolve(path.join('..', '..', 'js', 'wallpaper', 'apply.js'))];
   require(path.join('..', '..', 'js', 'wallpaper', 'apply.js'));
   return global.window.WallpaperApply;
+}
+
+function testWallhavenSettingsUiContract() {
+  const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
+  assert(settingsPanel.includes("wallhavenCategoryToggle('general', 'G'"), 'general category should use fixed G glyph');
+  assert(settingsPanel.includes("wallhavenCategoryToggle('anime', 'A'"), 'anime category should use fixed A glyph');
+  assert(settingsPanel.includes("wallhavenCategoryToggle('people', 'P'"), 'people category should use fixed P glyph');
+  assert(!settingsPanel.includes('wallhavenCategoryGeneral'), 'category glyphs should not use translatable labels');
+  assert(!settingsPanel.includes('wallhavenCategoryAnime'), 'category glyphs should not use translatable labels');
+  assert(!settingsPanel.includes('wallhavenCategoryPeople'), 'category glyphs should not use translatable labels');
+
+  [
+    'wallhavenCategoriesHint',
+    'wallhavenSortingHint',
+    'wallhavenTopRangeHint',
+    'wallhavenResolutionHint',
+    'wallhavenRatioHint',
+    'wallhavenColorHint',
+    'wallhavenRefreshHint'
+  ].forEach((key) => {
+    assert(settingsPanel.includes(`tr('${key}')`), `settings panel should render ${key}`);
+  });
 }
 
 async function testRssRequiresMatchingPassedTest() {
@@ -231,6 +256,7 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
 }
 
 (async function run() {
+  testWallhavenSettingsUiContract();
   await testRssRequiresMatchingPassedTest();
   await testUploadReadyUsesSourceCache();
   await testWallhavenRequiresMatchingPassedTest();

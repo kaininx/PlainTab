@@ -2600,13 +2600,11 @@ input[type="file"] {
 }
 
 .wallhaven-category-card {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
+    display: grid;
+    place-items: center;
     min-width: 0;
-    min-height: 38px;
-    padding: 7px 10px;
+    min-height: 36px;
+    padding: 7px;
     border: 1px solid rgba(var(--stroke-rgb), 0.46);
     border-radius: 8px;
     background:
@@ -2636,30 +2634,19 @@ input[type="file"] {
 .wallhaven-category-icon {
     display: grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     flex: 0 0 auto;
     border-radius: 6px;
     background: rgba(var(--surface-base-rgb), 0.36);
     color: inherit;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 750;
     line-height: 1;
 }
 
 .wallhaven-category-card.active .wallhaven-category-icon {
     background: rgba(var(--accent-rgb), 0.24);
-}
-
-.wallhaven-category-label {
-    max-width: 100%;
-    overflow: hidden;
-    font-size: 11.5px;
-    font-weight: 700;
-    line-height: 1.15;
-    text-align: center;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .wallhaven-refresh-segments button:hover,
