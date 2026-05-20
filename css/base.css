@@ -54,6 +54,41 @@
     --field-bg-hover: rgba(var(--surface-elevated-rgb), 0.72);
     --accent-soft: rgba(var(--accent-rgb), 0.14);
     --accent-border: rgba(var(--accent-rgb), 0.32);
+    --settings-panel-bg:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.045), rgba(var(--tint-rgb), 0.040) 38%, transparent),
+        color-mix(in srgb, rgba(var(--surface-base-rgb), var(--panel-opacity)) 72%, rgba(18, 20, 27, var(--panel-opacity)));
+    --settings-shell-bg:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.065), rgba(var(--tint-rgb), 0.045) 36%, transparent),
+        color-mix(in srgb, rgba(var(--surface-base-rgb), var(--panel-opacity)) 70%, rgba(18, 20, 27, var(--panel-opacity)));
+    --settings-sidebar-bg:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.050), rgba(var(--tint-rgb), 0.065)),
+        color-mix(in srgb, rgba(var(--surface-base-rgb), 0.90) 64%, rgba(18, 20, 27, 0.90));
+    --settings-content-bg:
+        linear-gradient(180deg, rgba(var(--tint-rgb), 0.038), transparent 44%),
+        color-mix(in srgb, rgba(var(--surface-elevated-rgb), 0.88) 72%, rgba(28, 31, 40, 0.88));
+    --settings-section-bg:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.035), transparent),
+        color-mix(in srgb, rgba(var(--surface-base-rgb), 0.18) 68%, rgba(18, 20, 27, 0.18));
+    --settings-section-header-bg:
+        linear-gradient(180deg, rgba(var(--on-surface-rgb), 0.038), transparent),
+        color-mix(in srgb, rgba(var(--surface-elevated-rgb), 0.14) 70%, rgba(28, 31, 40, 0.14));
+    --settings-row-bg: transparent;
+    --settings-row-hover-bg: rgba(var(--tint-rgb), 0.070);
+    --settings-row-selected-bg:
+        linear-gradient(90deg, rgba(var(--accent-rgb), 0.070), transparent 66%),
+        color-mix(in srgb, rgba(var(--surface-base-rgb), 0.24) 62%, rgba(18, 20, 27, 0.24));
+    --settings-field-bg: color-mix(in srgb, rgba(var(--surface-base-rgb), 0.24) 62%, rgba(18, 20, 27, 0.24));
+    --settings-field-bg-hover: color-mix(in srgb, rgba(var(--surface-base-rgb), 0.34) 66%, rgba(28, 31, 40, 0.34));
+    --settings-field-bg-focus: color-mix(in srgb, rgba(var(--surface-base-rgb), 0.38) 68%, rgba(28, 31, 40, 0.38));
+    --settings-border-subtle: color-mix(in srgb, rgba(var(--stroke-rgb), 0.34) 74%, rgba(54, 61, 78, 0.34));
+    --settings-border: color-mix(in srgb, rgba(var(--stroke-rgb), 0.52) 76%, rgba(54, 61, 78, 0.52));
+    --settings-border-strong: color-mix(in srgb, rgba(var(--stroke-rgb), 0.74) 78%, rgba(54, 61, 78, 0.74));
+    --settings-accent-soft: rgba(var(--accent-rgb), 0.12);
+    --settings-accent-muted: rgba(var(--accent-rgb), 0.24);
+    --settings-accent-rail: rgba(var(--accent-rgb), 0.62);
+    --settings-focus-ring: 0 0 0 3px rgba(var(--accent-rgb), 0.14);
+    --settings-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+    --settings-inset-highlight: 0 1px 0 rgba(var(--on-surface-rgb), 0.055) inset;
     --danger-rgb: 220, 53, 69;
     --success-rgb: 46, 204, 113;
     --warning-rgb: 255, 152, 0;

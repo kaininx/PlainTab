@@ -7,8 +7,10 @@
 
     var ANALYSIS_SIZE = 96;
     var TOP_LIMIT = 32;
-    var WASM_RESULT_HEADER = 27;
-    var WASM_ABI_VERSION = 2;
+    var WASM_THEME_OFFSET = 27;
+    var WASM_THEME_ROLE_COUNT = 8;
+    var WASM_RESULT_HEADER = WASM_THEME_OFFSET + WASM_THEME_ROLE_COUNT * 4;
+    var WASM_ABI_VERSION = 3;
     var _current = null;
     var _enginePromise = null;
     var _engineDisabled = false;
@@ -243,8 +245,28 @@
             muted: decodeColor(values, 14),
             dark: decodeColor(values, 18),
             light: decodeColor(values, 22),
+            theme: decodeWasmTheme(values),
             top: top,
             source: 'wasm'
+        };
+    }
+
+    function decodeWasmTheme(values) {
+        var roles = [];
+        for (var i = 0; i < WASM_THEME_ROLE_COUNT; i++) {
+            var color = decodeColor(values, WASM_THEME_OFFSET + i * 4);
+            if (!color) return null;
+            roles.push(color);
+        }
+        return {
+            surfaceBase: rgb(roles[0]),
+            surfaceElevated: rgb(roles[1]),
+            tint: rgb(roles[2]),
+            stroke: rgb(roles[3]),
+            onSurface: rgb(roles[4]),
+            onSurfaceMuted: rgb(roles[5]),
+            accent: rgb(roles[6]),
+            accentContrast: rgb(roles[7])
         };
     }
 
@@ -312,6 +334,7 @@
     }
 
     function themeFromPalette(palette) {
+        if (palette && palette.theme) return palette.theme;
         if (!palette || !palette.count || !palette.top || !palette.top.length) return fallback();
 
         var top = palette.top;

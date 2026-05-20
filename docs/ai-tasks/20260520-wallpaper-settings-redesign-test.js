@@ -128,7 +128,7 @@ function testApiSettingsUsesSharedVisualLanguage() {
   assert(!apiCss.includes('168, 85, 247'), 'API controls should not hard-code a separate purple identity');
   assert(!apiCss.includes('#a855f7'), 'API controls should not hard-code the purple API color');
   assert(!apiCss.includes('#22c55e') && !apiCss.includes('#ef4444'), 'API test states should use shared muted state colors, not raw red/green dots');
-  assert(/\.api-type-tabs button\.active\s*\{[\s\S]*rgba\(var\(--surface-elevated-rgb\)/.test(apiCss), 'API type tabs should use the shared selected-control surface');
+  assert(/\.api-type-tabs button\.active\s*\{[\s\S]*var\(--settings-field-bg-hover\)/.test(apiCss), 'API type tabs should use the shared selected-control surface');
   assert(!apiCss.includes('.api-json-path-row'), 'API CSS should not keep dead JSON path row styles');
   assert(/\.api-add-row\s*\{[\s\S]*grid-template-columns:\s*1fr/.test(apiCss), 'API add form should stack controls instead of squeezing them into narrow columns');
   assert(/\.api-config\[data-api-type="json"\] \.api-add-row\s*\{[\s\S]*grid-template-columns:\s*1fr/.test(apiCss), 'JSON API add form should use the same stacked layout');
@@ -183,7 +183,87 @@ function testCustomAccentIsNotMaskedByWallpaperSourceColors() {
   assert(!/\.wp-mode-chip\.(?:bing|upload|folder|rss|api|wallhaven)\s*\{[^}]*--chip-rgb/.test(modeChipBlock), 'current source chip surface should use global accent, not source-specific chip color');
   assert(!/\.wallpaper-source-item(?:\[data-source="[^"]+"\]|\.(?:bing|upload|folder|rss|api|wallhaven))/.test(css), 'source identity colors should not override the whole source row accent');
   assert(/\.wallpaper-source-glyph\.bing\s*\{\s*--source-rgb:\s*59,\s*130,\s*246;/.test(css), 'source glyph should keep the Bing identity color');
-  assert(/\.wallpaper-source-item\[aria-selected="true"\][\s\S]*box-shadow:\s*2px 0 0 rgba\(var\(--accent-rgb\)/.test(css), 'selected source row rail should follow the custom accent color');
+  assert(/\.wallpaper-source-item\[aria-checked="true"\][\s\S]*box-shadow:\s*2px 0 0 var\(--settings-accent-rail\)/.test(css), 'selected source row rail should follow the custom accent color through the semantic token');
+}
+
+function testSettingsThemeSemanticTokenContract() {
+  const baseCss = fs.readFileSync(path.join(repoRoot, 'css', 'base.css'), 'utf8');
+  const settingsCss = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  [
+    '--settings-panel-bg',
+    '--settings-shell-bg',
+    '--settings-sidebar-bg',
+    '--settings-content-bg',
+    '--settings-section-bg',
+    '--settings-row-bg',
+    '--settings-row-hover-bg',
+    '--settings-row-selected-bg',
+    '--settings-field-bg',
+    '--settings-field-bg-hover',
+    '--settings-border-subtle',
+    '--settings-border',
+    '--settings-border-strong',
+    '--settings-accent-soft',
+    '--settings-accent-rail',
+    '--settings-focus-ring'
+  ].forEach((token) => {
+    assert(baseCss.includes(token), `base theme should define ${token}`);
+  });
+
+  [
+    ['settings panel shell', '.settings-panel {', 'var(--settings-panel-bg)'],
+    ['modal shell', '.modal-window {', 'var(--settings-shell-bg)'],
+    ['modal sidebar', '.modal-tabs {', 'var(--settings-sidebar-bg)'],
+    ['modal content', '.modal-content {', 'var(--settings-content-bg)'],
+    ['setting row', '.setting-item {', 'var(--settings-row-bg)'],
+    ['wallpaper source row', '.wallpaper-source-item {', 'var(--settings-row-bg)'],
+    ['wallpaper selected source row', '.wallpaper-source-item[aria-checked="true"],', 'var(--settings-row-selected-bg)'],
+    ['wallpaper detail summary', '.wallpaper-detail-summary {', 'var(--settings-section-bg)'],
+    ['wallpaper detail fields', '.wallpaper-source-detail input[type="text"],', 'var(--settings-field-bg)']
+  ].forEach(([label, selector, expected]) => {
+    const start = settingsCss.indexOf(selector);
+    assert(start >= 0, `${label} block should be inspectable`);
+    const end = settingsCss.indexOf('\n}', start);
+    assert(end > start, `${label} block should have a closing brace`);
+    const block = settingsCss.slice(start, end);
+    assert(block.includes(expected), `${label} should consume ${expected}`);
+  });
+
+  assert(settingsCss.includes('background: var(--settings-row-hover-bg);'), 'row hovers should use a shared hover token');
+  assert(settingsCss.includes('box-shadow: 2px 0 0 var(--settings-accent-rail)'), 'selected source rail should use the semantic accent rail token');
+  assert(settingsCss.includes('box-shadow: var(--settings-focus-ring)'), 'focused controls should use the shared settings focus ring');
+}
+
+function testWallpaperApplyFooterUsesQuietActionTray() {
+  const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  const footerStart = css.indexOf('.wallpaper-apply-footer {');
+  const statusStart = css.indexOf('.wallpaper-apply-status {');
+  assert(footerStart > 0, 'wallpaper apply footer should be inspectable');
+  assert(statusStart > footerStart, 'wallpaper apply status should be inspectable');
+  const footer = css.slice(footerStart, css.indexOf('\n}', footerStart));
+  const status = css.slice(statusStart, css.indexOf('\n}', statusStart));
+  assert(!footer.includes('border-top'), 'wallpaper apply footer should not render as a hard full-width divider');
+  assert(!footer.includes('rgba(var(--surface-elevated-rgb), var(--panel-opacity))'), 'wallpaper apply footer should not use a slab background');
+  assert(footer.includes('border-radius: 10px'), 'wallpaper apply footer should render as a soft action tray');
+  assert(footer.includes('var(--settings-section-bg)'), 'wallpaper apply footer should use the shared settings surface token');
+  assert(!status.includes('border-left'), 'wallpaper apply status should not look like a warning block');
+  assert(!status.includes('background:'), 'wallpaper apply status text should stay visually quiet inside the tray');
+  assert(status.includes('--apply-state-rgb'), 'wallpaper apply status should use a small state signal instead of a colored slab');
+}
+
+function testWasmThemeEngineOwnsUiRoles() {
+  const cpp = fs.readFileSync(path.join(repoRoot, 'wasm', 'theme_engine.cpp'), 'utf8');
+  const wallpaperTheme = fs.readFileSync(path.join(repoRoot, 'js', 'wallpaper', 'theme.js'), 'utf8');
+  assert(cpp.includes('const int kAbiVersion = 3;'), 'theme engine ABI should be bumped for role-token output');
+  assert(cpp.includes('kOffsetThemeRoles = 27'), 'theme role colors should be encoded before the raw top-color list');
+  assert(cpp.includes('kThemeRoleCount = 8'), 'C++ should output the eight CSS theme roles directly');
+  assert(cpp.includes('write_theme_roles'), 'C++ should own final UI role generation, not only palette extraction');
+  assert(cpp.includes('rgb_to_oklab') && cpp.includes('oklab_to_rgb'), 'C++ theme roles should be generated in perceptual color space');
+  assert(cpp.includes('ensure_lum_delta'), 'C++ should enforce visible hierarchy between surface roles');
+  assert(wallpaperTheme.includes('var WASM_ABI_VERSION = 3;'), 'JS should require the v3 role-token ABI');
+  assert(wallpaperTheme.includes('var WASM_THEME_OFFSET = 27;'), 'JS decoder should know where C++ role tokens start');
+  assert(wallpaperTheme.includes('function decodeWasmTheme'), 'JS should decode C++ role tokens');
+  assert(/if \(palette && palette\.theme\) return palette\.theme;/.test(wallpaperTheme), 'JS should trust the C++ generated UI role palette when wasm succeeds');
 }
 
 function testUnifiedWallpaperLayoutContract() {
@@ -553,6 +633,9 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
   testAccentColorAppliesOnPickerChange();
   testCustomAccentAppliesFullThemePalette();
   testCustomAccentIsNotMaskedByWallpaperSourceColors();
+  testSettingsThemeSemanticTokenContract();
+  testWallpaperApplyFooterUsesQuietActionTray();
+  testWasmThemeEngineOwnsUiRoles();
   testUnifiedWallpaperLayoutContract();
   testWallpaperDetailScrollBoundedBySourceNav();
   testWallpaperHeaderUsesGlobalTabChrome();
