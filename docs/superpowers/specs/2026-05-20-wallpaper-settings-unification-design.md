@@ -90,6 +90,26 @@ All sources follow the same interaction rhythm:
 
 Cancellation, test failure, permission denial, invalid URL, empty folder, or failed prepare must not change the visible wallpaper.
 
+### Source Library Persistence
+
+The settings page must distinguish source-library management from runtime source application.
+
+Source-library management is saved immediately:
+
+- RSS/API source add, delete, rename, URL edit, selected row changes, and list ordering if supported.
+- Wallhaven local queue deletion/reorder operations.
+- Upload/folder management actions that explicitly manage saved local assets or handles.
+
+These actions update configuration or source libraries, but they do not change the visible wallpaper unless they affect the currently running source and the existing source-specific rule says they must. For RSS/API, deleting a non-running source saves the list only and never reloads wallpaper. Deleting the running source requires confirmation and falls back to Bing.
+
+Runtime source application is separate:
+
+- Clicking a left source tab updates only the pending source and the right detail view.
+- The saved `activeSource` changes only after the bottom Apply action passes validation and prepare.
+- The UI should not expose a global "Save" button next to Apply. The copy should explain: source list edits are saved automatically; applying changes the active wallpaper source.
+
+Invalid source-list input should be rejected before it becomes a saved source. For example, HTTP RSS/API URLs should keep the add/save action disabled and show an HTTPS-only validation message.
+
 ### Bing
 
 Bing stays simple. Selecting Bing and applying commits immediately. There is no test or prepare step. The detail panel should explain that it updates automatically and follows the language/market mapping.
