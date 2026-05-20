@@ -68,16 +68,25 @@
         if (workOrder.health && workOrder.health.state === 'Testing') {
             return { state: 'Testing', valid: false, reasonKey: 'wallpaperStatusTesting', message: '' };
         }
+        if (source === 'upload' && workOrder.health && (workOrder.health.state === 'Ready' || workOrder.health.state === 'Applying')) {
+            return { state: 'Ready', valid: true, reasonKey: workOrder.health.reasonKey || 'wallpaperApplyReady', message: workOrder.health.message || '' };
+        }
         if (!isDirty(workOrder)) {
             return { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
         }
         if (source === 'bing') return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
         if (source === 'upload') {
+            if ((config.activeMedia === 'image' && config.galleryView === 'image') ||
+                (config.activeMedia === 'video' && config.galleryView === 'video')) {
+                return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
+            }
             if (hasUploadAssets()) return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
             return blocked('wallpaperStatusUploadMissing');
         }
         if (source === 'folder') {
-            if (workOrder.health && workOrder.health.state === 'Ready') return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
+            if (workOrder.health && (workOrder.health.state === 'Ready' || workOrder.health.state === 'Applying')) {
+                return { state: 'Ready', valid: true, reasonKey: 'wallpaperApplyReady', message: '' };
+            }
             return blocked('wallpaperStatusFolderMissing');
         }
         if (source === 'rss') {
@@ -178,18 +187,32 @@
         var preparedResult = null;
         return prepareWorkOrder(workOrder, hooks).then(function (prepared) {
             preparedResult = prepared;
+            if (prepared && prepared.cancelled) {
+                return {
+                    cancelled: true,
+                    result: {
+                        state: 'Cancelled',
+                        valid: true,
+                        reasonKey: prepared.reasonKey || 'wallpaperStatusUploadCancelled',
+                        message: prepared.message || ''
+                    }
+                };
+            }
             return commitWorkOrder(workOrder);
-        }).then(function () {
+        }).then(function (commitResult) {
+            if (commitResult && commitResult.cancelled) return commitResult.result;
             return reloadWallpaper().catch(function (err) {
                 return restoreWallpaper(previousModel).then(function () {
                     throw err;
                 });
             });
-        }).then(function () {
+        }).then(function (reloadResult) {
+            if (reloadResult && reloadResult.state === 'Cancelled') return reloadResult;
             return cleanupPreviousSource(previousSource, nextSource).catch(function (err) {
                 return { cleanupError: err && err.message ? err.message : String(err || '') };
             });
-        }).then(function () {
+        }).then(function (cleanupResult) {
+            if (cleanupResult && cleanupResult.state === 'Cancelled') return cleanupResult;
             return { state: 'Applied', valid: true, reasonKey: 'wallpaperApplyNoChanges', message: '' };
         }).catch(function (err) {
             return rollbackPrepared(preparedResult).then(function () {

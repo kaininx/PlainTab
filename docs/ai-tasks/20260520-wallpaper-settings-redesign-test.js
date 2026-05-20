@@ -103,6 +103,16 @@ function testWallhavenSettingsUiContract() {
   });
 }
 
+function testUploadSettingsUiContract() {
+  const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
+  assert(settingsPanel.includes('function buildUploadConfigHTML'), 'upload drawer should render explicit media choices');
+  assert(settingsPanel.includes("data-upload-mode=\"image\""), 'upload drawer should expose an image mode choice');
+  assert(settingsPanel.includes("data-upload-mode=\"video\""), 'upload drawer should expose a video mode choice');
+  assert(settingsPanel.includes("tr('uploadApplyImageTitle')"), 'image mode should use localized title copy');
+  assert(settingsPanel.includes("tr('uploadApplyVideoTitle')"), 'video mode should use localized title copy');
+  assert(settingsPanel.includes('prepareUploadWorkOrder'), 'upload source should prepare files during apply');
+}
+
 async function testRssRequiresMatchingPassedTest() {
   const storage = createStorage(baseWallpaper('bing'));
   const Apply = loadApplyModule(storage);
@@ -136,6 +146,106 @@ async function testUploadReadyUsesSourceCache() {
   });
   assert.strictEqual(result.state, 'Ready');
   assert.deepStrictEqual(storage.calls, [['hasSourceCache', 'upload']]);
+}
+
+async function testUploadSelectionCanApplyWithoutExistingCache() {
+  const storage = createStorage(baseWallpaper('bing'));
+  const Apply = loadApplyModule(storage);
+  const result = Apply.validateWorkOrder({
+    pendingSource: 'upload',
+    pendingConfig: { activeMedia: 'image', galleryView: 'image' },
+    baseline: { pendingSource: 'bing', pendingConfig: {} }
+  });
+  assert.strictEqual(result.state, 'Ready');
+  assert.strictEqual(result.valid, true);
+  assert.deepStrictEqual(storage.calls, []);
+}
+
+async function testUploadSameModeReadyCanReapply() {
+  const storage = createStorage(baseWallpaper('upload'));
+  const Apply = loadApplyModule(storage);
+  const result = Apply.validateWorkOrder({
+    pendingSource: 'upload',
+    pendingConfig: { activeMedia: 'image', galleryView: 'image' },
+    health: { state: 'Ready', reasonKey: 'wallpaperApplyReady' },
+    baseline: { pendingSource: 'upload', pendingConfig: { activeMedia: 'image', galleryView: 'image' } }
+  });
+  assert.strictEqual(result.state, 'Ready');
+  assert.strictEqual(result.valid, true);
+}
+
+async function testUploadCancelledPrepareSkipsCommitReloadAndCleanup() {
+  const storage = createStorage(baseWallpaper('bing'));
+  const Apply = loadApplyModule(storage, {
+    reloadWallpaper: () => {
+      storage.calls.push(['reloadWallpaper']);
+      return Promise.resolve(true);
+    }
+  });
+  const result = await Apply.apply({
+    pendingSource: 'upload',
+    pendingConfig: { activeMedia: 'image', galleryView: 'image' },
+    health: { state: 'Ready', reasonKey: 'wallpaperApplyReady' },
+    baseline: { pendingSource: 'bing', pendingConfig: {} }
+  }, {
+    prepare() {
+      storage.calls.push(['prepare', 'upload']);
+      return Promise.resolve({ cancelled: true, reasonKey: 'wallpaperStatusUploadCancelled' });
+    }
+  });
+  assert.strictEqual(result.state, 'Cancelled');
+  assert.strictEqual(result.reasonKey, 'wallpaperStatusUploadCancelled');
+  assert.strictEqual(storage.api.loadWallpaper().activeSource, 'bing');
+  assert.deepStrictEqual(storage.calls, [['prepare', 'upload']]);
+}
+
+async function testUploadApplyingSameModeStillPrepares() {
+  const storage = createStorage(baseWallpaper('upload'));
+  const Apply = loadApplyModule(storage, {
+    reloadWallpaper: () => {
+      storage.calls.push(['reloadWallpaper']);
+      return Promise.resolve(true);
+    }
+  });
+  const result = await Apply.apply({
+    pendingSource: 'upload',
+    pendingConfig: { activeMedia: 'image', galleryView: 'image' },
+    health: { state: 'Applying', reasonKey: 'wallpaperStatusApplying' },
+    baseline: { pendingSource: 'upload', pendingConfig: { activeMedia: 'image', galleryView: 'image' } }
+  }, {
+    prepare() {
+      storage.calls.push(['prepare', 'upload']);
+      return Promise.resolve({ cancelled: true, reasonKey: 'wallpaperStatusUploadCancelled' });
+    }
+  });
+  assert.strictEqual(result.state, 'Cancelled');
+  assert.deepStrictEqual(storage.calls, [['prepare', 'upload']]);
+}
+
+async function testFolderApplyingStillPreparesAndCommits() {
+  const storage = createStorage(baseWallpaper('bing'), {
+    hasSourceCacheUpload: false
+  });
+  const Apply = loadApplyModule(storage, {
+    reloadWallpaper: () => {
+      storage.calls.push(['reloadWallpaper']);
+      return Promise.resolve(true);
+    }
+  });
+  const result = await Apply.apply({
+    pendingSource: 'folder',
+    pendingConfig: { pathLabel: 'Pictures', strategy: 'shuffle' },
+    health: { state: 'Applying', reasonKey: 'wallpaperStatusApplying' },
+    baseline: { pendingSource: 'bing', pendingConfig: {} }
+  }, {
+    prepare() {
+      storage.calls.push(['prepare', 'folder']);
+      return Promise.resolve({ prepared: true });
+    }
+  });
+  assert.strictEqual(result.state, 'Applied');
+  assert.strictEqual(storage.api.loadWallpaper().activeSource, 'folder');
+  assert.deepStrictEqual(storage.calls, [['prepare', 'folder'], ['saveWallpaper', 'folder'], ['reloadWallpaper']]);
 }
 
 async function testWallhavenRequiresMatchingPassedTest() {
@@ -257,8 +367,14 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
 
 (async function run() {
   testWallhavenSettingsUiContract();
+  testUploadSettingsUiContract();
   await testRssRequiresMatchingPassedTest();
   await testUploadReadyUsesSourceCache();
+  await testUploadSelectionCanApplyWithoutExistingCache();
+  await testUploadSameModeReadyCanReapply();
+  await testUploadCancelledPrepareSkipsCommitReloadAndCleanup();
+  await testUploadApplyingSameModeStillPrepares();
+  await testFolderApplyingStillPreparesAndCommits();
   await testWallhavenRequiresMatchingPassedTest();
   await testApplyPreparesBeforeCleanup();
   await testCommitFailureSkipsReloadAndCleanup();

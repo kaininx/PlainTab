@@ -182,6 +182,7 @@
     var apiNoticeToken = 0;
     var wallhavenNoticeTimer = null;
     var wallhavenNoticeToken = 0;
+    var uploadFilePickerSession = null;
     var FOLDER_GALLERY_LIMIT = 12;
     var FOLDER_THUMB_LOOKAHEAD = 12;
     var UPLOAD_IMAGE_LIMIT = 12;
@@ -289,9 +290,14 @@
         return state.videoId === uploadVideoId();
     }
 
-    function prepareUploadInput() {
+    function uploadModeFromConfig(config) {
+        return config && config.activeMedia === 'video' ? 'video' : 'image';
+    }
+
+    function prepareUploadInput(mode) {
         if (!fileInput) return;
-        if (uploadGalleryView() === 'video') {
+        mode = mode === 'video' ? 'video' : uploadGalleryView();
+        if (mode === 'video') {
             fileInput.accept = 'video/mp4';
             fileInput.multiple = false;
             return;
@@ -351,6 +357,57 @@
         _keepGalleryOpen = false;
         prepareUploadInput();
         if (fileInput) fileInput.click();
+    }
+
+    function finishUploadFilePicker(files, cancelled) {
+        var session = uploadFilePickerSession;
+        if (!session || session.done) return;
+        session.done = true;
+        uploadFilePickerSession = null;
+        if (session.onFocus) window.removeEventListener('focus', session.onFocus, true);
+        session.resolve({
+            cancelled: cancelled === true,
+            files: files || []
+        });
+    }
+
+    function resolveUploadFilePickerChange() {
+        if (!uploadFilePickerSession || !fileInput) return false;
+        var files = Array.from(fileInput.files || []);
+        fileInput.value = '';
+        finishUploadFilePicker(files, files.length === 0);
+        return true;
+    }
+
+    function pickUploadFiles(mode) {
+        if (!fileInput) return Promise.resolve({ cancelled: true, files: [] });
+        if (uploadFilePickerSession) finishUploadFilePicker([], true);
+        mode = mode === 'video' ? 'video' : 'image';
+        return new Promise(function (resolve) {
+            var session = {
+                mode: mode,
+                resolve: resolve,
+                done: false,
+                onFocus: function () {
+                    setTimeout(function () {
+                        if (uploadFilePickerSession === session && !session.done) {
+                            var selected = Array.from(fileInput.files || []);
+                            fileInput.value = '';
+                            finishUploadFilePicker(selected, selected.length === 0);
+                        }
+                    }, 600);
+                }
+            };
+            uploadFilePickerSession = session;
+            fileInput.value = '';
+            prepareUploadInput(mode);
+            setTimeout(function () {
+                if (uploadFilePickerSession === session && !session.done) {
+                    window.addEventListener('focus', session.onFocus, true);
+                }
+            }, 0);
+            fileInput.click();
+        });
     }
 
     // ================================================================
@@ -1180,7 +1237,7 @@
 
     function prepareFolderWorkOrder(workOrder) {
         var mount = wallpaperDraftFolderMount;
-        if (!mount) return Promise.resolve(false);
+        if (!mount) return Promise.reject(new Error(tr('folderNeedsPermission')));
         var folderId = mount.firstId;
         var initialBag = [mount.firstName].concat(mount.shuffleBag || []);
         var thumbLookahead = buildFolderPreviewWindow(mount.files, '', initialBag, FOLDER_THUMB_LOOKAHEAD);
@@ -1304,6 +1361,260 @@
         });
     }
 
+    function snapshotUploadPrepareStorage() {
+        var snapshot = snapshotWallpaperStorage();
+        snapshot.uploadBlobs = {};
+        if (!D.idbKeys || !D.idbGet || !D.DB || !D.DB.UPLOAD_PREFIX) return Promise.resolve(snapshot);
+        return D.idbKeys().then(function (keys) {
+            var uploadKeys = (keys || []).filter(function (key) {
+                return String(key).indexOf(D.DB.UPLOAD_PREFIX) === 0;
+            });
+            return Promise.all(uploadKeys.map(function (key) {
+                return D.idbGet(key).then(function (record) {
+                    snapshot.uploadBlobs[key] = record;
+                });
+            })).then(function () {
+                return snapshot;
+            });
+        });
+    }
+
+    function restoreUploadPrepareStorage(snapshot) {
+        snapshot = snapshot || {};
+        var savedBlobs = snapshot.uploadBlobs || {};
+        if (!D.idbKeys || !D.idbDelete || !D.idbPut || !D.DB || !D.DB.UPLOAD_PREFIX) {
+            restoreWallpaperStorage(snapshot);
+            return Promise.resolve(true);
+        }
+        return D.idbKeys().then(function (keys) {
+            var deletes = (keys || []).filter(function (key) {
+                return String(key).indexOf(D.DB.UPLOAD_PREFIX) === 0 &&
+                    !Object.prototype.hasOwnProperty.call(savedBlobs, key);
+            }).map(function (key) {
+                return D.idbDelete(key);
+            });
+            var restores = Object.keys(savedBlobs).map(function (key) {
+                return restoreIdbValue(key, savedBlobs[key]);
+            });
+            return Promise.all(deletes.concat(restores));
+        }).then(function () {
+            restoreWallpaperStorage(snapshot);
+            return true;
+        });
+    }
+
+    function createUploadImageRecord(file) {
+        var id = 'upload_' + (F && F.generateId ? F.generateId() : String(Date.now()) + '_' + Math.random().toString(36).slice(2));
+        var blobUrl = URL.createObjectURL(file);
+        return S.thumbnail(blobUrl).then(function (thumb) {
+            if (!thumb) throw new Error(tr('wallhavenThumbnailFailed'));
+            if (wallpaperBlur < 5 || !S.blurredThumbnail) {
+                URL.revokeObjectURL(blobUrl);
+                return { id: id, file: file, thumb: thumb, blurThumb: null };
+            }
+            return S.blurredThumbnail(blobUrl, wallpaperBlur).then(function (blurThumb) {
+                URL.revokeObjectURL(blobUrl);
+                return { id: id, file: file, thumb: thumb, blurThumb: blurThumb || null };
+            }, function () {
+                URL.revokeObjectURL(blobUrl);
+                return { id: id, file: file, thumb: thumb, blurThumb: null };
+            });
+        }, function (err) {
+            URL.revokeObjectURL(blobUrl);
+            throw err;
+        });
+    }
+
+    function pruneUploadImageRecords(records) {
+        var keep = {};
+        (records || []).forEach(function (record) { keep[record.id] = true; });
+        if (!D.idbKeys || !D.idbDelete) return Promise.resolve(false);
+        return D.idbKeys().then(function (keys) {
+            var deletes = (keys || []).filter(function (key) {
+                if (String(key).indexOf(D.DB.UPLOAD_PREFIX) !== 0) return false;
+                var id = 'upload_' + String(key).slice(String(D.DB.UPLOAD_PREFIX).length);
+                return D.isUploadImageId ? (D.isUploadImageId(id) && !keep[id]) : (id !== uploadVideoId() && !keep[id]);
+            }).map(function (key) {
+                return D.idbDelete(key);
+            });
+            return Promise.all(deletes);
+        });
+    }
+
+    function writeUploadImagePrepare(records, workOrder) {
+        var puts = records.map(function (record) {
+            return D.idbPut(D.imgKey(record.id), {
+                blob: record.file,
+                mime: record.file.type || '',
+                name: record.file.name || '',
+                size: record.file.size || 0,
+                mediaType: 'image'
+            });
+        });
+        return Promise.all(puts).then(function () {
+            var order = records.map(function (record) { return record.id; });
+            var thumbs = D.loadThumbs();
+            var blurThumbs = D.loadBlurThumbs ? D.loadBlurThumbs() : {};
+            var model = D.loadWallpaper();
+            var meta = model.cache && model.cache.meta ? model.cache.meta : {};
+
+            Object.keys(thumbs).forEach(function (id) { if (D.isUploadImageId && D.isUploadImageId(id)) delete thumbs[id]; });
+            Object.keys(blurThumbs).forEach(function (id) { if (D.isUploadImageId && D.isUploadImageId(id)) delete blurThumbs[id]; });
+            Object.keys(meta).forEach(function (id) { if (D.isUploadImageId && D.isUploadImageId(id)) delete meta[id]; });
+
+            records.forEach(function (record) {
+                thumbs[record.id] = record.thumb;
+                if (record.blurThumb && wallpaperBlur >= 5) blurThumbs[record.id] = { blur: wallpaperBlur, thumb: record.blurThumb };
+                meta[record.id] = {
+                    name: record.file.name || '',
+                    size: record.file.size || 0,
+                    mediaType: 'image'
+                };
+            });
+
+            if (!model.providers) model.providers = {};
+            if (!model.providers.upload) model.providers.upload = { config: {}, state: {} };
+            model.providers.upload.config = {
+                rotation: 'sequential',
+                activeMedia: 'image',
+                galleryView: 'image'
+            };
+            model.cache = model.cache || {};
+            model.cache.order = order;
+            model.cache.index = 0;
+            model.cache.meta = meta;
+
+            D.saveWallpaper(model);
+            D.saveThumbs(thumbs);
+            if (D.saveBlurThumbs) D.saveBlurThumbs(blurThumbs);
+            D.savePreview((records[0] && records[0].blurThumb && wallpaperBlur >= 5 ? records[0].blurThumb : records[0] && records[0].thumb) || null);
+            workOrder.pendingConfig = clonePlain(model.providers.upload.config);
+            if (wallpaperDraft && wallpaperDraft.providers && wallpaperDraft.providers.upload) {
+                wallpaperDraft.providers.upload.config = clonePlain(model.providers.upload.config);
+                wallpaperDraft.cache = clonePlain(model.cache);
+            }
+            return pruneUploadImageRecords(records);
+        });
+    }
+
+    function writeUploadVideoPrepare(file, info, thumb, workOrder) {
+        var id = uploadVideoId();
+        return D.idbPut(D.imgKey(id), {
+            blob: file,
+            mime: file.type || 'video/mp4',
+            name: file.name || '',
+            size: file.size || 0,
+            mediaType: 'video',
+            duration: info.duration || 0,
+            width: info.width || 0,
+            height: info.height || 0
+        }).then(function () {
+            var model = D.loadWallpaper();
+            var thumbs = D.loadThumbs();
+            var blurThumbs = D.loadBlurThumbs ? D.loadBlurThumbs() : {};
+            var meta = model.cache && model.cache.meta ? model.cache.meta : {};
+            if (!model.providers) model.providers = {};
+            if (!model.providers.upload) model.providers.upload = { config: {}, state: {} };
+            if (!model.providers.upload.state) model.providers.upload.state = {};
+
+            thumbs[id] = thumb;
+            delete blurThumbs[id];
+            meta[id] = {
+                name: file.name || '',
+                size: file.size || 0,
+                mediaType: 'video',
+                duration: info.duration || 0,
+                width: info.width || 0,
+                height: info.height || 0
+            };
+            model.providers.upload.config = {
+                rotation: 'sequential',
+                activeMedia: 'video',
+                galleryView: 'video'
+            };
+            model.providers.upload.state.videoId = id;
+            model.cache = model.cache || {};
+            model.cache.meta = meta;
+
+            D.saveWallpaper(model);
+            D.saveThumbs(thumbs);
+            if (D.saveBlurThumbs) D.saveBlurThumbs(blurThumbs);
+            D.savePreview(thumb);
+            workOrder.pendingConfig = clonePlain(model.providers.upload.config);
+            if (wallpaperDraft && wallpaperDraft.providers && wallpaperDraft.providers.upload) {
+                wallpaperDraft.providers.upload.config = clonePlain(model.providers.upload.config);
+                wallpaperDraft.providers.upload.state = clonePlain(model.providers.upload.state);
+                wallpaperDraft.cache = clonePlain(model.cache);
+            }
+            return true;
+        });
+    }
+
+    function prepareUploadWorkOrder(workOrder) {
+        var mode = uploadModeFromConfig(workOrder && workOrder.pendingConfig);
+        setPendingSourceHealth('upload', { state: 'Applying', reasonKey: 'wallpaperStatusUploadPicking', message: '' });
+        return pickUploadFiles(mode).then(function (selection) {
+            if (!selection || selection.cancelled) {
+                return { cancelled: true, reasonKey: 'wallpaperStatusUploadCancelled', message: '' };
+            }
+            var files = selection.files || [];
+            if (mode === 'video') {
+                var video = files.filter(isVideoFile)[0];
+                if (!video) throw new Error(tr('uploadVideoUnsupported'));
+                setPendingSourceHealth('upload', { state: 'Applying', reasonKey: 'wallpaperStatusUploadPreparing', message: '' });
+                return validateVideoFile(video).then(function (info) {
+                    return (S.videoThumbnail ? S.videoThumbnail(video) : Promise.resolve(null)).then(function (thumb) {
+                        if (!thumb) throw new Error(tr('uploadVideoPreviewFailed'));
+                        var prepareSnapshot = null;
+                        return snapshotUploadPrepareStorage().then(function (snapshot) {
+                            prepareSnapshot = snapshot;
+                            return writeUploadVideoPrepare(video, info, thumb, workOrder);
+                        }).then(function () {
+                            return {
+                                prepared: true,
+                                rollback: function () {
+                                    return restoreUploadPrepareStorage(prepareSnapshot);
+                                }
+                            };
+                        }).catch(function (err) {
+                            if (!prepareSnapshot) throw err;
+                            return restoreUploadPrepareStorage(prepareSnapshot).then(function () {
+                                throw err;
+                            }, function () {
+                                throw err;
+                            });
+                        });
+                    });
+                });
+            }
+
+            var images = files.filter(isImageFile).slice(0, UPLOAD_IMAGE_LIMIT);
+            if (!images.length) throw new Error(tr('uploadImageUnsupported'));
+            setPendingSourceHealth('upload', { state: 'Applying', reasonKey: 'wallpaperStatusUploadPreparing', message: '' });
+            return Promise.all(images.map(createUploadImageRecord)).then(function (records) {
+                var prepareSnapshot = null;
+                return snapshotUploadPrepareStorage().then(function (snapshot) {
+                    prepareSnapshot = snapshot;
+                    return writeUploadImagePrepare(records, workOrder);
+                }).then(function () {
+                    return {
+                        prepared: true,
+                        rollback: function () {
+                            return restoreUploadPrepareStorage(prepareSnapshot);
+                        }
+                    };
+                }).catch(function (err) {
+                    if (!prepareSnapshot) throw err;
+                    return restoreUploadPrepareStorage(prepareSnapshot).then(function () {
+                        throw err;
+                    }, function () {
+                        throw err;
+                    });
+                });
+            });
+        });
+    }
+
     function prepareWallhavenWorkOrder(workOrder) {
         if (!wallpaperDraftWallhavenTestResult || !F || !F.cacheWallhavenItems || !D.wallhavenFieldHash) return Promise.resolve(false);
         var config = D.normalizeWallhavenConfig ? D.normalizeWallhavenConfig(workOrder.pendingConfig || {}) : clonePlain(workOrder.pendingConfig || {});
@@ -1390,6 +1701,7 @@
 
     function prepareWallpaperWorkOrder(workOrder) {
         var source = normalizeDraftSource(workOrder && workOrder.pendingSource);
+        if (source === 'upload') return prepareUploadWorkOrder(workOrder);
         if (source === 'folder') return prepareFolderWorkOrder(workOrder);
         if (source === 'api') return prepareApiWorkOrder(workOrder);
         if (source === 'wallhaven') return prepareWallhavenWorkOrder(workOrder);
@@ -1423,6 +1735,15 @@
                 refreshGallery();
                 return;
             }
+            if (result && result.state === 'Cancelled') {
+                workOrder.health = {
+                    state: 'Ready',
+                    reasonKey: result.reasonKey || 'wallpaperStatusUploadCancelled',
+                    message: result.message || ''
+                };
+                refreshWallpaperApplyFooter();
+                return;
+            }
             workOrder.health = {
                 state: 'Error',
                 reasonKey: result && result.reasonKey || 'wallpaperApplyFailed',
@@ -1437,6 +1758,22 @@
             };
             refreshWallpaperApplyFooter();
         });
+    }
+
+    function buildUploadConfigHTML() {
+        var config = pendingConfigForSource('upload') || {};
+        var mode = uploadModeFromConfig(config);
+        return '<div class="upload-apply-config" role="radiogroup" aria-label="' + escapeHtml(getSourceLabel('upload')) + '">' +
+            '<button class="upload-mode-card' + (mode === 'image' ? ' active' : '') + '" type="button" role="radio" aria-checked="' + (mode === 'image' ? 'true' : 'false') + '" data-upload-mode="image">' +
+                '<span class="upload-mode-icon" aria-hidden="true">IMG</span>' +
+                '<span class="upload-mode-copy"><strong>' + escapeHtml(tr('uploadApplyImageTitle')) + '</strong><small>' + escapeHtml(tr('uploadApplyImageDesc')) + '</small></span>' +
+            '</button>' +
+            '<button class="upload-mode-card' + (mode === 'video' ? ' active' : '') + '" type="button" role="radio" aria-checked="' + (mode === 'video' ? 'true' : 'false') + '" data-upload-mode="video">' +
+                '<span class="upload-mode-icon" aria-hidden="true">MP4</span>' +
+                '<span class="upload-mode-copy"><strong>' + escapeHtml(tr('uploadApplyVideoTitle')) + '</strong><small>' + escapeHtml(tr('uploadApplyVideoDesc')) + '</small></span>' +
+            '</button>' +
+            '<p class="upload-apply-hint">' + escapeHtml(tr('uploadApplyModeHint')) + '</p>' +
+            '</div>';
     }
 
     function rssStatusText(config, state) {
@@ -1896,12 +2233,7 @@
         var openSource = draftOpenSource();
         var configs = {
             bing:   '<p>' + tr('bingConfigHint') + '</p>',
-            upload: '<ul class="source-hint-list">' +
-                '<li>' + tr('uploadConfigHintAdd') + '</li>' +
-                '<li>' + tr('uploadConfigHintImages') + '</li>' +
-                '<li>' + tr('uploadConfigHintVideo') + '</li>' +
-                '<li>' + tr('uploadConfigHintWheel') + '</li>' +
-                '</ul>',
+            upload: buildUploadConfigHTML(),
             folder: buildFolderConfigHTML(),
             rss:    buildRssConfigHTML(),
             wallhaven: buildWallhavenConfigHTML(),
@@ -2002,6 +2334,7 @@
                 });
             });
         });
+        bindUploadConfigEvents();
         bindFolderConfigEvents();
         bindRssConfigEvents();
         bindWallhavenConfigEvents();
@@ -2012,6 +2345,31 @@
         if (reset) reset.addEventListener('click', function () {
             if (!confirm(tr('wallpaperResetConfirm'))) return;
             resetWallpaperDefaults();
+        });
+    }
+
+    function bindUploadConfigEvents() {
+        modalContent.querySelectorAll('[data-upload-mode]').forEach(function (button) {
+            button.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var mode = button.dataset.uploadMode === 'video' ? 'video' : 'image';
+                switchWallpaperWorkOrderSource('upload');
+                wallpaperDraftOpenSource = 'upload';
+                updatePendingSourceConfig('upload', function (pending) {
+                    pending.rotation = pending.rotation || 'sequential';
+                    pending.activeMedia = mode;
+                    pending.galleryView = mode;
+                });
+                setPendingSourceHealth('upload', {
+                    state: 'Ready',
+                    reasonKey: 'wallpaperApplyReady',
+                    message: ''
+                });
+                if (wallpaperDraft && wallpaperDraft.providers && wallpaperDraft.providers.upload) {
+                    wallpaperDraft.providers.upload.config = clonePlain(currentWallpaperWorkOrder().pendingConfig);
+                }
+                refreshWallpaperDraftTab();
+            });
         });
     }
 
@@ -5561,6 +5919,7 @@
 
         // 文件选择
         fileInput.addEventListener('change', function () {
+            if (resolveUploadFilePickerChange()) return;
             var all = Array.from(fileInput.files || []);
             var view = uploadGalleryView();
             fileInput.value = '';

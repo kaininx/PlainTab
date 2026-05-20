@@ -53,6 +53,8 @@ Tab 是懒构建的。由于 `index.html` 里存在恢复 tab，`buildRestoreHTM
 - RSS/API 应用必须有当前字段 hash 对应的成功测试记录；测试失败或字段过期时不能应用。
 - 应用按钮只在 work order 通过 health gate 且相对 baseline 有真实变更时可用。
 - 关闭模态窗口或恢复壁纸默认时清理 work order。
+- Upload work order 是“必须已有缓存”规则的例外：选择图片/视频模式只是准备一次文件选择型应用动作，文件选择器只在点击应用后打开。
+- 如果上传文件选择被取消，保持当前 work order 选中且 Ready，保持已保存的 `activeSource` 不变，并显示取消状态，便于用户再次应用。
 
 ## 来源抽屉
 

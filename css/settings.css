@@ -421,6 +421,76 @@
     line-height: 1.45;
 }
 
+.upload-apply-config {
+    display: grid;
+    gap: 9px;
+}
+
+.upload-mode-card {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    min-height: 66px;
+    padding: 10px 12px;
+    border: 1px solid var(--control-border);
+    border-radius: 8px;
+    background: rgba(var(--surface-base-rgb), 0.22);
+    color: var(--text-primary);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.upload-mode-card:hover {
+    border-color: rgba(34, 197, 94, 0.44);
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.upload-mode-card.active {
+    border-color: rgba(34, 197, 94, 0.62);
+    background: rgba(34, 197, 94, 0.13);
+}
+
+.upload-mode-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: rgba(34, 197, 94, 0.13);
+    color: #86efac;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0;
+}
+
+.upload-mode-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.upload-mode-copy strong {
+    font-size: 12.5px;
+    line-height: 1.3;
+}
+
+.upload-mode-copy small,
+.upload-apply-hint {
+    color: var(--text-muted);
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+
+.upload-apply-hint {
+    margin: 0;
+}
+
 .wallpaper-thumb.dragging {
     z-index: 1000;
     border-radius: 10px;
@@ -1956,7 +2026,7 @@ input[type="file"] {
 }
 
 .source-drawer .config-row button,
-.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]) {
+.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not(.upload-mode-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]) {
     min-height: 34px;
     padding: 8px 13px;
     border-radius: 8px;
@@ -1972,15 +2042,15 @@ input[type="file"] {
 }
 
 .source-drawer .config-row button:hover,
-.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]):hover {
+.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not(.upload-mode-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]):hover {
     background: rgba(var(--surface-base-rgb), 0.32);
     border-color: var(--control-border-hover);
 }
 
 .source-drawer .config-row button:disabled,
-.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]):disabled,
+.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not(.upload-mode-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]):disabled,
 .source-drawer .config-row button:disabled:hover,
-.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]):disabled:hover {
+.source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not(.upload-mode-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]):disabled:hover {
     cursor: not-allowed;
     opacity: 0.45;
     color: var(--text-muted);
@@ -3435,7 +3505,7 @@ input[type="file"] {
     }
 
     .source-drawer .config-row button,
-    .source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]) {
+    .source-drawer-body-inner button:not(.custom-select-trigger):not(.custom-select-option):not(.wallhaven-color-swatch):not(.wallhaven-category-card):not(.upload-mode-card):not([data-api-refresh-interval]):not([data-wallhaven-refresh-interval]) {
         width: 100%;
     }
 
