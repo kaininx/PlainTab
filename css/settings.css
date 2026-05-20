@@ -392,6 +392,10 @@
     cursor: grab;
 }
 
+.wallpaper-thumb[data-media-type="image-empty"] {
+    cursor: default;
+}
+
 .wallpaper-thumb[data-source="upload-video"] {
     cursor: default;
 }

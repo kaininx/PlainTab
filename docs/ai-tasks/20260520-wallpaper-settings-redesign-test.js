@@ -105,6 +105,7 @@ function testWallhavenSettingsUiContract() {
 
 function testUploadSettingsUiContract() {
   const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
+  const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
   assert(settingsPanel.includes('function buildUploadConfigHTML'), 'upload drawer should render explicit media choices');
   assert(settingsPanel.includes("data-upload-mode=\"image\""), 'upload drawer should expose an image mode choice');
   assert(settingsPanel.includes("data-upload-mode=\"video\""), 'upload drawer should expose a video mode choice');
@@ -113,6 +114,10 @@ function testUploadSettingsUiContract() {
   assert(settingsPanel.includes("tr('uploadApplyPrivacyHint')"), 'upload drawer should explain local-only storage');
   assert(settingsPanel.includes("tr('folderPermissionHint')"), 'folder drawer should explain browser permission lifetime and local-only access');
   assert(settingsPanel.includes('prepareUploadWorkOrder'), 'upload source should prepare files during apply');
+  assert(settingsPanel.includes("mode = mode === 'video' ? 'video' : (mode === 'image' ? 'image' : uploadGalleryView());"), 'explicit image uploads should not fall back to the saved video gallery view');
+  assert(settingsPanel.includes("id: 'upload_image_empty'"), 'image gallery should render an empty placeholder when only video exists');
+  assert(settingsPanel.includes("mediaType: 'image-empty'"), 'image gallery empty placeholder should be distinguishable from real image cards');
+  assert(css.includes('[data-media-type="image-empty"]'), 'image gallery empty placeholder should not inherit the draggable upload cursor');
 }
 
 function testApiSettingsUsesSharedVisualLanguage() {

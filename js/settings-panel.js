@@ -296,7 +296,7 @@
 
     function prepareUploadInput(mode) {
         if (!fileInput) return;
-        mode = mode === 'video' ? 'video' : uploadGalleryView();
+        mode = mode === 'video' ? 'video' : (mode === 'image' ? 'image' : uploadGalleryView());
         if (mode === 'video') {
             fileInput.accept = 'video/mp4';
             fileInput.multiple = false;
@@ -5108,6 +5108,18 @@
     }
 
     function buildUploadItems(order, images, thumbs) {
+        if (!order.length) {
+            return [{
+                id: 'upload_image_empty',
+                source: 'upload',
+                title: tr('addImage'),
+                bg: '',
+                fallback: 'IMG',
+                mediaType: 'image-empty',
+                deletable: false,
+                draggable: false
+            }];
+        }
         return order.slice(0, UPLOAD_IMAGE_LIMIT).map(function (id, i) {
             var imgMeta = images[i];
             var bg = thumbs[id];
