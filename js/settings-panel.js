@@ -558,6 +558,21 @@
         });
     }
 
+    function appConfirm(message, options) {
+        options = options || {};
+        options.message = message;
+        if (window.PlainTabNotice && window.PlainTabNotice.confirm) return window.PlainTabNotice['confirm'](options);
+        return Promise.resolve(false);
+    }
+
+    function appAlert(message, options) {
+        options = options || {};
+        options.message = message;
+        if (window.PlainTabNotice && window.PlainTabNotice.alert) return window.PlainTabNotice['alert'](options);
+        warn('Notice', message);
+        return Promise.resolve(true);
+    }
+
     function isHttpUrl(value) {
         return /^http:\/\//i.test(String(value || '').trim());
     }
@@ -2154,8 +2169,9 @@
         if (searchBlurNum) searchBlurNum.addEventListener('change', function () { applySearchBlur(this.value); if (searchBlurRange) searchBlurRange.value = searchBlur; this.value = searchBlur; });
         if (engineSel) engineSel.addEventListener('change', function () { applyEngine(this.value); });
         if (resetBtn) resetBtn.addEventListener('click', function () {
-            if (!confirm(tr('resetSearchConfirm'))) return;
-            resetSearchDefaults();
+            appConfirm(tr('resetSearchConfirm'), { variant: 'warning' }).then(function (ok) {
+                if (ok) resetSearchDefaults();
+            });
         });
         syncCustomSelects(modalContent);
     }
@@ -2187,8 +2203,9 @@
         }
         if (reducedMotionCheck) reducedMotionCheck.addEventListener('change', function () { applyReducedMotion(this.checked); });
         if (resetBtn) resetBtn.addEventListener('click', function () {
-            if (!confirm(tr('resetAppearanceConfirm'))) return;
-            resetAppearanceDefaults();
+            appConfirm(tr('resetAppearanceConfirm'), { variant: 'warning' }).then(function (ok) {
+                if (ok) resetAppearanceDefaults();
+            });
         });
         syncCustomSelects(modalContent);
     }
@@ -2306,7 +2323,8 @@
             setWallpaperDraftOpenSource: setWallpaperDraftOpenSource,
             refreshWallpaperDraftTab: refreshWallpaperDraftTab,
             applyWallpaperDraft: applyWallpaperDraft,
-            resetWallpaperDefaults: resetWallpaperDefaults
+            resetWallpaperDefaults: resetWallpaperDefaults,
+            confirmAction: appConfirm
         };
     }
 
@@ -2350,8 +2368,9 @@
         if (applyBtn) applyBtn.addEventListener('click', applyWallpaperDraft);
         var reset = modalContent.querySelector('#wallpaperResetBtn');
         if (reset) reset.addEventListener('click', function () {
-            if (!confirm(tr('wallpaperResetConfirm'))) return;
-            resetWallpaperDefaults();
+            appConfirm(tr('wallpaperResetConfirm'), { variant: 'danger' }).then(function (ok) {
+                if (ok) resetWallpaperDefaults();
+            });
         });
     }
 
@@ -2939,14 +2958,22 @@
         if (!source) return;
         if (target.dataset.action === 'delete-rss') {
             var wasRunningRssSource = deletedRunningRssSource(source.id);
-            if (wasRunningRssSource && !confirm(tr('wallpaperActiveSourceDeletedConfirm'))) return;
-            config.sources = config.sources.filter(function (item) { return item.id !== source.id; });
-            if (!config.sources.some(function (item) { return item.id === config.activeSourceId; })) config.activeSourceId = config.sources[0] ? config.sources[0].id : '';
-            saveRssListConfig(config);
-            if (wasRunningRssSource) {
-                switchRunningWallpaperToBing();
+            function deleteRssSource() {
+                config.sources = config.sources.filter(function (item) { return item.id !== source.id; });
+                if (!config.sources.some(function (item) { return item.id === config.activeSourceId; })) config.activeSourceId = config.sources[0] ? config.sources[0].id : '';
+                saveRssListConfig(config);
+                if (wasRunningRssSource) {
+                    switchRunningWallpaperToBing();
+                }
+                refreshWallpaperDraftTab();
             }
-            refreshWallpaperDraftTab();
+            if (wasRunningRssSource) {
+                appConfirm(tr('wallpaperActiveSourceDeletedConfirm'), { variant: 'danger' }).then(function (ok) {
+                    if (ok) deleteRssSource();
+                });
+                return;
+            }
+            deleteRssSource();
             return;
         }
         if (target.dataset.action === 'test-rss') {
@@ -3408,16 +3435,24 @@
         if (!sourceForRow) return;
         if (target.dataset.action === 'delete-api') {
             var wasRunningApiSource = deletedRunningApiSource(row.dataset.apiType, sourceForRow.id);
-            if (wasRunningApiSource && !confirm(tr('wallpaperActiveSourceDeletedConfirm'))) return;
-            listForRow.splice(listForRow.indexOf(sourceForRow), 1);
-            if (row.dataset.apiType === 'json') config.activeJsonSourceId = listForRow[0] ? listForRow[0].id : '';
-            else config.activeImageSourceId = listForRow[0] ? listForRow[0].id : '';
-            saveApiListConfig(config);
-            if (wasRunningApiSource) {
-                switchRunningWallpaperToBing();
+            function deleteApiSource() {
+                listForRow.splice(listForRow.indexOf(sourceForRow), 1);
+                if (row.dataset.apiType === 'json') config.activeJsonSourceId = listForRow[0] ? listForRow[0].id : '';
+                else config.activeImageSourceId = listForRow[0] ? listForRow[0].id : '';
+                saveApiListConfig(config);
+                if (wasRunningApiSource) {
+                    switchRunningWallpaperToBing();
+                }
+                wallpaperDraftApiTestResult = null;
+                refreshWallpaperDraftTab();
             }
-            wallpaperDraftApiTestResult = null;
-            refreshWallpaperDraftTab();
+            if (wasRunningApiSource) {
+                appConfirm(tr('wallpaperActiveSourceDeletedConfirm'), { variant: 'danger' }).then(function (ok) {
+                    if (ok) deleteApiSource();
+                });
+                return;
+            }
+            deleteApiSource();
             return;
         }
         if (target.dataset.action === 'test-api') {
@@ -3564,8 +3599,9 @@
             savePaletteRecommend(cpRec.checked);
         });
         if (resetBtn) resetBtn.addEventListener('click', function () {
-            if (!confirm(tr('resetShortcutsConfirm'))) return;
-            resetShortcutsDefaults();
+            appConfirm(tr('resetShortcutsConfirm'), { variant: 'warning' }).then(function (ok) {
+                if (ok) resetShortcutsDefaults();
+            });
         });
     }
 
@@ -3609,24 +3645,29 @@
         var allBtn = document.getElementById('restoreAllBtn');
 
         if (appearanceBtn) appearanceBtn.addEventListener('click', function () {
-            if (!confirm(tr('resetAppearanceConfirm'))) return;
-            resetAppearanceDefaults();
+            appConfirm(tr('resetAppearanceConfirm'), { variant: 'warning' }).then(function (ok) {
+                if (ok) resetAppearanceDefaults();
+            });
         });
         if (searchBtn) searchBtn.addEventListener('click', function () {
-            if (!confirm(tr('resetSearchConfirm'))) return;
-            resetSearchDefaults();
+            appConfirm(tr('resetSearchConfirm'), { variant: 'warning' }).then(function (ok) {
+                if (ok) resetSearchDefaults();
+            });
         });
         if (wallpaperBtn) wallpaperBtn.addEventListener('click', function () {
-            if (!confirm(tr('wallpaperResetConfirm'))) return;
-            resetWallpaperDefaults();
+            appConfirm(tr('wallpaperResetConfirm'), { variant: 'danger' }).then(function (ok) {
+                if (ok) resetWallpaperDefaults();
+            });
         });
         if (shortcutsBtn) shortcutsBtn.addEventListener('click', function () {
-            if (!confirm(tr('resetShortcutsConfirm'))) return;
-            resetShortcutsDefaults();
+            appConfirm(tr('resetShortcutsConfirm'), { variant: 'warning' }).then(function (ok) {
+                if (ok) resetShortcutsDefaults();
+            });
         });
         if (allBtn) allBtn.addEventListener('click', function () {
-            if (!confirm(tr('resetAllConfirm'))) return;
-            resetAllDefaults();
+            appConfirm(tr('resetAllConfirm'), { variant: 'danger' }).then(function (ok) {
+                if (ok) resetAllDefaults();
+            });
         });
     }
 
@@ -5835,28 +5876,30 @@
                 info.frameRate = fps || 0;
                 if (!(fps > UPLOAD_VIDEO_OPTIMIZE_FPS)) return { file: file, info: info, optimized: false };
 
-                if (!confirmHighFrameRateVideo(fps)) return { file: file, info: info, optimized: false, skippedOptimization: true };
-                setPendingSourceHealth('upload', { state: 'Applying', reasonKey: 'wallpaperStatusUploadOptimizing', message: '' });
-                return optimizeVideoFrameRate(file, info).then(function (optimizedFile) {
-                    info.frameRate = UPLOAD_VIDEO_OPTIMIZE_FPS;
-                    info.originalFrameRate = fps;
-                    info.optimizedFrameRate = UPLOAD_VIDEO_OPTIMIZE_FPS;
-                    showRuntimeDownloadNotice('uploadVideo', 'done');
-                    return { file: optimizedFile, info: info, optimized: true };
-                }, function (err) {
-                    warn('Local', 'video optimization failed: ' + (err && err.message ? err.message : err));
-                    showRuntimeDownloadNotice('uploadVideo', 'error');
-                    return { file: file, info: info, optimized: false };
+                return confirmHighFrameRateVideo(fps).then(function (ok) {
+                    if (!ok) return { file: file, info: info, optimized: false, skippedOptimization: true };
+                    setPendingSourceHealth('upload', { state: 'Applying', reasonKey: 'wallpaperStatusUploadOptimizing', message: '' });
+                    return optimizeVideoFrameRate(file, info).then(function (optimizedFile) {
+                        info.frameRate = UPLOAD_VIDEO_OPTIMIZE_FPS;
+                        info.originalFrameRate = fps;
+                        info.optimizedFrameRate = UPLOAD_VIDEO_OPTIMIZE_FPS;
+                        showRuntimeDownloadNotice('uploadVideo', 'done');
+                        return { file: optimizedFile, info: info, optimized: true };
+                    }, function (err) {
+                        warn('Local', 'video optimization failed: ' + (err && err.message ? err.message : err));
+                        showRuntimeDownloadNotice('uploadVideo', 'error');
+                        return { file: file, info: info, optimized: false };
+                    });
                 });
             });
         });
     }
 
     function confirmHighFrameRateVideo(fps) {
-        return confirm(formatLocalizedText('uploadVideoHighFpsConfirm', {
+        return appConfirm(formatLocalizedText('uploadVideoHighFpsConfirm', {
             fps: Math.round(fps),
             target: UPLOAD_VIDEO_OPTIMIZE_FPS
-        }));
+        }), { variant: 'warning' });
     }
 
     function saveLocalImage(file, show) {
@@ -5956,7 +5999,7 @@
             });
         }).catch(function (e) {
             warn('Local', 'video save failed: ' + (e && e.message ? e.message : e));
-            alert(e && e.message ? e.message : tr('uploadVideoUnsupported'));
+            appAlert(e && e.message ? e.message : tr('uploadVideoUnsupported'), { variant: 'error' });
             return null;
         });
     }

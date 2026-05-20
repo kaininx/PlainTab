@@ -199,8 +199,10 @@
             var reset = root.querySelector('#wallpaperResetBtn');
             if (reset && context.resetWallpaperDefaults) {
                 reset.addEventListener('click', function () {
-                    if (!confirm(tr('wallpaperResetConfirm'))) return;
-                    context.resetWallpaperDefaults();
+                    var confirmAction = context.confirmAction || function () { return Promise.resolve(false); };
+                    confirmAction(tr('wallpaperResetConfirm'), { variant: 'danger' }).then(function (ok) {
+                        if (ok) context.resetWallpaperDefaults();
+                    });
                 });
             }
         }

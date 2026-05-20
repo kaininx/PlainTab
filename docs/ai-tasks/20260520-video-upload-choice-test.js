@@ -23,11 +23,12 @@ assert.ok(
   'high-frame-rate video handling should ask the user before transcoding'
 );
 assert.ok(
-  settings.includes("confirm(formatLocalizedText('uploadVideoHighFpsConfirm'"),
-  'high-frame-rate video prompt should use confirm so users can decline transcoding'
+  settings.includes("appConfirm(formatLocalizedText('uploadVideoHighFpsConfirm'"),
+  'high-frame-rate video prompt should use the custom confirm so users can decline transcoding'
 );
 assert.ok(
-  settings.includes('if (!confirmHighFrameRateVideo(fps)) return { file: file, info: info, optimized: false, skippedOptimization: true };'),
+  settings.includes('return confirmHighFrameRateVideo(fps).then(function (ok)') &&
+    settings.includes('if (!ok) return { file: file, info: info, optimized: false, skippedOptimization: true };'),
   'declining the prompt should upload the original video'
 );
 
