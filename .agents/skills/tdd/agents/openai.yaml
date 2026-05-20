@@ -1,0 +1,8 @@
+interface:
+  display_name: "PlainTab TDD"
+  short_description: "Use behavior-first checks for PlainTab runtime changes"
+  default_prompt: "Use $tdd for this PlainTab behavior change."
+
+policy:
+  allow_implicit_invocation: true
+

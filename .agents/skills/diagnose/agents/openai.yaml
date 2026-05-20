@@ -1,0 +1,8 @@
+interface:
+  display_name: "Diagnose PlainTab"
+  short_description: "Reproduce and fix PlainTab bugs with a tight feedback loop"
+  default_prompt: "Use $diagnose to debug this PlainTab issue."
+
+policy:
+  allow_implicit_invocation: true
+

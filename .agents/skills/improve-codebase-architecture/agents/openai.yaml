@@ -1,0 +1,8 @@
+interface:
+  display_name: "Improve PlainTab Architecture"
+  short_description: "Review PlainTab modules for safer, deeper seams"
+  default_prompt: "Use $improve-codebase-architecture to review this PlainTab area."
+
+policy:
+  allow_implicit_invocation: true
+
