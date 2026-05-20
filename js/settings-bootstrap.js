@@ -366,16 +366,36 @@
         refreshLangButtons();
     }
 
+    function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+            var existing = document.querySelector('script[src="' + src + '"]');
+            if (existing) {
+                if (existing.dataset.loaded === 'true') {
+                    resolve();
+                    return;
+                }
+                existing.addEventListener('load', function () { resolve(); }, { once: true });
+                existing.addEventListener('error', function () { reject(new Error('failed to load ' + src)); }, { once: true });
+                return;
+            }
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = function () {
+                script.dataset.loaded = 'true';
+                resolve();
+            };
+            script.onerror = function () { reject(new Error('failed to load ' + src)); };
+            document.body.appendChild(script);
+        });
+    }
+
     function ensureFullSettings() {
-        if (window.SettingsPanelFull) return Promise.resolve(window.SettingsPanelFull);
+        if (window.SettingsPanelFull && window.SettingsWallpaper) return Promise.resolve(window.SettingsPanelFull);
         if (!fullLoadPromise) {
-            fullLoadPromise = new Promise(function (resolve, reject) {
-                var script = document.createElement('script');
-                script.src = 'js/settings-panel.js';
-                script.onload = function () { resolve(window.SettingsPanelFull); };
-                script.onerror = function () { reject(new Error('failed to load settings-panel.js')); };
-                document.body.appendChild(script);
-            }).then(function (full) {
+            fullLoadPromise = loadScript('js/settings-panel.js').then(function () {
+                return loadScript('js/settings-wallpaper.js');
+            }).then(function () {
+                var full = window.SettingsPanelFull;
                 if (full && full.init) full.init({
                     bootstrapShell: true,
                     currentLang: currentLang,

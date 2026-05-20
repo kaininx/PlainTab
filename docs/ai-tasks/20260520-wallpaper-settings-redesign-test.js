@@ -113,6 +113,34 @@ function testUploadSettingsUiContract() {
   assert(settingsPanel.includes('prepareUploadWorkOrder'), 'upload source should prepare files during apply');
 }
 
+function testUnifiedWallpaperLayoutContract() {
+  const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
+  const settingsBootstrap = fs.readFileSync(path.join(repoRoot, 'js', 'settings-bootstrap.js'), 'utf8');
+  const settingsWallpaperPath = path.join(repoRoot, 'js', 'settings-wallpaper.js');
+  assert(fs.existsSync(settingsWallpaperPath), 'wallpaper settings should live in js/settings-wallpaper.js');
+  const settingsWallpaper = fs.readFileSync(settingsWallpaperPath, 'utf8');
+  assert(settingsWallpaper.includes('window.SettingsWallpaper'), 'settings-wallpaper module should expose window.SettingsWallpaper');
+  assert(settingsWallpaper.includes('wallpaper-source-nav'), 'new wallpaper layout should render a source navigation rail');
+  assert(settingsWallpaper.includes('wallpaper-source-detail'), 'new wallpaper layout should render a source detail panel');
+  assert(settingsWallpaper.includes('wallpaper-runtime-card'), 'new wallpaper layout should render a current runtime card');
+  assert(settingsWallpaper.includes('data-wallpaper-source-option'), 'source nav should expose source option buttons');
+  ['bing', 'upload', 'folder', 'rss', 'wallhaven', 'api'].forEach((source) => {
+    assert(settingsWallpaper.includes(`'${source}'`) || settingsWallpaper.includes(`"${source}"`), `source nav should include ${source}`);
+  });
+  assert(!settingsWallpaper.includes('source-drawer'), 'new wallpaper module should not render the old source drawer markup');
+  assert(settingsPanel.includes('SettingsWallpaper'), 'settings-panel should delegate wallpaper tab rendering to SettingsWallpaper');
+  assert(settingsBootstrap.includes("loadScript('js/settings-panel.js')"), 'settings bootstrap should lazy-load the full panel');
+  assert(settingsBootstrap.includes("loadScript('js/settings-wallpaper.js')"), 'settings bootstrap should lazy-load wallpaper settings after the full panel');
+}
+
+async function testSourceTabSelectionDoesNotCommitActiveSource() {
+  const settingsWallpaper = fs.readFileSync(path.join(repoRoot, 'js', 'settings-wallpaper.js'), 'utf8');
+  assert(settingsWallpaper.includes('function selectWallpaperSource'), 'wallpaper module should have a source selection handler');
+  assert(settingsWallpaper.includes('pendingSource'), 'source selection should update the pending work order through context');
+  assert(!/selectWallpaperSource[\s\S]{0,900}setActiveSource/.test(settingsWallpaper), 'clicking a source tab must not write activeSource');
+  assert(!/data-wallpaper-source-option[\s\S]{0,1400}saveWallpaper/.test(settingsWallpaper), 'source tab event binding must not commit wallpaper storage');
+}
+
 async function testRssRequiresMatchingPassedTest() {
   const storage = createStorage(baseWallpaper('bing'));
   const Apply = loadApplyModule(storage);
@@ -368,6 +396,8 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
 (async function run() {
   testWallhavenSettingsUiContract();
   testUploadSettingsUiContract();
+  testUnifiedWallpaperLayoutContract();
+  await testSourceTabSelectionDoesNotCommitActiveSource();
   await testRssRequiresMatchingPassedTest();
   await testUploadReadyUsesSourceCache();
   await testUploadSelectionCanApplyWithoutExistingCache();

@@ -176,6 +176,7 @@
     var wallpaperDraftApiOpenType = '';
     var wallpaperWorkOrder = null;
     var wallpaperWorkOrderStatus = { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
+    var wallpaperSettingsModule = null;
     var rssNoticeTimer = null;
     var rssNoticeToken = 0;
     var apiNoticeTimer = null;
@@ -1083,6 +1084,10 @@
         if (wallpaperDraftOpenSource === 'none') return '';
         var source = normalizeDraftSource(wallpaperDraftOpenSource || draftActiveSource());
         return source === 'local' ? 'upload' : source;
+    }
+
+    function setWallpaperDraftOpenSource(source) {
+        wallpaperDraftOpenSource = normalizeDraftSource(source || 'none');
     }
 
     function sourceListHasId(sources, id) {
@@ -2216,54 +2221,93 @@
             settingItem(tr('overlayLabel'), modalCopy('modalDescOverlay'), overlayControl));
     }
 
+    function buildWallpaperSourceDetailHTML(source) {
+        source = normalizeDraftSource(source);
+        var detailMap = {
+            bing: {
+                title: getSourceLabel('bing'),
+                desc: tr('sourceBingDesc'),
+                body: '<p class="wallpaper-detail-note">' + escapeHtml(tr('bingConfigHint')) + '</p>'
+            },
+            upload: {
+                title: getSourceLabel('upload'),
+                desc: tr('sourceUploadDesc'),
+                body: buildUploadConfigHTML()
+            },
+            folder: {
+                title: getSourceLabel('folder'),
+                desc: tr('sourceFolderDesc'),
+                body: buildFolderConfigHTML()
+            },
+            rss: {
+                title: getSourceLabel('rss'),
+                desc: tr('sourceRssDesc'),
+                body: buildRssConfigHTML()
+            },
+            wallhaven: {
+                title: getSourceLabel('wallhaven'),
+                desc: tr('sourceWallhavenDesc'),
+                body: buildWallhavenConfigHTML()
+            },
+            api: {
+                title: getSourceLabel('api'),
+                desc: tr('sourceApiDesc'),
+                body: buildApiConfigHTML()
+            }
+        };
+        var detail = detailMap[source] || detailMap.bing;
+        return '<div class="wallpaper-detail-card" data-source-detail-card="' + escapeHtml(source) + '">' +
+            '<div class="wallpaper-detail-heading">' +
+                '<span class="wallpaper-detail-kicker">' + escapeHtml(tr('settingsGroupWallpaperSource')) + '</span>' +
+                '<h3 class="wallpaper-detail-title">' + escapeHtml(detail.title) + '</h3>' +
+                '<p class="wallpaper-detail-copy">' + escapeHtml(detail.desc) + '</p>' +
+            '</div>' +
+            '<div class="wallpaper-detail-body">' + detail.body + '</div>' +
+            '</div>';
+    }
+
+    function bindWallpaperSourceDetailEvents() {
+        bindUploadConfigEvents();
+        bindFolderConfigEvents();
+        bindRssConfigEvents();
+        bindWallhavenConfigEvents();
+        bindApiConfigEvents();
+    }
+
+    function wallpaperSettingsContext() {
+        return {
+            D: D,
+            tr: tr,
+            escapeHtml: escapeHtml,
+            modalCopy: modalCopy,
+            modalContent: modalContent,
+            normalizeDraftSource: normalizeDraftSource,
+            getSourceLabel: getSourceLabel,
+            currentWallpaperWorkOrder: currentWallpaperWorkOrder,
+            validateWallpaperWorkOrder: validateWallpaperWorkOrder,
+            wallpaperStatusText: wallpaperStatusText,
+            wallpaperStatusState: wallpaperStatusState,
+            wallpaperApplyFooterHTML: wallpaperApplyFooterHTML,
+            buildWallpaperDisplayHTML: buildWallpaperDisplayHTML,
+            buildWallpaperSourceDetailHTML: buildWallpaperSourceDetailHTML,
+            bindWallpaperSourceDetailEvents: bindWallpaperSourceDetailEvents,
+            switchWallpaperWorkOrderSource: switchWallpaperWorkOrderSource,
+            setWallpaperDraftOpenSource: setWallpaperDraftOpenSource,
+            refreshWallpaperDraftTab: refreshWallpaperDraftTab,
+            applyWallpaperDraft: applyWallpaperDraft,
+            resetWallpaperDefaults: resetWallpaperDefaults
+        };
+    }
+
     function buildWallpaperHTML() {
         if (!wallpaperDraft) openWallpaperDraft();
-        var workOrder = currentWallpaperWorkOrder();
-        var activeSource = normalizeDraftSource(workOrder.pendingSource);
-        var sources = [
-            { id: 'bing',   name: getSourceLabel('bing'),   desc:tr('sourceBingDesc')},
-            { id: 'upload', name: getSourceLabel('upload'), desc:tr('sourceUploadDesc')},
-            { id: 'folder', name: getSourceLabel('folder'), desc:tr('sourceFolderDesc')},
-            { id: 'rss',    name: getSourceLabel('rss'),    desc:tr('sourceRssDesc')},
-            { id: 'wallhaven', name: getSourceLabel('wallhaven'), desc:tr('sourceWallhavenDesc')},
-            { id: 'api',    name: getSourceLabel('api'),    desc:tr('sourceApiDesc')}
-        ];
-
-        var runningSource = normalizeDraftSource(D.getActiveSource ? D.getActiveSource() : D.loadWallpaper().activeSource);
-        var openSource = draftOpenSource();
-        var configs = {
-            bing:   '<p>' + tr('bingConfigHint') + '</p>',
-            upload: buildUploadConfigHTML(),
-            folder: buildFolderConfigHTML(),
-            rss:    buildRssConfigHTML(),
-            wallhaven: buildWallhavenConfigHTML(),
-            api:    buildApiConfigHTML()
-        };
-        var selectedSourceLabel = getSourceLabel(activeSource);
-        var selectedSourceHint = escapeHtml(tr('wallpaperCurrentSource')).replace('{source}', '<strong class="wallpaper-current-source-name ' + activeSource + '">' + escapeHtml(selectedSourceLabel) + '</strong>');
-
-        var drawers = sources.map(function (s) {
-            var expandedClass = s.id === openSource ? ' active' : '';
-            var selectedClass = s.id === activeSource ? ' selected' : '';
-            var runningClass = s.id === runningSource ? ' running' : '';
-            return '<div class="source-drawer' + expandedClass + selectedClass + runningClass + '" data-source="' + s.id + '">' +
-                '<div class="source-drawer-header">' +
-                '<button class="source-selector ' + s.id + '" type="button" role="radio" aria-checked="' + (s.id === activeSource ? 'true' : 'false') + '" data-source-option="' + s.id + '" aria-label="' + escapeHtml(s.name) + '"><span></span></button>' +
-                '<span class="source-drawer-dot ' + s.id + '"></span>' +
-                '<div class="source-drawer-info"><div class="source-drawer-name">' + escapeHtml(s.name) + '</div><div class="source-drawer-desc">' + escapeHtml(s.desc) + '</div></div>' +
-                '<svg class="source-drawer-chevron" viewBox="0 0 16 16" fill="currentColor"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-                '</div>' +
-                '<div class="source-drawer-body"><div class="source-drawer-body-inner">' + configs[s.id] + '</div></div>' +
-                '</div>';
-        }).join('');
-
-        var sourceHTML = settingGroup(tr('settingsGroupWallpaperSource'),
-            '<div class="wallpaper-current-source">' + selectedSourceHint + '</div>' +
-            '<div class="source-accordion">' + drawers + '</div>');
-
+        if (window.SettingsWallpaper && window.SettingsWallpaper.create) {
+            wallpaperSettingsModule = window.SettingsWallpaper.create(wallpaperSettingsContext());
+            return wallpaperSettingsModule.buildHTML();
+        }
         return '<div class="wallpaper-tab-shell">' +
             '<div class="wallpaper-tab-header"><h2>' + tr('tabWallpaper') + '</h2><p>' + modalCopy('modalSubtitleWallpaper') + '</p></div>' +
-            '<div class="wallpaper-tab-body">' + sourceHTML + '<div class="wallpaper-section-divider" aria-hidden="true"></div>' + buildWallpaperDisplayHTML() + '<div class="wallpaper-reset-row"><button class="danger-action" id="wallpaperResetBtn" type="button">' + tr('wallpaperResetDefaults') + '</button></div></div>' +
+            '<div class="wallpaper-tab-body">' + buildWallpaperSourceDetailHTML(normalizeDraftSource(currentWallpaperWorkOrder().pendingSource)) + buildWallpaperDisplayHTML() + '</div>' +
             wallpaperApplyFooterHTML() +
             '</div>';
     }
@@ -2286,59 +2330,11 @@
         if (overlayRange) overlayRange.addEventListener('input', function () { applyOverlayOpacity(this.value); if (overlayNum) overlayNum.value = this.value; });
         if (overlayNum) overlayNum.addEventListener('change', function () { applyOverlayOpacity(this.value); if (overlayRange) overlayRange.value = this.value; });
 
-        function setDrawerOpen(drawer, open) {
-            var body = drawer.querySelector('.source-drawer-body');
-            var inner = drawer.querySelector('.source-drawer-body-inner');
-            if (!body || !inner) {
-                drawer.classList.toggle('active', open);
-                return;
-            }
-            if (open) {
-                drawer.classList.add('active');
-                body.style.maxHeight = inner.scrollHeight + 'px';
-                return;
-            }
-            body.style.maxHeight = body.scrollHeight + 'px';
-            void body.offsetHeight;
-            drawer.classList.remove('active');
-            body.style.maxHeight = '0px';
+        if (wallpaperSettingsModule && wallpaperSettingsModule.bindEvents) {
+            wallpaperSettingsModule.bindEvents(modalContent);
+            return;
         }
-
-        modalContent.querySelectorAll('.source-drawer.active').forEach(function (drawer) {
-            var body = drawer.querySelector('.source-drawer-body');
-            var inner = drawer.querySelector('.source-drawer-body-inner');
-            if (body && inner) body.style.maxHeight = inner.scrollHeight + 'px';
-        });
-
-        modalContent.querySelectorAll('.source-selector').forEach(function (button) {
-            button.addEventListener('click', function (e) {
-                e.stopPropagation();
-                var source = normalizeDraftSource(button.dataset.sourceOption);
-                var openDrawer = modalContent.querySelector('.source-drawer.active');
-                switchWallpaperWorkOrderSource(source);
-                wallpaperDraftOpenSource = openDrawer ? openDrawer.dataset.source : 'none';
-                refreshWallpaperDraftTab();
-            });
-        });
-
-        modalContent.querySelectorAll('.source-drawer-header').forEach(function (header) {
-            header.addEventListener('click', function (e) {
-                if (e.target.closest('button, input, label')) return;
-                var drawer = header.parentElement;
-                var clickedSource = drawer.dataset.source;
-                var wasActive = drawer && drawer.classList.contains('active');
-                wallpaperDraftOpenSource = wasActive ? 'none' : clickedSource;
-                modalContent.querySelectorAll('.source-drawer').forEach(function (d) {
-                    var open = !wasActive && d.dataset.source === clickedSource;
-                    setDrawerOpen(d, open);
-                });
-            });
-        });
-        bindUploadConfigEvents();
-        bindFolderConfigEvents();
-        bindRssConfigEvents();
-        bindWallhavenConfigEvents();
-        bindApiConfigEvents();
+        bindWallpaperSourceDetailEvents();
         var applyBtn = modalContent.querySelector('#wallpaperApplyBtn');
         if (applyBtn) applyBtn.addEventListener('click', applyWallpaperDraft);
         var reset = modalContent.querySelector('#wallpaperResetBtn');
@@ -2851,7 +2847,7 @@
                 var next = pendingConfigForSource('rss');
                 next.activeSourceId = radio.value;
                 currentWallpaperDraft().providers.rss.config.activeSourceId = radio.value;
-                updatePendingSourceConfig('rss', function (pending) { pending.activeSourceId = radio.value; });
+                saveRssListConfig(next);
                 root.querySelectorAll('.rss-source-row').forEach(function (row) {
                     row.classList.toggle('selected', row.dataset.rssSource === radio.value);
                 });
@@ -3345,10 +3341,7 @@
             if (apiEditorOpenType(config) === 'json') config.activeJsonSourceId = e.target.value;
             else config.activeImageSourceId = e.target.value;
             currentWallpaperDraft().providers.api.config = clonePlain(config);
-            updatePendingSourceConfig('api', function (pending) {
-                pending.activeJsonSourceId = config.activeJsonSourceId;
-                pending.activeImageSourceId = config.activeImageSourceId;
-            });
+            saveApiListConfig(config);
             wallpaperDraftApiTestResult = null;
             refreshWallpaperDraftTab();
         }
