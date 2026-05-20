@@ -129,8 +129,10 @@ function testUnifiedWallpaperLayoutContract() {
   });
   assert(!settingsWallpaper.includes('source-drawer'), 'new wallpaper module should not render the old source drawer markup');
   assert(settingsPanel.includes('SettingsWallpaper'), 'settings-panel should delegate wallpaper tab rendering to SettingsWallpaper');
+  assert(settingsPanel.includes('isReady: function () { return fullInitialized; }'), 'settings-panel should expose readiness for lazy-load races');
   assert(settingsBootstrap.includes("loadScript('js/settings-panel.js')"), 'settings bootstrap should lazy-load the full panel');
   assert(settingsBootstrap.includes("loadScript('js/settings-wallpaper.js')"), 'settings bootstrap should lazy-load wallpaper settings after the full panel');
+  assert(settingsBootstrap.includes('SettingsPanelFull.isReady'), 'settings bootstrap should gate full-panel refresh until init is complete');
 }
 
 function testOldWallpaperAccordionRemoved() {

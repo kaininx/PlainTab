@@ -6017,6 +6017,7 @@
     // ================================================================
     window.SettingsPanelFull = {
         init: init,
+        isReady: function () { return fullInitialized; },
         isOpen: function () { return isOpen; },
         isLangPanelOpen: function () { return isLangPanelOpen; },
         isModalOpen: function () { return isModalOpen; },

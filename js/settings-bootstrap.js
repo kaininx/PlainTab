@@ -557,7 +557,7 @@
         getCurrentLang: function () { return currentLang; },
         setWallpaperInfo: function () {
             updateLangUI();
-            if (window.SettingsPanelFull && window.SettingsPanelFull.refresh) window.SettingsPanelFull.refresh();
+            if (window.SettingsPanelFull && window.SettingsPanelFull.isReady && window.SettingsPanelFull.isReady() && window.SettingsPanelFull.refresh) window.SettingsPanelFull.refresh();
         },
         getEngineIndex: function () { return engineIndex; },
         setEngineIndex: function (i) { engineIndex = i; },
@@ -568,7 +568,7 @@
         refresh: function () {
             applyUi(D.loadUI());
             updateLangUI();
-            if (window.SettingsPanelFull && window.SettingsPanelFull.refresh) window.SettingsPanelFull.refresh();
+            if (window.SettingsPanelFull && window.SettingsPanelFull.isReady && window.SettingsPanelFull.isReady() && window.SettingsPanelFull.refresh) window.SettingsPanelFull.refresh();
         },
         ensureFull: ensureFullSettings
     };
