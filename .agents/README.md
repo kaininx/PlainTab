@@ -15,6 +15,7 @@ This directory contains the canonical shared skills for PlainTab.
 - `commit-changes`: prepares clean Chinese Conventional Commits while preserving unrelated working tree changes.
 - `diagnose`: diagnoses PlainTab bugs, broken UI flows, startup issues, storage or wallpaper regressions, and performance regressions with a reproducible feedback loop.
 - `improve-codebase-architecture`: reviews PlainTab modules for deeper seams, lower coupling, and better testability while respecting project constraints.
+- `storage-migration`: guards PlainTab localStorage/IndexedDB schema changes, migration steps, cleanup order, and old-user jump upgrades.
 - `tdd`: guides behavior-first PlainTab feature work and bug fixes using small regression scripts or browser checks without adding test frameworks.
 - `update-i18n`: maintains runtime UI translation keys, `js/i18n/*.js` language packs, and related validation.
 - `zoom-out`: maps unfamiliar PlainTab modules, callers, data ownership, and constraints before editing.

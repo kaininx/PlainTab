@@ -13,6 +13,13 @@
 
 除这次 legacy v2 升级桥接外，PlainTab 3.2.1 不承诺兼容更早的实验性布局。除非任务明确要求，否则不要新增迁移代码。
 
+## 版本与迁移职责
+
+- IndexedDB `DB_VERSION` 只表示数据库结构版本。只有新增/删除 object store、index、keyPath 或 autoIncrement 等结构变化时才升级。
+- `ptab_schema_version` 表示 PlainTab 应用持久化语义。只要 localStorage 或 IndexedDB 的数据解释方式、key 命名、记录格式、引用关系、迁移或清理策略发生变化，就应升级 `LS_VERSION` 并通过 `WallpaperData.migrate()` 处理。
+- 即使只改 IndexedDB，不改 localStorage，只要改动会影响用户数据解释、旧 key 清理或从旧版本跳级升级，也必须走 `ptab_schema_version` 迁移；不要依赖 IndexedDB version 做应用级迁移判断。
+- 纯缓存实现细节不要求升级 `LS_VERSION`，前提是缺失或残留旧缓存不会影响用户数据、不会误读，也不需要迁移或清理。
+
 ## 持久化 Key
 
 当前 `localStorage` key：

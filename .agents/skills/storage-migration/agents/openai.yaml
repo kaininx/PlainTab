@@ -1,0 +1,7 @@
+interface:
+  display_name: "PlainTab Storage Migration"
+  short_description: "Guardrails for PlainTab storage schema and IDB migrations"
+  default_prompt: "Use $storage-migration before changing PlainTab storage, IndexedDB, localStorage, schema versions, or migrations."
+
+policy:
+  allow_implicit_invocation: true
