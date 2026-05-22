@@ -421,24 +421,25 @@ If you want to study AI-assisted development on a real project rather than a one
 
 ## Appendix: Theme Engine Benchmarks
 
-The following numbers came from extension mode, local wallpaper `少女-绿感.png`, and 50 benchmark rounds. The current WASM/JS comparison uses the same `96x96` sample, or 9216 pixels.
+Theme engine benchmark data belongs in the technical notes rather than the root README. It is useful for maintainers who need to reason about the hot path and fallback behavior, but it should not distract first-time users.
 
-| Item | Time |
-|------|------|
-| Canvas `getImageData`, 96x96 | 0.638 ms |
-| First WASM analysis / initialization | 0.600 ms |
-| WASM analysis, 96x96 | 0.210 ms |
-| WASM total, pixel read + analysis | 0.848 ms |
-| JS analysis, 96x96 | 0.376 ms |
-| JS total, pixel read + analysis | 1.014 ms |
-| Legacy JS 36x36 total | 0.138 ms |
+Open [theme-benchmark.html](../../theme-benchmark.html) to rerun the benchmark locally. It compares `JS 32x32`, `JS 96x96`, and `WASM 96x96`, then prints timing and palette output.
+
+The following numbers came from local wallpaper `安静氛围-森林.png` (`4096 x 3070`), `200` benchmark rounds, and `20` warmup rounds:
+
+| Path | Sample | Pixels | Read avg | Analysis avg | Total avg | Total median | Total range |
+|------|--------|--------|----------|--------------|-----------|--------------|-------------|
+| JS fallback | `32x32` | 1,024 | 0.022 ms | 0.080 ms | 0.099 ms | 0.100 ms | 0.000 ms - 0.200 ms |
+| JS fallback | `96x96` | 9,216 | 0.061 ms | 0.583 ms | 0.650 ms | 0.600 ms | 0.500 ms - 1.300 ms |
+| C++ / WASM engine | `96x96` | 9,216 | 0.049 ms | 0.092 ms | 0.142 ms | 0.100 ms | 0.000 ms - 0.300 ms |
 
 Takeaways:
 
-- For the same `96x96` input, WASM analysis is about `1.79x` faster than JS.
-- Including Canvas pixel read, the total path is about `1.20x` faster.
-- The legacy `36x36` path is still faster because it only processes 1296 pixels.
-- The current design spends less than 1 ms total to get a higher-resolution and more stable palette.
+- `JS 32x32` is still very fast because it only processes 1024 pixels; it is useful as a low-sample baseline.
+- For the same `96x96` sample size, the C++ / WASM production theme engine is about `4.56x` faster than the JS fallback by average total time.
+- Looking only at the analysis step, this run puts the C++ / WASM engine at about `6.34x` faster than the JS fallback.
+- This is not a pure language benchmark of identical algorithms. WASM is the production theme engine, while JS is the fallback path; both use the same sample size, but weighting, candidate scoring, and color-bucket handling differ, so palette output can differ.
+- Keeping both paths is intentional: WASM provides fuller and faster theme analysis, while the JS fallback keeps web mode and exceptional environments usable.
 
 ## Quick Start
 
