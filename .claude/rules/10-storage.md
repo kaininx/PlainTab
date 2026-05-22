@@ -9,9 +9,9 @@
 - `LS_VERSION = 3`
 - `BASELINE_APP_VERSION = 3.2.1`
 - IndexedDB：`PlainTab`，版本 `1`，object store 为 `wallpaper`
-- 当前 schema 迁移很轻：`migrate()` 只确保 `ptab_schema_version` 至少为 `3`。
+- `js/wallpaper/migrate.js` 是一次性 legacy storage v2 -> schema 3 桥接模块，只迁移上传壁纸和缩略图；运行时模块仍只读 schema 3 模型。
 
-PlainTab 3.2.1 不承诺兼容更早的实验性布局。除非任务明确要求，否则不要新增迁移代码。
+除这次 legacy v2 升级桥接外，PlainTab 3.2.1 不承诺兼容更早的实验性布局。除非任务明确要求，否则不要新增迁移代码。
 
 ## 持久化 Key
 
@@ -26,6 +26,7 @@ PlainTab 3.2.1 不承诺兼容更早的实验性布局。除非任务明确要�
 - `ptab_ui`
 - `ptab_shortcuts`
 - `ptab_shortcut_icons`
+- `ptab_legacy_v2_migrated`
 
 当前 IndexedDB key / 前缀：
 

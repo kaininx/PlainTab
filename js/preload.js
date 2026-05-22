@@ -10,4 +10,21 @@
     }
 
     if (t) b.style.backgroundImage = t;
+
+    if (!t) {
+        try {
+            t = localStorage.getItem('ptab_bing_thumb');
+            var mode = localStorage.getItem('ptab_mode');
+            if (mode === 'local') {
+                var idx = parseInt(localStorage.getItem('ptab_local_index'), 10) || 0;
+                var order = JSON.parse(localStorage.getItem('ptab_img_order') || '[]');
+                if (order.length) {
+                    var id = order[idx % order.length];
+                    var thumbs = JSON.parse(localStorage.getItem('ptab_img_thumbs') || '{}');
+                    t = thumbs[id] || t;
+                }
+            }
+        } catch (e) { }
+        if (t) b.style.backgroundImage = t;
+    }
 })();
