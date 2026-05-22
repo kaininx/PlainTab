@@ -35,8 +35,8 @@
                 { id: 'bing', glyph: 'B', nameKey: 'sourceBing', descKey: 'sourceBingDesc' },
                 { id: 'upload', glyph: 'U', nameKey: 'sourceUpload', descKey: 'sourceUploadDesc' },
                 { id: 'folder', glyph: 'F', nameKey: 'sourceFolder', descKey: 'sourceFolderDesc' },
-                { id: 'rss', glyph: 'R', nameKey: 'sourceRss', descKey: 'sourceRssDesc' },
                 { id: 'wallhaven', glyph: 'W', nameKey: 'sourceWallhaven', descKey: 'sourceWallhavenDesc' },
+                { id: 'rss', glyph: 'R', nameKey: 'sourceRss', descKey: 'sourceRssDesc' },
                 { id: 'api', glyph: 'A', nameKey: 'sourceApi', descKey: 'sourceApiDesc' }
             ];
         }

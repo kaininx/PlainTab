@@ -2065,23 +2065,22 @@
             '</select>';
         var engineDesc = IS_EXTENSION ? modalCopy('modalDescEngineExtension') : modalCopy('modalDescEngine');
         var body =
-            settingGroup(tr('settingsGroupSearchVisibility'),
-            settingItem(tr('searchLabel'), modalCopy('modalDescSearchMode'), searchModeControl) +
-            settingItem(tr('searchHistory'), modalCopy('modalDescSearchHistory'), searchHistoryControl)) +
-            settingGroup(tr('settingsGroupSearchLayout'),
-            settingItem(tr('searchPosition'), modalCopy('modalDescSearchPosition'), searchPosControl) +
-            settingItem(tr('searchWidth'), modalCopy('modalDescSearchWidth'), searchWidthControl) +
-            settingItem(tr('searchIconPosition'), modalCopy('modalDescSearchIconPosition'), searchIconPositionControl) +
-            settingItem(tr('searchIconVisibility'), modalCopy('modalDescSearchIconVisibility'), searchIconVisibilityControl)) +
             settingGroup(tr('settingsGroupSearchSurface'),
             settingItem(tr('searchSurface'), modalCopy('modalDescSearchSurface'), searchSurfaceControl) +
-            settingItem(tr('searchShadow'), modalCopy('modalDescSearchShadow'), searchShadowControl) +
-            settingItem(tr('searchRadius'), modalCopy('modalDescSearchRadius'), radiusControl) +
             settingItem(tr('searchBackground'), modalCopy('modalDescSearchBackground'), searchBgControl) +
-            settingItem(tr('searchBlur'), modalCopy('modalDescSearchBlur'), searchBlurControl)) +
+            settingItem(tr('searchBlur'), modalCopy('modalDescSearchBlur'), searchBlurControl) +
+            settingItem(tr('searchRadius'), modalCopy('modalDescSearchRadius'), radiusControl) +
+            settingItem(tr('searchShadow'), modalCopy('modalDescSearchShadow'), searchShadowControl)) +
+            settingGroup(tr('settingsGroupSearchLayout'),
+            settingItem(tr('searchLabel'), modalCopy('modalDescSearchMode'), searchModeControl) +
+            settingItem(tr('searchPosition'), modalCopy('modalDescSearchPosition'), searchPosControl) +
+            settingItem(tr('searchWidth'), modalCopy('modalDescSearchWidth'), searchWidthControl) +
+            settingItem(tr('searchIconVisibility'), modalCopy('modalDescSearchIconVisibility'), searchIconVisibilityControl) +
+            settingItem(tr('searchIconPosition'), modalCopy('modalDescSearchIconPosition'), searchIconPositionControl)) +
             settingGroup(tr('settingsGroupSearchBehavior'),
             settingItem(tr('searchPlaceholderCustom'), modalCopy('modalDescSearchPlaceholder'), placeholderControl) +
-            settingItem(tr('searchEnterBehavior'), modalCopy('modalDescSearchEnterBehavior'), enterBehaviorControl)) +
+            settingItem(tr('searchEnterBehavior'), modalCopy('modalDescSearchEnterBehavior'), enterBehaviorControl) +
+            settingItem(tr('searchHistory'), modalCopy('modalDescSearchHistory'), searchHistoryControl)) +
             settingGroup(tr('settingsGroupSearchEngine'),
             settingItem(tr('engineLabel'), engineDesc, engineControl, IS_EXTENSION ? 'setting-disabled' : '')) +
             '<div class="settings-actions"><button class="reset-defaults-btn" id="searchResetBtn" type="button">' + tr('resetSearchDefaults') + '</button></div>';
@@ -2116,8 +2115,8 @@
             settingItem(tr('themeEnableLabel'), modalCopy('modalDescTheme'), themeControl, 'setting-compact') +
             settingItem(tr('accentColorLabel'), modalCopy('modalDescAccentColor'), accentControl)) +
             settingGroup(tr('settingsGroupSurface'),
-            settingItem(tr('opacityLabel'), modalCopy('modalDescIconOpacity'), opacityControl) +
             settingItem(tr('panelOpacityLabel'), modalCopy('modalDescPanelOpacity'), panelOpacityControl) +
+            settingItem(tr('opacityLabel'), modalCopy('modalDescIconOpacity'), opacityControl) +
             settingItem(tr('uiRadiusLabel'), modalCopy('modalDescUiRadius'), uiRadiusControl) +
             settingItem(tr('fontScaleLabel'), modalCopy('modalDescFontScale'), fontScaleControl) +
             settingItem(tr('reducedMotionLabel'), modalCopy('modalDescReducedMotion'), reducedMotionControl, 'setting-compact')) +
@@ -2231,9 +2230,9 @@
         return settingGroup(tr('settingsGroupWallpaperDisplay'),
             settingItem(tr('wallpaperFit'), modalCopy('modalDescWallpaperFit'), wallpaperFitControl) +
             settingItem(tr('wallpaperPosition'), modalCopy('modalDescWallpaperPosition'), wallpaperPositionControl) +
-            settingItem(tr('wallpaperBlur'), modalCopy('modalDescWallpaperBlur'), wallpaperBlurControl) +
+            settingItem(tr('overlayLabel'), modalCopy('modalDescOverlay'), overlayControl) +
             settingItem(tr('wallpaperVignette'), modalCopy('modalDescWallpaperVignette'), wallpaperVignetteControl) +
-            settingItem(tr('overlayLabel'), modalCopy('modalDescOverlay'), overlayControl));
+            settingItem(tr('wallpaperBlur'), modalCopy('modalDescWallpaperBlur'), wallpaperBlurControl));
     }
 
     function buildWallpaperSourceDetailHTML(source) {
@@ -3465,14 +3464,14 @@
             '</select>';
 
         var body =
-            settingGroup(tr('cpGroupAppearance'),
-            settingItem(tr('cpSkinLabel'), modalCopy('modalDescPaletteSkin'), skinControl, 'setting-compact')) +
             settingGroup(tr('cpGroupOpen'),
             settingItem(tr('cpPlacementLabel'), modalCopy('modalDescPalettePlacement'), placementControl, 'setting-compact') +
             settingItem(tr('cpHotkeyLabel'), modalCopy('modalDescHotkey'), '<input type="text" class="hotkey-input" id="hkNormal" value="' + hkNormal + '" readonly>') +
             settingItem(tr('cpHiddenHotkeyLabel'), modalCopy('modalDescHiddenHotkey'), '<input type="text" class="hotkey-input" id="hkHidden" value="' + hkHidden + '" readonly>')) +
             settingGroup(tr('cpGroupContent'),
             settingItem(tr('cpRecommendLabel'), modalCopy('modalDescRecommend'), '<label class="switch-control"><input type="checkbox" id="cpRecommend"' + checked + '><span></span></label>', 'setting-compact')) +
+            settingGroup(tr('cpGroupAppearance'),
+            settingItem(tr('cpSkinLabel'), modalCopy('modalDescPaletteSkin'), skinControl, 'setting-compact')) +
             '<div class="settings-actions"><button class="reset-defaults-btn" id="shortcutsResetBtn" type="button">' + tr('resetShortcutsDefaults') + '</button></div>';
 
         return buildPageShell(tr('tabShortcuts'), modalCopy('modalSubtitleShortcuts'), body);
@@ -3512,8 +3511,8 @@
         var importControl = '<div class="data-inline-control"><span class="data-file-name" id="dataImportFileName"></span><button class="primary-action" id="dataImportChooseBtn" type="button">' + tr('dataChooseFile') + '</button></div>';
         var importPassControl = '<div class="data-inline-control"><input id="dataImportPass" type="password" autocomplete="current-password" placeholder="' + tr('dataPassphrase') + '"><button class="primary-action" id="dataImportRunBtn" type="button" disabled>' + tr('dataImport') + '</button></div>';
         var body = settingGroup(tr('dataExport'),
-            settingItem('JSON', modalCopy('modalDescDataJson'), jsonControl, 'setting-compact') +
-            settingItem(tr('dataEncrypted'), modalCopy('modalDescDataEncrypted'), encryptedControl)) +
+            settingItem(tr('dataEncrypted'), modalCopy('modalDescDataEncrypted'), encryptedControl) +
+            settingItem('JSON', modalCopy('modalDescDataJson'), jsonControl, 'setting-compact')) +
             settingGroup(tr('dataImport'),
             settingItem(tr('dataBackupFile'), modalCopy('modalDescDataImport'), importControl, 'setting-compact') +
             settingItem(tr('dataImportPass'), modalCopy('modalDescDataImportPass'), importPassControl, 'setting-compact')) +
@@ -3529,9 +3528,9 @@
         var allControl = '<button class="restore-action danger" id="restoreAllBtn" type="button">' + tr('resetAllDefaults') + '</button>';
         var body =
             settingGroup(tr('settingsGroupRestoreScoped'),
-            settingItem(tr('tabAppearance'), modalCopy('modalDescResetAppearance'), appearanceControl, 'setting-compact') +
-            settingItem(tr('tabSearch'), modalCopy('modalDescResetSearch'), searchControl, 'setting-compact') +
             settingItem(tr('tabWallpaper'), modalCopy('modalDescResetWallpaper'), wallpaperControl, 'setting-compact') +
+            settingItem(tr('tabSearch'), modalCopy('modalDescResetSearch'), searchControl, 'setting-compact') +
+            settingItem(tr('tabAppearance'), modalCopy('modalDescResetAppearance'), appearanceControl, 'setting-compact') +
             settingItem(tr('tabShortcuts'), modalCopy('modalDescResetShortcuts'), shortcutsControl, 'setting-compact')) +
             settingGroup(tr('settingsGroupRestoreGlobal'),
             settingItem(tr('resetAllDefaults'), modalCopy('modalDescResetAll'), allControl, 'setting-compact'));
@@ -3994,6 +3993,11 @@
         return { value: row, row: row, align: DEFAULT_SEARCH_ALIGN };
     }
 
+    function defaultSearchPosition() {
+        if (window.matchMedia && window.matchMedia('(max-width: 480px)').matches) return 'upper';
+        return DEFAULT_SEARCH_POSITION;
+    }
+
     function applySearchMode(mode) {
         searchMode = validValue(mode, ['hover', 'always', 'never'], DEFAULT_SEARCH_MODE);
         searchBar.classList.toggle('visible', searchMode === 'always');
@@ -4417,7 +4421,7 @@
 
     function resetSearchDefaults() {
         applySearchMode(DEFAULT_SEARCH_MODE);
-        applySearchPosition(DEFAULT_SEARCH_POSITION);
+        applySearchPosition(defaultSearchPosition());
         applySearchIconPosition(DEFAULT_SEARCH_ICON_POSITION);
         applySearchIconVisibility(DEFAULT_SEARCH_ICON_VISIBILITY);
         applySearchSurface(DEFAULT_SEARCH_SURFACE);

@@ -328,6 +328,16 @@ function testWallpaperHeaderUsesGlobalTabChrome() {
   assert(css.includes('.settings-page-header p,\n.wallpaper-tab-header p'), 'settings subtitles should share one global style rule');
 }
 
+function testWallpaperMobileHeaderSpacing() {
+  const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
+  const mobileStart = css.indexOf('@media (max-width: 720px)');
+  assert(mobileStart > 0, 'settings CSS should keep a mobile modal breakpoint');
+  const mobileCss = css.slice(mobileStart, css.indexOf('/* ========== 通用辅助类', mobileStart));
+  const bodyMatch = mobileCss.match(/\.wallpaper-tab-body-v2\s*\{[\s\S]*?padding-top:\s*(\d+)px/);
+  assert(bodyMatch, 'mobile wallpaper v2 body should explicitly reserve header space');
+  assert(Number(bodyMatch[1]) >= 228, 'mobile wallpaper source content should start below the stacked wallpaper header and runtime card');
+}
+
 function testWallpaperRuntimeCardCompactness() {
   const css = fs.readFileSync(path.join(repoRoot, 'css', 'settings.css'), 'utf8');
   const settingsWallpaper = fs.readFileSync(path.join(repoRoot, 'js', 'settings-wallpaper.js'), 'utf8');
@@ -652,6 +662,7 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
   testUnifiedWallpaperLayoutContract();
   testWallpaperDetailScrollBoundedBySourceNav();
   testWallpaperHeaderUsesGlobalTabChrome();
+  testWallpaperMobileHeaderSpacing();
   testWallpaperRuntimeCardCompactness();
   testWallpaperCopyNoLongerReferencesOldAccordionInteraction();
   testOldWallpaperAccordionRemoved();

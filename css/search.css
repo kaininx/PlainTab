@@ -297,3 +297,9 @@
     height: 100%;
     fill: var(--search-icon-color, #fff);
 }
+
+@media (max-width: 480px) {
+    .search-bar[data-position="center"] {
+        --search-top: 26%;
+    }
+}

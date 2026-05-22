@@ -7,7 +7,9 @@ const newtab = fs.readFileSync('js/newtab.js', 'utf8');
 const data = fs.readFileSync('js/wallpaper/data.js', 'utf8');
 const searchCss = fs.readFileSync('css/search.css', 'utf8');
 const wallpaperCss = fs.readFileSync('css/wallpaper.css', 'utf8');
+const baseCss = fs.readFileSync('css/base.css', 'utf8');
 const settingsCss = fs.readFileSync('css/settings.css', 'utf8');
+const settingsStyleCss = `${baseCss}\n${settingsCss}`;
 
 [
   'DEFAULT_SEARCH_ALIGN',
@@ -20,7 +22,7 @@ const settingsCss = fs.readFileSync('css/settings.css', 'utf8');
   'DEFAULT_WALLPAPER_BLUR',
   'DEFAULT_WALLPAPER_BLUR_MAX',
   'DEFAULT_UI_RADIUS',
-  'function applySearchAlign',
+  'function searchPositionParts',
   'function applySearchIconPosition',
   'function applySearchWidth',
   'function applySearchBackgroundOpacity',
@@ -29,7 +31,7 @@ const settingsCss = fs.readFileSync('css/settings.css', 'utf8');
   'function applyWallpaperPosition',
   'function applyWallpaperBlur',
   'function normalizeWallpaperBlur',
-  'function queueWallpaperBlurApply',
+  'function queueWallpaperBlurSave',
   'function syncWallpaperBlurPerformanceMode',
   'function enhanceModalSelects',
   'function openCustomSelect',
@@ -114,7 +116,7 @@ assert.ok(settings.includes('--wallpaper-blur'), 'settings should still persist 
 
 [
   'rgba(var(--surface-base-rgb), var(--panel-opacity))',
-  'rgba(var(--surface-elevated-rgb), var(--panel-opacity))',
+  '--settings-panel-bg',
   '.setting-warning',
   '.setting-group',
   '.settings-page-body',
@@ -125,7 +127,7 @@ assert.ok(settings.includes('--wallpaper-blur'), 'settings should still persist 
   '.custom-select-native',
   'mask-image',
 ].forEach((token) => {
-  assert.ok(settingsCss.includes(token), `settings.css should use panel opacity token ${token}`);
+  assert.ok(settingsStyleCss.includes(token), `settings styles should use panel opacity token ${token}`);
 });
 
 [
@@ -157,7 +159,7 @@ assert.ok(settings.includes('settingGroup('), 'appearance settings should be gro
 assert.ok(settings.includes("select.classList.add('custom-select-native')"), 'native selects should be hidden after custom select enhancement');
 assert.ok(settings.includes("dispatchEvent(new Event('change'"), 'custom select should keep the existing select change flow');
 assert.ok(settings.includes("document.getElementById('modalThemeEnabled')"), 'reset should sync the theme toggle control');
-assert.ok(settings.includes('el.checked = false'), 'reset should visually turn off the theme toggle');
+assert.ok(settings.includes('el.checked = !!value'), 'reset should visually sync the theme toggle');
 const resetStart = settings.indexOf('function resetAppearanceDefaults()');
 const resetEnd = settings.indexOf('// ================================================================', resetStart + 1);
 assert.ok(resetStart >= 0 && resetEnd > resetStart, 'resetAppearanceDefaults should be present');
@@ -181,11 +183,13 @@ const blurControlEnd = settings.indexOf('var overlayControl');
 assert.ok(blurControlStart >= 0 && blurControlEnd > blurControlStart, 'wallpaper blur control should be declared');
 assert.strictEqual(settings.slice(blurControlStart, blurControlEnd).includes('wallpaperBlurPerfHint'), false, 'wallpaper blur hint should be outside inline slider controls');
 
-const themeIndex = settings.indexOf("settingItem(t('themeEnableLabel')");
-const searchIndex = settings.indexOf("settingItem(t('searchLabel')");
+const themeIndex = settings.indexOf("settingItem(tr('themeEnableLabel')");
+const accentIndex = settings.indexOf("settingItem(tr('accentColorLabel')");
+const searchIndex = settings.indexOf("settingItem(tr('searchLabel')");
 assert.ok(themeIndex >= 0, 'appearance tab should render theme setting');
-assert.ok(searchIndex >= 0, 'appearance tab should render search visibility setting');
-assert.ok(themeIndex < searchIndex, 'theme setting should be the first appearance control');
+assert.ok(accentIndex >= 0, 'appearance tab should render accent setting');
+assert.ok(searchIndex >= 0, 'search tab should render search visibility setting');
+assert.ok(themeIndex < accentIndex, 'theme setting should be the first appearance control');
 assert.strictEqual(settings.includes('id="modalSearchAlign"'), false, 'search alignment should be folded into 9-position control');
 
 assert.ok(newtab.includes('function eventMatchesHotkey'), 'newtab should match configurable palette hotkeys');
@@ -193,7 +197,7 @@ assert.ok(newtab.includes('window.Palette.loadHotkey()'), 'newtab should read th
 assert.ok(newtab.includes('window.Palette.loadHiddenHotkey()'), 'newtab should read the saved hidden palette hotkey');
 assert.strictEqual(newtab.includes("e.key.toLowerCase() === 'k' && !e.shiftKey"), false, 'newtab should not hardcode Ctrl+K for the normal palette');
 assert.strictEqual(newtab.includes("e.key.toLowerCase() === 'k'"), false, 'newtab should not hardcode K for palette shortcuts');
-assert.ok(settingsBootstrap.includes("script.src = 'js/settings-panel.js'"), 'settings bootstrap should lazy-load the full settings module');
+assert.ok(settingsBootstrap.includes("loadScript('js/settings-panel.js')"), 'settings bootstrap should lazy-load the full settings module');
 assert.ok(settings.includes('window.SettingsPanelFull = {'), 'settings-panel should export the complete settings API');
 
 console.log('settings freedom behavior hooks ok');
