@@ -213,6 +213,8 @@ window.I18N["ja"] = {
         "apiTypeImage": "画像/リダイレクト",
         "apiTypeJson": "JSON",
         "bingConfigHint": "Bing の市場地域は現在のインターフェース言語に基づいて自動選択されます。",
+        "bingResolution4K": "4K UHD",
+        "bingResolutionHint": "既定では 1080p を使い、4K に切り替えるとより高解像度の Bing 画像を取得します。",
         "bottom": "下",
         "chooseFolder": "フォルダーを選択",
         "fitContain": "全体を表示",

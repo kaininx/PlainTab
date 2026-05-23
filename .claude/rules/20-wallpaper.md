@@ -39,12 +39,14 @@ legacy v2 -> schema 3 迁移只写用户上传壁纸连续性所需数据，不�
 
 ## Bing
 
-`js/wallpaper/fetch.js` 使用 `Promise.any` 竞速两个 Bing 元数据端点：
+`js/wallpaper/fetch.js` 使用 `Promise.any` 竞速两个 Bing 元数据端点。默认请求 `1920x1080`；用户在 Bing 来源配置中选择 4K 时，请求 `UHD`：
 
-- `https://bing.kaininx.workers.dev/?resolution=1920x1080&format=json&index=0&mkt=...`
-- `https://bing.biturl.top/?resolution=1920x1080&format=json&index=0&mkt=...`
+- `https://bing.kaininx.workers.dev/?resolution=...&format=json&index=0&mkt=...`
+- `https://bing.biturl.top/?resolution=...&format=json&index=0&mkt=...`
 
 元数据请求使用 `REQUEST_TIMEOUT_MS = 8000`。图片 Blob 下载使用 `IMAGE_DOWNLOAD_TIMEOUT_MS = 30000`。
+
+Bing 缓存仍使用固定 Blob key `ptab_wallpaper_blob_bing`。`providers.bing.state.resolution` 记录当前缓存分辨率；同一天缓存只有在日期和分辨率都匹配当前 `providers.bing.config.resolution` 时才算新鲜。
 
 `bingMkt(lang)` 将支持的 UI 语言映射到 16 个市场代码：`zh-CN`、`zh-TW`、`en-US`、`ja-JP`、`ko-KR`、`fr-FR`、`de-DE`、`es-ES`、`it-IT`、`pt-BR`、`ru-RU`、`ar-SA`、`hi-IN`、`tr-TR`、`pl-PL`、`vi-VN`。上游接口有时可能返回 ROW/全球图；只要请求成功并返回可用图片 URL，就可以接受。
 

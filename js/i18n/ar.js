@@ -213,6 +213,8 @@ window.I18N["ar"] = {
         "apiTypeImage": "صورة/إعادة توجيه",
         "apiTypeJson": "JSON",
         "bingConfigHint": "يتم تحديد منطقة سوق Bing تلقائيًا بناءً على لغتك.",
+        "bingResolution4K": "4K UHD",
+        "bingResolutionHint": "يبقى 1080p هو الافتراضي، ويمكنك التبديل إلى 4K لجلب صورة Bing بدقة أعلى.",
         "bottom": "أسفل",
         "chooseFolder": "اختيار مجلد",
         "fitContain": "إظهار الصورة كاملة",

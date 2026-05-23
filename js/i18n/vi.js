@@ -213,6 +213,8 @@ window.I18N["vi"] = {
         "apiTypeImage": "Ảnh/Chuyển hướng",
         "apiTypeJson": "JSON",
         "bingConfigHint": "Khu vực thị trường Bing được tự động chọn dựa trên ngôn ngữ của bạn.",
+        "bingResolution4K": "4K UHD",
+        "bingResolutionHint": "Giữ mặc định 1080p hoặc chuyển sang 4K để tải ảnh Bing có độ phân giải cao hơn.",
         "bottom": "Dưới",
         "chooseFolder": "Chọn Thư Mục",
         "fitContain": "Hiện Ảnh Đầy Đủ",

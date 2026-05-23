@@ -27,8 +27,8 @@
     // Bing 端点
     // ================================================================
 
-    var BING_PRIMARY = function (mkt) { return 'https://bing.kaininx.workers.dev/?resolution=1920x1080&format=json&index=0&mkt=' + mkt; };
-    var BING_FALLBACK = function (mkt) { return 'https://bing.biturl.top/?resolution=1920x1080&format=json&index=0&mkt=' + mkt; };
+    var BING_PRIMARY = function (mkt, resolution) { return 'https://bing.kaininx.workers.dev/?resolution=' + resolution + '&format=json&index=0&mkt=' + mkt; };
+    var BING_FALLBACK = function (mkt, resolution) { return 'https://bing.biturl.top/?resolution=' + resolution + '&format=json&index=0&mkt=' + mkt; };
 
     // ================================================================
     // Bing 每日壁纸获取与缓存
@@ -39,8 +39,14 @@
         return map[lang] || 'en-US';
     }
 
-    function fetchBingUrl(lang) {
+    function bingResolution(config) {
+        if (D && D.normalizeBingConfig) return D.normalizeBingConfig(config || (D.loadBingConfig && D.loadBingConfig()) || {}).resolution;
+        return config && String(config.resolution || '').toUpperCase() === 'UHD' ? 'UHD' : '1920x1080';
+    }
+
+    function fetchBingUrl(lang, config) {
         var mkt = bingMkt(lang);
+        var resolution = bingResolution(config);
         var shared = new AbortController();
         function tryFetch(url, api, timeout) {
             var signal = AbortSignal.any([shared.signal, AbortSignal.timeout(timeout)]);
@@ -54,8 +60,8 @@
         }
         var t = '&t=' + Date.now();
         return Promise.any([
-            tryFetch(BING_PRIMARY(mkt) + t, 'primary', 8000),
-            tryFetch(BING_FALLBACK(mkt) + t, 'fallback', 8000)
+            tryFetch(BING_PRIMARY(mkt, resolution) + t, 'primary', 8000),
+            tryFetch(BING_FALLBACK(mkt, resolution) + t, 'fallback', 8000)
         ]).finally(function () { shared.abort(); });
     }
 
@@ -66,14 +72,20 @@
         });
     }
 
-    function cacheBingBlob(url, provider, today) {
+    function cacheBingBlob(url, provider, today, config) {
         var meta = D.loadBingMeta();
-        var isNew = meta.src !== url;
+        var resolution = bingResolution(config);
+        var metaResolution = meta.resolution ? bingResolution(meta) : '1920x1080';
+        var isNew = meta.src !== url || metaResolution !== resolution;
 
         if (!isNew) {
             return D.idbGet(D.DB.BING_BLOB).then(function (record) {
                 var blob = D.imageBlob(record);
                 if (blob) {
+                    if (!meta.resolution) {
+                        meta.resolution = resolution;
+                        D.saveBingMeta(meta);
+                    }
                     var kb = (blob.size / 1024).toFixed(0);
                     log('Bing', 'wallpaper unchanged, skipped  ·  ' + provider + '  ·  ' + kb + ' KB');
                     return blob;
@@ -93,6 +105,7 @@
                     meta.src = url;
                     meta.date = today;
                     meta.provider = provider;
+                    meta.resolution = resolution;
                     D.saveBingMeta(meta);
                     return blob;
                 });

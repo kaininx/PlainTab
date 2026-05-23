@@ -98,9 +98,10 @@
     function cacheBingInBackground() {
         var today = new Date().toDateString();
         var meta = D.loadBingMeta();
-        if (meta.date === today && meta.src) return;
-        F.fetchBingUrl(SP.getCurrentLang()).then(function (r) {
-            return F.cacheBingBlob(r.url, r.api, today).then(function (blob) {
+        var config = D.loadBingConfig ? D.loadBingConfig() : {};
+        if (meta.date === today && meta.src && (!D.bingResolutionMatches || D.bingResolutionMatches(meta, config))) return;
+        F.fetchBingUrl(SP.getCurrentLang(), config).then(function (r) {
+            return F.cacheBingBlob(r.url, r.api, today, config).then(function (blob) {
                 if (blob && SP.getCurrentMode() === 'bing') {
                     applyWallpaperRespectingBlur(URL.createObjectURL(blob), 'bing');
                 }
@@ -1055,22 +1056,24 @@
     }
 
     function tryLoadCachedBing(bingBlob, meta, today) {
-        if (!bingBlob || meta.date !== today) return Promise.resolve(false);
+        var config = D.loadBingConfig ? D.loadBingConfig() : {};
+        if (!bingBlob || meta.date !== today || (D.bingResolutionMatches && !D.bingResolutionMatches(meta, config))) return Promise.resolve(false);
 
         log('Bing', 'wallpaper is fresh  ·  date: ' + meta.date + ', nothing to do');
         return applyWallpaperRespectingBlur(URL.createObjectURL(bingBlob), 'bing').then(function () { return true; });
     }
 
     function loadBingFromNetwork(meta, today) {
+        var config = D.loadBingConfig ? D.loadBingConfig() : {};
         hideRssOverlay();
         SP.setCurrentMode('bing');
         D.setActiveSource('bing');
         SP.setWallpaperInfo(t('wpBing'));
         log('Bing', meta.date ? 'wallpaper is old (cache: ' + meta.date + ', today: ' + today + '), fetching...' : 'no wallpaper cached, fetching...');
 
-        if (meta.src && meta.date === today) {
+        if (meta.src && meta.date === today && (!D.bingResolutionMatches || D.bingResolutionMatches(meta, config))) {
             return applyWallpaperRespectingBlur(meta.src, 'bing').then(function () {
-                return F.cacheBingBlob(meta.src, meta.provider || 'primary', today);
+                return F.cacheBingBlob(meta.src, meta.provider || 'primary', today, config);
             });
         }
 
@@ -1078,9 +1081,9 @@
             wallpaperBackEl.style.backgroundImage = 'url(' + meta.src + ')';
         }
 
-        return F.fetchBingUrl(SP.getCurrentLang()).then(function (r) {
+        return F.fetchBingUrl(SP.getCurrentLang(), config).then(function (r) {
             return applyWallpaperRespectingBlur(r.url, 'bing').then(function () {
-                return F.cacheBingBlob(r.url, r.api, today);
+                return F.cacheBingBlob(r.url, r.api, today, config);
             });
         }).catch(function () {
             if (!wallpaperBackEl.style.backgroundImage && meta.src) {

@@ -341,8 +341,8 @@
         activeSource: 'bing',
         providers: {
             bing: {
-                config: { mkt: 'auto' },
-                state: { src: '', date: '', provider: '' }
+                config: { mkt: 'auto', resolution: '1920x1080' },
+                state: { src: '', date: '', provider: '', resolution: '' }
             },
             upload: {
                 config: { rotation: 'sequential', activeMedia: 'image', galleryView: 'image' },
@@ -564,6 +564,36 @@
 
     function normalizeUploadMedia(value) {
         return value === 'video' ? 'video' : 'image';
+    }
+
+    function normalizeBingResolution(value) {
+        value = String(value || '').trim();
+        if (value.toUpperCase() === 'UHD' || value === '3840x2160') return 'UHD';
+        return '1920x1080';
+    }
+
+    function normalizeBingConfig(config) {
+        var defaults = clone(DEFAULT_WALLPAPER.providers.bing.config);
+        var merged = mergeDefaults(config || {}, defaults);
+        merged.mkt = merged.mkt === 'auto' ? 'auto' : 'auto';
+        merged.resolution = normalizeBingResolution(merged.resolution);
+        return merged;
+    }
+
+    function normalizeBingState(state) {
+        var defaults = clone(DEFAULT_WALLPAPER.providers.bing.state);
+        var merged = mergeDefaults(state || {}, defaults);
+        merged.src = String(merged.src || '');
+        merged.date = String(merged.date || '');
+        merged.provider = String(merged.provider || '');
+        merged.resolution = merged.resolution ? normalizeBingResolution(merged.resolution) : '';
+        return merged;
+    }
+
+    function bingResolutionMatches(meta, config) {
+        var expected = normalizeBingConfig(config || loadBingConfig()).resolution;
+        var actual = meta && meta.resolution ? normalizeBingResolution(meta.resolution) : '1920x1080';
+        return actual === expected;
     }
 
     function folderId(name) {
@@ -930,6 +960,8 @@
         if (_wallpaperCache !== null) return _wallpaperCache;
         _wallpaperCache = mergeDefaults(readJSON(KEYS.WALLPAPER, DEFAULT_WALLPAPER), DEFAULT_WALLPAPER);
         _wallpaperCache.activeSource = normalizeSource(_wallpaperCache.activeSource);
+        _wallpaperCache.providers.bing.config = normalizeBingConfig(_wallpaperCache.providers.bing.config);
+        _wallpaperCache.providers.bing.state = normalizeBingState(_wallpaperCache.providers.bing.state);
         _wallpaperCache.providers.upload.config = normalizeUploadConfig(_wallpaperCache.providers.upload.config);
         _wallpaperCache.providers.upload.state = normalizeUploadState(_wallpaperCache.providers.upload.state);
         _wallpaperCache.providers.folder.config = normalizeFolderConfig(_wallpaperCache.providers.folder.config);
@@ -944,6 +976,8 @@
     function saveWallpaper(model) {
         _wallpaperCache = mergeDefaults(model, DEFAULT_WALLPAPER);
         _wallpaperCache.activeSource = normalizeSource(_wallpaperCache.activeSource);
+        _wallpaperCache.providers.bing.config = normalizeBingConfig(_wallpaperCache.providers.bing.config);
+        _wallpaperCache.providers.bing.state = normalizeBingState(_wallpaperCache.providers.bing.state);
         _wallpaperCache.providers.upload.config = normalizeUploadConfig(_wallpaperCache.providers.upload.config);
         _wallpaperCache.providers.upload.state = normalizeUploadState(_wallpaperCache.providers.upload.state);
         _wallpaperCache.providers.folder.config = normalizeFolderConfig(_wallpaperCache.providers.folder.config);
@@ -959,6 +993,16 @@
         var model = loadWallpaper();
         mutator(model);
         return saveWallpaper(model);
+    }
+
+    function loadBingConfig() {
+        return loadWallpaper().providers.bing.config;
+    }
+
+    function saveBingConfig(config) {
+        updateWallpaper(function (model) {
+            model.providers.bing.config = normalizeBingConfig(config);
+        });
     }
 
     function loadRssConfig() {
@@ -1541,7 +1585,7 @@
 
         var model = clone(DEFAULT_WALLPAPER);
         model.activeSource = 'bing';
-        model.providers.bing.state = mergeDefaults(previous.providers && previous.providers.bing ? previous.providers.bing.state : {}, DEFAULT_WALLPAPER.providers.bing.state);
+        model.providers.bing.state = normalizeBingState(previous.providers && previous.providers.bing ? previous.providers.bing.state : {});
         model.cache.meta = { bing: previousMeta.bing || {} };
         saveWallpaper(model);
 
@@ -1583,7 +1627,7 @@
     }
     function saveBingMeta(meta) {
         updateWallpaper(function (model) {
-            model.providers.bing.state = mergeDefaults(meta || {}, DEFAULT_WALLPAPER.providers.bing.state);
+            model.providers.bing.state = normalizeBingState(meta || {});
         });
     }
 
@@ -1826,6 +1870,11 @@
         normalizeSource: normalizeSource,
         loadRssConfig: loadRssConfig,
         saveRssConfig: saveRssConfig,
+        loadBingConfig: loadBingConfig,
+        saveBingConfig: saveBingConfig,
+        normalizeBingConfig: normalizeBingConfig,
+        normalizeBingResolution: normalizeBingResolution,
+        bingResolutionMatches: bingResolutionMatches,
         loadApiConfig: loadApiConfig,
         saveApiConfig: saveApiConfig,
         activeApiSource: activeApiSource,

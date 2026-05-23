@@ -213,6 +213,8 @@ window.I18N["en"] = {
         "apiTypeImage": "Image/Redirect",
         "apiTypeJson": "JSON",
         "bingConfigHint": "Bing market region is automatically selected based on your language.",
+        "bingResolution4K": "4K UHD",
+        "bingResolutionHint": "Keep 1080p by default, or switch to 4K for a higher-resolution Bing image.",
         "bottom": "Bottom",
         "chooseFolder": "Choose Folder",
         "fitContain": "Show Full Image",

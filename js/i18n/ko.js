@@ -213,6 +213,8 @@ window.I18N["ko"] = {
         "apiTypeImage": "이미지/리디렉션",
         "apiTypeJson": "JSON",
         "bingConfigHint": "Bing 마켓 지역이 현재 인터페이스 언어에 따라 자동 선택됩니다.",
+        "bingResolution4K": "4K UHD",
+        "bingResolutionHint": "기본값은 1080p이며, 4K로 전환하면 더 높은 해상도의 Bing 이미지를 가져옵니다.",
         "bottom": "하단",
         "chooseFolder": "폴더 선택",
         "fitContain": "전체 이미지 표시",

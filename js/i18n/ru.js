@@ -213,6 +213,8 @@ window.I18N["ru"] = {
         "apiTypeImage": "Изображение/Редирект",
         "apiTypeJson": "JSON",
         "bingConfigHint": "Регион Bing выбирается автоматически по языку интерфейса.",
+        "bingResolution4K": "4K UHD",
+        "bingResolutionHint": "По умолчанию используется 1080p; переключитесь на 4K, чтобы загрузить изображение Bing в более высоком разрешении.",
         "bottom": "Снизу",
         "chooseFolder": "Выбрать папку",
         "fitContain": "Показать полностью",

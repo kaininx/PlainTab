@@ -213,6 +213,8 @@ window.I18N["zh-CN"] = {
         "apiTypeImage": "图片直链/重定向",
         "apiTypeJson": "JSON",
         "bingConfigHint": "根据当前界面语言自动选择 Bing 市场区域。",
+        "bingResolution4K": "4K UHD",
+        "bingResolutionHint": "默认使用 1080p；切换到 4K 会拉取更高分辨率的 Bing 图片。",
         "bottom": "下方",
         "chooseFolder": "选择文件夹",
         "fitContain": "完整显示",

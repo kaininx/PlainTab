@@ -2393,7 +2393,20 @@ html[data-search-preview="true"] .search-bar {
     transform: translateY(4px);
 }
 
+.custom-select-menu.floating {
+    position: fixed;
+    right: auto;
+    bottom: auto;
+    z-index: 10050;
+}
+
 .custom-select[data-open="true"] .custom-select-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.custom-select-menu.floating[data-open="true"] {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);

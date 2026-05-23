@@ -213,6 +213,8 @@ window.I18N["tr"] = {
         "apiTypeImage": "Görsel/Yönlendirme",
         "apiTypeJson": "JSON",
         "bingConfigHint": "Bing pazar bölgesi dilinize göre otomatik seçilir.",
+        "bingResolution4K": "4K UHD",
+        "bingResolutionHint": "Varsayılan olarak 1080p kullanın veya daha yüksek çözünürlüklü Bing görseli için 4K'ya geçin.",
         "bottom": "Alt",
         "chooseFolder": "Klasör Seç",
         "fitContain": "Tam Görseli Göster",

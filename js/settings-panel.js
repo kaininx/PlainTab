@@ -178,6 +178,7 @@
     var wallpaperWorkOrder = null;
     var wallpaperWorkOrderStatus = { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
     var wallpaperSettingsModule = null;
+    var customSelectPortalHost = null;
     var dataImportState = { file: null, requiresPassphrase: false };
     var dataPassphraseVisibility = { export: false, import: false };
     var rssNoticeTimer = null;
@@ -866,6 +867,7 @@
 
     function syncCustomSelect(custom) {
         if (!custom) return;
+        var menu = custom._customSelectMenu || custom.querySelector('.custom-select-menu');
         var select = custom.querySelector('select');
         var value = custom.querySelector('.custom-select-value');
         var trigger = custom.querySelector('.custom-select-trigger');
@@ -876,8 +878,8 @@
             trigger.disabled = disabled;
             trigger.setAttribute('aria-disabled', disabled ? 'true' : 'false');
         }
-        if (disabled && custom.dataset.open === 'true') custom.dataset.open = 'false';
-        custom.querySelectorAll('.custom-select-option').forEach(function (option) {
+        if (disabled && custom.dataset.open === 'true') closeCustomSelects();
+        (menu || custom).querySelectorAll('.custom-select-option').forEach(function (option) {
             var selected = select && option.dataset.value === select.value;
             option.classList.toggle('selected', selected);
             option.setAttribute('aria-selected', selected ? 'true' : 'false');
@@ -888,18 +890,35 @@
         (root || modalContent).querySelectorAll('.custom-select').forEach(syncCustomSelect);
     }
 
+    function restoreCustomSelectMenu(custom) {
+        if (!custom) return;
+        var menu = custom._customSelectMenu || custom.querySelector('.custom-select-menu');
+        if (!menu) return;
+        menu.dataset.open = 'false';
+        menu.classList.remove('floating');
+        menu.style.left = '';
+        menu.style.top = '';
+        menu.style.width = '';
+        menu.style.maxHeight = '';
+        if (menu.parentNode !== custom) custom.appendChild(menu);
+    }
+
     function closeCustomSelects(except) {
         if (!modalContent) return;
-        modalContent.querySelectorAll('.custom-select[data-open="true"]').forEach(function (custom) {
+        var openSelects = Array.prototype.slice.call(modalContent.querySelectorAll('.custom-select[data-open="true"]'));
+        if (activeCustomSelect && openSelects.indexOf(activeCustomSelect) === -1) openSelects.push(activeCustomSelect);
+        openSelects.forEach(function (custom) {
             if (custom === except) return;
             custom.dataset.open = 'false';
             custom.querySelector('.custom-select-trigger').setAttribute('aria-expanded', 'false');
+            restoreCustomSelectMenu(custom);
         });
         if (!except) activeCustomSelect = null;
     }
 
     function focusCustomSelectOption(custom, delta) {
-        var options = Array.prototype.slice.call(custom.querySelectorAll('.custom-select-option:not([disabled])'));
+        var menu = custom && custom._customSelectMenu || (custom && custom.querySelector('.custom-select-menu'));
+        var options = Array.prototype.slice.call((menu || custom).querySelectorAll('.custom-select-option:not([disabled])'));
         if (!options.length) return;
         var current = document.activeElement && document.activeElement.classList.contains('custom-select-option')
             ? options.indexOf(document.activeElement)
@@ -912,19 +931,32 @@
         if (!custom) return;
         closeCustomSelects(custom);
         syncCustomSelect(custom);
-        var menu = custom.querySelector('.custom-select-menu');
+        var menu = custom._customSelectMenu || custom.querySelector('.custom-select-menu');
         custom.classList.remove('drop-up');
         custom.dataset.open = 'true';
         custom.querySelector('.custom-select-trigger').setAttribute('aria-expanded', 'true');
         activeCustomSelect = custom;
         if (menu) {
-            var rect = menu.getBoundingClientRect();
+            if (!customSelectPortalHost) customSelectPortalHost = document.body;
+            customSelectPortalHost.appendChild(menu);
+            menu.classList.add('floating');
+            menu.dataset.open = 'true';
             var customRect = custom.getBoundingClientRect();
             var roomBelow = window.innerHeight - customRect.bottom;
             var roomAbove = customRect.top;
-            if (roomBelow < Math.min(rect.height, 220) && roomAbove > roomBelow) {
+            var estimatedHeight = Math.min(menu.scrollHeight || 0, 236);
+            var dropUp = roomBelow < Math.min(estimatedHeight, 220) && roomAbove > roomBelow;
+            if (dropUp) {
                 custom.classList.add('drop-up');
             }
+            var gutter = 8;
+            var width = Math.max(customRect.width, 176);
+            var left = Math.min(Math.max(gutter, customRect.right - width), Math.max(gutter, window.innerWidth - width - gutter));
+            var maxHeight = Math.max(96, Math.min(236, (dropUp ? roomAbove : roomBelow) - 14));
+            menu.style.left = left + 'px';
+            menu.style.top = (dropUp ? Math.max(gutter, customRect.top - Math.min(estimatedHeight, maxHeight) - 7) : customRect.bottom + 7) + 'px';
+            menu.style.width = width + 'px';
+            menu.style.maxHeight = maxHeight + 'px';
         }
     }
 
@@ -963,6 +995,7 @@
             var menu = document.createElement('div');
             menu.className = 'custom-select-menu';
             menu.setAttribute('role', 'listbox');
+            wrapper._customSelectMenu = menu;
 
             Array.prototype.forEach.call(select.options, function (opt) {
                 var option = document.createElement('button');
@@ -1828,6 +1861,17 @@
         return Promise.resolve(false);
     }
 
+    function buildBingConfigHTML() {
+        var config = pendingConfigForSource('bing') || {};
+        var normalized = D.normalizeBingConfig ? D.normalizeBingConfig(config) : { resolution: String(config.resolution || '').toUpperCase() === 'UHD' ? 'UHD' : '1920x1080' };
+        var checked = normalized.resolution === 'UHD' ? ' checked' : '';
+        var control = '<label class="switch-control"><input type="checkbox" id="bingResolution"' + checked + '><span></span></label>';
+        return '<div class="bing-config">' +
+            '<p class="wallpaper-detail-note">' + escapeHtml(tr('bingConfigHint')) + '</p>' +
+            settingItem(tr('bingResolution4K'), tr('bingResolutionHint'), control, 'setting-compact') +
+            '</div>';
+    }
+
     function applyWallpaperDraft() {
         var Apply = window.WallpaperApply;
         var workOrder = currentWallpaperWorkOrder();
@@ -2393,7 +2437,7 @@
             bing: {
                 title: getSourceLabel('bing'),
                 desc: tr('sourceBingDesc'),
-                body: '<p class="wallpaper-detail-note">' + escapeHtml(tr('bingConfigHint')) + '</p>'
+                body: buildBingConfigHTML()
             },
             upload: {
                 title: getSourceLabel('upload'),
@@ -2441,11 +2485,30 @@
     }
 
     function bindWallpaperSourceDetailEvents() {
+        bindBingConfigEvents();
         bindUploadConfigEvents();
         bindFolderConfigEvents();
         bindRssConfigEvents();
         bindWallhavenConfigEvents();
         bindApiConfigEvents();
+    }
+
+    function bindBingConfigEvents() {
+        var root = modalContent.querySelector('.bing-config');
+        if (!root) return;
+        var select = root.querySelector('#bingResolution');
+        if (!select) return;
+        select.addEventListener('change', function () {
+            var resolution = select.checked ? 'UHD' : '1920x1080';
+            updatePendingSourceConfig('bing', function (pending) {
+                pending.mkt = 'auto';
+                pending.resolution = resolution;
+            });
+            if (wallpaperDraft && wallpaperDraft.providers && wallpaperDraft.providers.bing) {
+                wallpaperDraft.providers.bing.config = clonePlain(currentWallpaperWorkOrder().pendingConfig);
+            }
+            refreshWallpaperApplyFooter();
+        });
     }
 
     function wallpaperSettingsContext() {

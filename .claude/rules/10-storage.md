@@ -88,7 +88,7 @@ legacy v2 key 只允许迁移桥接或 preload 首帧兜底读取，不属于当
 `ptab_wallpaper` 是按来源组织的模型：
 
 - `activeSource`：`bing`、`upload`、`folder`、`rss`、`wallhaven` 或 `api`
-- `providers.bing.config/state`
+- `providers.bing.config/state`：Bing 市场区域自动跟随语言；`config.resolution` 只允许 `1920x1080` 或 `UHD`，缺失时按默认 `1920x1080` 解释；`state.resolution` 记录当前缓存对应的分辨率
 - `providers.upload.config/state`：上传图片队列配置，以及互斥的 `activeMedia` / `galleryView`；上传视频固定记录在 `state.videoId`
 - `providers.folder.config/state`
 - `providers.rss.config/state`
@@ -116,6 +116,7 @@ legacy v2 key 只允许迁移桥接或 preload 首帧兜底读取，不属于当
 
 - 使用 `loadWallpaper()` / `saveWallpaper()` 归一化壁纸模型。
 - `local` 是 `upload` 的兼容别名；通过 `normalizeSource()` / `compatMode()` 处理。
+- Bing 分辨率归一化为 `1920x1080` 或 `UHD`；旧模型缺失该字段时读取为 `1920x1080`，导入备份时保留合法的 4K 选择。
 - `upload` 下图片和视频是互斥媒体模式。图片顺序只保存在 `cache.order`；唯一视频使用固定 ID `upload_video`，不进入图片轮播队列。
 - RSS source 最多 5 个。显式空 source 列表应保持为空；默认内置源只在恢复默认时回来，不要在普通归一化里偷偷补回。
 - 内置 RSS 源允许用户删除。`resetWallpaperDefaults()` 会恢复它们。
@@ -126,7 +127,7 @@ legacy v2 key 只允许迁移桥接或 preload 首帧兜底读取，不属于当
 
 ## 恢复默认和导入导出
 
-- `resetWallpaperDefaults()` 回到 Bing，尽量保留 Bing 缓存/预览，并删除 upload/folder/RSS/Wallhaven/API 的数据和引用。
+- `resetWallpaperDefaults()` 回到默认 Bing 1080p，尽量保留 Bing 缓存/预览，并删除 upload/folder/RSS/Wallhaven/API 的数据和引用。
 - `defaultUISection(section)` 返回界面、搜索、壁纸等默认分区。
 - `resetShortcutSettings()` 恢复命令面板设置，并补回可见的内置 GitHub 快捷链接及图标；不要删除其他用户快捷链接。
 - `exportUserData()` 导出 PlainTab 备份外壳，包含语言、壁纸模型、缩略图、预览、UI（含体验确认状态）、快捷链接和快捷图标；导出时不迁移 folder 来源状态，当前来源为 folder 时降级为 Bing，并移除 folder order/meta/thumb/blur-thumb 引用。

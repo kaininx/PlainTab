@@ -213,6 +213,8 @@ window.I18N["hi"] = {
         "apiTypeImage": "छवि/रीडायरेक्ट",
         "apiTypeJson": "JSON",
         "bingConfigHint": "Bing बाज़ार क्षेत्र आपकी भाषा के आधार पर स्वचालित रूप से चुना जाता है।",
+        "bingResolution4K": "4K UHD",
+        "bingResolutionHint": "डिफ़ॉल्ट रूप से 1080p रखें, या उच्च रिज़ॉल्यूशन वाली Bing छवि लाने के लिए 4K चुनें।",
         "bottom": "नीचे",
         "chooseFolder": "फ़ोल्डर चुनें",
         "fitContain": "पूरी छवि दिखाएं",
