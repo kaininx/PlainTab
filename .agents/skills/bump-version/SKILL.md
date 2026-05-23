@@ -14,7 +14,7 @@ Prepare a PlainTab release using the current project structure. Keep the release
 - `docs/GITHUB_RELEASE.md`: the body text for the current GitHub Release page only.
 - `docs/store-listing/*.txt`: Chrome Web Store descriptions, one file per language.
 
-Do not recreate removed files such as `docs/CHANGELOG.md`, `docs/release-note.md`, or `docs/requirements.md`. Do not add README version badges; the current README design does not use them.
+Do not recreate removed files such as `docs/CHANGELOG.md`, `docs/release-note.md`, or `docs/requirements.md`. Do not add a version badge to the root `README.md`; it intentionally does not use one. Localized `docs/README_*.md` files that already have version badges should keep that style and have the existing badge version updated.
 
 ## Inputs
 
@@ -26,6 +26,14 @@ Ask for missing essentials only:
 
 If the user does not provide release notes, derive candidate changes from `git log` and local diffs, then write user-facing summaries.
 
+## Style Rules
+
+- Preserve the current document style. Before writing release copy, inspect the newest entry in each touched file and match its punctuation, bullet shape, heading level, language register, and sentence length.
+- Keep product copy user-facing. Translate implementation work into outcomes; do not paste raw commit subjects, module names, storage keys, or test names unless the user asks for maintainer-facing wording.
+- Keep Chinese release copy in the existing concise PlainTab tone. Do not add marketing hype, emoji, slogans, or unrelated feature explanation.
+- Keep English release copy in the existing calm, compact product tone. Do not switch to a different launch-note style mid-file.
+- Keep commit style aligned with the current history: Chinese Conventional Commit subject by default, for example `docs: 更新版本发布资料` or `chore: 准备 3.2.2 发布`. Do not switch to English, long titles, or a different body format unless the user asks.
+
 ## Step 1: Read Current State
 
 Before editing:
@@ -33,6 +41,7 @@ Before editing:
 - Read `manifest.json` and record the old version.
 - Check `git status --short` and preserve unrelated user changes.
 - Inspect existing entries in `docs/changelog-i18n/en.txt`, `docs/changelog-i18n/zh-CN.txt`, `docs/RELEASE_NOTES.md`, and `docs/GITHUB_RELEASE.md` for local tone and format.
+- Inspect the latest 5 to 10 commits with `git log --oneline` before suggesting or creating a release commit, so the commit message keeps the current repository style.
 - Search for the old version before replacing it. Classify every hit as current runtime/config/test/docs or historical release/task archive before editing.
 
 ## Step 2: Runtime Version Surfaces
@@ -185,6 +194,8 @@ Update these only when the release changes their content:
 
 README link rules:
 
+- The root `README.md` currently has no version badge; do not add one during a bump.
+- Localized `docs/README_*.md` files currently include version badges; update existing badge URLs and alt text when bumping the public version, but do not redesign the badge block.
 - Keep the short changelog link in every README pointing to the matching `docs/changelog-i18n/*.txt` file.
 - Keep a detailed release notes link in every README pointing to `docs/RELEASE_NOTES.md`.
 - The detailed release notes file is bilingual only, but every localized README should still link to it so readers can discover the full history.
@@ -206,6 +217,7 @@ Expected result: no stale old-version references except intentionally historical
 Also verify:
 
 - `manifest.json`, `index.html`, `js/settings-panel.js`, and `js/wallpaper/data.js` use the target version where they expose the current app version.
+- Root `README.md` still has no version badge, and existing localized README version badges use the target version without changing their surrounding badge style.
 - `docs/CHANGELOG.md` does not exist.
 - `docs/release-note.md` does not exist.
 - `docs/RELEASE_NOTES.md` exists.
@@ -220,8 +232,8 @@ Also verify:
 | Extension version | `manifest.json` |
 | Runtime version display | `index.html`, `js/settings-panel.js` |
 | Storage/app baseline | `js/wallpaper/data.js`, `.claude/rules/10-storage.md`, `.claude/rules/README.md`, `.claude/rules/90-storage-history.md`, active `docs/ai-tasks/*test.js` assertions |
-| Main READMEs | `README.md`, `docs/README_zh-CN.md` |
-| Localized READMEs | `docs/README_*.md` |
+| Root README | `README.md` without a version badge |
+| Localized READMEs | `docs/README_*.md`, including existing version badges |
 | Short changelogs | `docs/changelog-i18n/*.txt` |
 | Detailed release history | `docs/RELEASE_NOTES.md` |
 | GitHub Release body | `docs/GITHUB_RELEASE.md` |

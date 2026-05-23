@@ -27,7 +27,7 @@ Before production edits, write or update a focused check in `docs/ai-tasks/` and
 
 For each migration step:
 
-1. Detect from persisted data, not app release numbers. Prefer `ptab_schema_version`, legacy `ptab_version`, old key presence, and migration markers.
+1. Detect from persisted data, not app release numbers. Prefer `ptab_schema_version`, legacy `ptab_version`, old key presence, and current model facts.
 2. Make the step idempotent. A browser close midway must be safe to retry.
 3. Write large data first, then write references.
 4. Never write references to missing Blob records.
@@ -40,7 +40,7 @@ For each migration step:
 
 - Delete obsolete localStorage keys after successful migration.
 - Delete obsolete IndexedDB keys with targeted deletes. Do not delete the whole `PlainTab` database while current data uses the same store.
-- Use separate markers when cleanup may be retried independently from data migration.
+- Avoid permanent top-level marker keys for one-off migrations. If cleanup truly needs an idempotent retry marker, keep it scoped to an existing owned model, document why persisted facts are insufficient, and include a cleanup/removal path.
 - Keep old migration code for enough releases to support users who skip versions.
 
 ## Validation
