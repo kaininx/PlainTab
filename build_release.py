@@ -16,6 +16,7 @@ EXCLUDE_DIRS = [
     'docs/',
     'imgs/',
     'wasm/',
+    'benchmark/',
 ]
 
 # 排除的文件后缀
