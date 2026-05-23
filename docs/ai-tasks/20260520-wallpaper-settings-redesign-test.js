@@ -153,7 +153,7 @@ function testAccentColorAppliesOnPickerChange() {
   assert(/accentColorInput\.addEventListener\('change',\s*function \(\) \{ applyAccentColor\(this\.value\); \}\)/.test(settingsPanel), 'accent color should apply when the native color picker confirms with change');
 }
 
-function testCustomAccentAppliesFullThemePalette() {
+function testCustomAccentOnlyOverridesAccentAlias() {
   const index = fs.readFileSync(path.join(repoRoot, 'index.html'), 'utf8');
   const theme = fs.readFileSync(path.join(repoRoot, 'js', 'theme.js'), 'utf8');
   const settingsPanel = fs.readFileSync(path.join(repoRoot, 'js', 'settings-panel.js'), 'utf8');
@@ -168,25 +168,13 @@ function testCustomAccentAppliesFullThemePalette() {
   ].forEach((name) => {
     assert(theme.includes(`function ${name}`), `shared theme module should define ${name}`);
   });
-  [
-    '--theme-surface-base-rgb',
-    '--theme-surface-elevated-rgb',
-    '--theme-tint-rgb',
-    '--theme-stroke-rgb',
-    '--theme-accent-rgb',
-    '--surface-base-rgb',
-    '--surface-elevated-rgb',
-    '--tint-rgb',
-    '--stroke-rgb'
-  ].forEach((token) => {
-    assert(theme.includes(token), `shared custom accent should write ${token}`);
-  });
   assert(theme.includes('window.PlainTabTheme'), 'theme module should expose a shared global API');
-  assert(/applyCustomAccentTheme\(value\)[\s\S]*writePalette\(root, palette\);[\s\S]*applyPaletteAliases\(root, palette\);/.test(theme), 'custom accent should apply direct alias values so later wallpaper extraction cannot override it');
+  assert(/applyCustomAccentTheme\(value\)[\s\S]*--accent-rgb[\s\S]*--accent-contrast-rgb/.test(theme), 'custom accent should write only the active accent aliases');
+  assert(!/applyCustomAccentTheme\(value\)[\s\S]*writePalette\(root, palette\);[\s\S]*applyPaletteAliases\(root, palette\);/.test(theme), 'custom accent should not replace the active surface palette');
   assert(settingsPanel.includes('window.PlainTabTheme.applyCustomAccentTheme'), 'settings panel should call the shared theme API');
   assert(settingsBootstrap.includes('window.PlainTabTheme.applyCustomAccentTheme'), 'startup bootstrap should call the shared theme API');
-  assert(/if \(mode === 'custom' && rgb\) \{\s*applyCustomAccentTheme\(rgb\);/.test(settingsBootstrap), 'startup custom accent should apply a full palette, not just --accent-rgb');
-  assert(/function applyAccentPreference\(\) \{[\s\S]*applyCustomAccentTheme\(rgb\);/.test(settingsPanel), 'runtime custom accent should apply a full palette, not just --accent-rgb');
+  assert(/if \(mode === 'custom' && rgb\) \{\s*applyCustomAccentTheme\(rgb\);/.test(settingsBootstrap), 'startup custom accent should apply after the active surface theme');
+  assert(/function applyAccentPreference\(\) \{[\s\S]*applyCustomAccentTheme\(rgb\);/.test(settingsPanel), 'runtime custom accent should apply after the active surface theme');
 }
 
 function testCustomAccentIsNotMaskedByWallpaperSourceColors() {
@@ -654,7 +642,7 @@ async function testPrepareFailureKeepsOldSourceAndCache() {
   testUploadSettingsUiContract();
   testApiSettingsUsesSharedVisualLanguage();
   testAccentColorAppliesOnPickerChange();
-  testCustomAccentAppliesFullThemePalette();
+  testCustomAccentOnlyOverridesAccentAlias();
   testCustomAccentIsNotMaskedByWallpaperSourceColors();
   testSettingsThemeSemanticTokenContract();
   testWallpaperApplyFooterUsesQuietActionTray();

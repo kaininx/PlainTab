@@ -2005,7 +2005,7 @@ html[data-search-preview="true"] .search-bar {
     display: none;
 }
 
-.search-preview-panel .setting-item {
+.search-preview-panel :where(.setting-item) {
     min-height: 0;
     padding: 13px 14px;
     align-items: stretch;
@@ -2019,11 +2019,11 @@ html[data-search-preview="true"] .search-bar {
     flex-wrap: wrap;
 }
 
-.search-preview-panel .setting-item select {
+.search-preview-panel :where(.setting-item) select {
     width: 100%;
 }
 
-.search-preview-panel .setting-item input[type="range"] {
+.search-preview-panel :where(.setting-item) input[type="range"] {
     flex: 1;
     min-width: 160px;
 }

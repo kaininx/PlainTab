@@ -1,6 +1,7 @@
 /**
  * PlainTab theme tokens.
- * Owns global surface palettes for default, wallpaper-derived, and custom accent themes.
+ * Owns global surface palettes for default and wallpaper-derived themes,
+ * plus the user-selected accent alias.
  */
 (function () {
     'use strict';
@@ -197,13 +198,11 @@
     }
 
     function applyCustomAccentTheme(value) {
-        var palette = customAccentThemePalette(value);
-        if (!palette) return false;
+        var accent = hexToRgb(value) || parseRgb(value);
+        if (!accent) return false;
         var root = document.documentElement.style;
-        writePalette(root, palette);
-        applyPaletteAliases(root, palette);
-        document.documentElement.setAttribute('data-ui-theme-source', 'custom');
-        document.documentElement.setAttribute('data-wallpaper-theme', 'off');
+        root.setProperty('--accent-rgb', rgb(accent));
+        root.setProperty('--accent-contrast-rgb', lum(accent) > 168 ? '12, 15, 21' : '255, 255, 255');
         return true;
     }
 
