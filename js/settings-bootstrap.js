@@ -272,8 +272,8 @@
         root.setProperty('--panel-opacity', clampNumber(panel.opacity, 0.3, 1, DEFAULT_PANEL_OPACITY).toFixed(2));
         root.setProperty('--wallpaper-fit', validValue(wallpaper.fit || DEFAULT_WALLPAPER_FIT, ['cover', 'contain', '100% 100%'], DEFAULT_WALLPAPER_FIT));
         root.setProperty('--wallpaper-position', validValue(wallpaper.position || DEFAULT_WALLPAPER_POSITION, ['center', 'top', 'bottom', 'left', 'right'], DEFAULT_WALLPAPER_POSITION));
-        var wallpaperBlur = clampInteger(wallpaper.blur, 0, 15, DEFAULT_WALLPAPER_BLUR);
-        if (wallpaperBlur > 0 && wallpaperBlur < 5) wallpaperBlur = 5;
+        var wallpaperBlur = clampInteger(wallpaper.blur, 0, 5, DEFAULT_WALLPAPER_BLUR);
+        if (wallpaperBlur > 0) wallpaperBlur = 5;
         root.setProperty('--wallpaper-blur', wallpaperBlur + 'px');
         root.setProperty('--radius-sm', preset.sm);
         root.setProperty('--radius-md', preset.md);

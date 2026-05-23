@@ -181,7 +181,7 @@ window.I18N["ja"] = {
         "modalDescReducedMotion": "インターフェース全体の遷移とアニメーションを減らします。",
         "modalDescTheme": "壁紙から表面、枠線、アクセント、テキストの色を抽出します。",
         "modalDescUiRadius": "パネルとコントロール全体の角丸スタイルを選択します。",
-        "modalDescWallpaperBlur": "壁紙だけを柔らかくし、前面のコントロールは鮮明に保ちます。",
+        "modalDescWallpaperBlur": "高品質な壁紙ぼかしをオンまたはオフにします。",
         "modalDescWallpaperFit": "壁紙のビューポートへの充填方法を選択します。",
         "modalDescWallpaperPosition": "壁紙がトリミングされる際の表示基準点を選択します。",
         "modalDescWallpaperVignette": "壁紙の端を暗くして、前面の内容を読みやすくします。",

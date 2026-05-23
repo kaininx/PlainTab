@@ -181,7 +181,7 @@ window.I18N["tr"] = {
         "modalDescReducedMotion": "Arayüzdeki geçişleri ve animasyonları azaltır.",
         "modalDescTheme": "Duvar kağıdından yüzey, çerçeve, vurgu ve metin renklerini çıkar.",
         "modalDescUiRadius": "Paneller ve kontroller için genel köşe stilini seç.",
-        "modalDescWallpaperBlur": "Ön plan kontrolleri keskin tutarken duvar kağıdını yumuşat.",
+        "modalDescWallpaperBlur": "Yüksek kaliteli duvar kağıdı bulanıklığını aç veya kapat.",
         "modalDescWallpaperFit": "Duvar kağıdının görüntü alanını nasıl dolduracağını seç.",
         "modalDescWallpaperPosition": "Duvar kağıdı kırpıldığında görsel bağlantı noktasını seç.",
         "modalDescWallpaperVignette": "Ön plan okunaklı kalsın diye duvar kağıdının kenarlarını karartır.",

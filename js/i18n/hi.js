@@ -181,7 +181,7 @@ window.I18N["hi"] = {
         "modalDescReducedMotion": "पूरे इंटरफ़ेस में संक्रमण और एनिमेशन घटाएं।",
         "modalDescTheme": "वॉलपेपर से सतह, स्ट्रोक, एक्सेंट और टेक्स्ट रंग निकालें।",
         "modalDescUiRadius": "पैनल और नियंत्रणों के लिए समग्र कोने की शैली चुनें।",
-        "modalDescWallpaperBlur": "वॉलपेपर को नरम करें जबकि अग्रभूमि नियंत्रण स्पष्ट रहें।",
+        "modalDescWallpaperBlur": "उच्च-गुणवत्ता वाला वॉलपेपर धुंधलापन चालू या बंद करें।",
         "modalDescWallpaperFit": "चुनें कि वॉलपेपर व्यूपोर्ट को कैसे भरे।",
         "modalDescWallpaperPosition": "वॉलपेपर कटने पर दृश्य एंकर बिंदु चुनें।",
         "modalDescWallpaperVignette": "सामने की सामग्री पढ़ने योग्य रखने के लिए वॉलपेपर किनारे गहरे करें।",

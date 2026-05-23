@@ -181,7 +181,7 @@ window.I18N["de"] = {
         "modalDescReducedMotion": "Reduziert Übergänge und Animationen in der Oberfläche.",
         "modalDescTheme": "Oberflächen-, Rahmen-, Akzent- und Textfarben aus dem Hintergrund extrahieren.",
         "modalDescUiRadius": "Ecken-Stil für Panels und Steuerelemente wählen.",
-        "modalDescWallpaperBlur": "Hintergrund weichzeichnen bei scharfen Vordergrund-Elementen.",
+        "modalDescWallpaperBlur": "Hochwertige Hintergrundunschärfe ein- oder ausschalten.",
         "modalDescWallpaperFit": "Wählen, wie der Hintergrund den Viewport füllt.",
         "modalDescWallpaperPosition": "Ankerpunkt wählen, wenn der Hintergrund beschnitten wird.",
         "modalDescWallpaperVignette": "Dunkelt die Ränder des Hintergrunds ab, damit Inhalte besser lesbar bleiben.",

@@ -875,6 +875,7 @@
     function loadUI() {
         if (_uiCache !== null) return _uiCache;
         _uiCache = mergeDefaults(readJSON(KEYS.UI, DEFAULT_UI), DEFAULT_UI);
+        _uiCache.wallpaper.blur = normalizeWallpaperBlur(_uiCache.wallpaper.blur);
         return _uiCache;
     }
 
@@ -882,6 +883,7 @@
         _uiCache = mergeDefaults(ui, DEFAULT_UI);
         _uiCache.search.historyLimit = normalizeSearchHistoryLimit(_uiCache.search.historyLimit);
         _uiCache.search.historyItems = normalizeSearchHistory(_uiCache.search.historyItems, _uiCache.search.historyLimit);
+        _uiCache.wallpaper.blur = normalizeWallpaperBlur(_uiCache.wallpaper.blur);
         return writeJSON(KEYS.UI, _uiCache);
     }
 
@@ -1055,8 +1057,7 @@
     function normalizeWallpaperBlur(value) {
         var n = parseInt(value, 10);
         if (isNaN(n) || n <= 0) return 0;
-        if (n < 5) return 5;
-        return Math.max(5, Math.min(15, n));
+        return 5;
     }
 
     function loadBlurThumbs() {

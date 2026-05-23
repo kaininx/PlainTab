@@ -181,7 +181,7 @@ window.I18N["it"] = {
         "modalDescReducedMotion": "Riduce transizioni e animazioni dell’interfaccia.",
         "modalDescTheme": "Estrai colori superficie, bordo, accento e testo dallo sfondo.",
         "modalDescUiRadius": "Scegli lo stile degli angoli per pannelli e controlli.",
-        "modalDescWallpaperBlur": "Ammorbidisci lo sfondo mantenendo nitidi i controlli.",
+        "modalDescWallpaperBlur": "Attiva o disattiva la sfocatura dello sfondo ad alta qualità.",
         "modalDescWallpaperFit": "Scegli come lo sfondo riempie la finestra.",
         "modalDescWallpaperPosition": "Scegli il punto di ancoraggio visivo quando lo sfondo è ritagliato.",
         "modalDescWallpaperVignette": "Scurisce i bordi dello sfondo per mantenere leggibile il contenuto.",

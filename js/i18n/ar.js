@@ -181,7 +181,7 @@ window.I18N["ar"] = {
         "modalDescReducedMotion": "قلل الانتقالات والحركات في الواجهة.",
         "modalDescTheme": "استخراج ألوان السطح والمحيط والتركيز والنص من الخلفية.",
         "modalDescUiRadius": "اختيار لغة الزوايا العامة للوحات وعناصر التحكم.",
-        "modalDescWallpaperBlur": "تنعيم الخلفية نفسها مع الحفاظ على حدة عناصر التحكم الأمامية.",
+        "modalDescWallpaperBlur": "تشغيل أو إيقاف تمويه الخلفية عالي الجودة.",
         "modalDescWallpaperFit": "اختيار كيفية ملء الخلفية لإطار العرض.",
         "modalDescWallpaperPosition": "اختيار نقطة الارتكاز المرئية عند قص الخلفية.",
         "modalDescWallpaperVignette": "غمق حواف الخلفية لتحسين قراءة المحتوى الأمامي.",

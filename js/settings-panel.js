@@ -43,7 +43,7 @@
     var DEFAULT_WALLPAPER_FIT = 'cover';
     var DEFAULT_WALLPAPER_POSITION = 'center';
     var DEFAULT_WALLPAPER_BLUR = 0;
-    var DEFAULT_WALLPAPER_BLUR_MAX = 15;
+    var DEFAULT_WALLPAPER_BLUR_MAX = 5;
     var DEFAULT_UI_RADIUS = 'soft';
     var DEFAULT_FONT_SCALE = 'standard';
     var DEFAULT_ACCENT_MODE = 'auto';
@@ -706,8 +706,7 @@
     function syncWallpaperControls() {
         setControlValue('modalWallpaperFit', wallpaperFit);
         setControlValue('modalWallpaperPosition', wallpaperPosition);
-        setControlValue('modalWallpaperBlurRange', wallpaperBlur);
-        setControlValue('modalWallpaperBlurNum', wallpaperBlur);
+        setControlValue('modalWallpaperBlur', wallpaperBlur >= 5);
         setControlValue('modalWallpaperVignette', wallpaperVignette);
         setControlValue('modalOverlayRange', overlayOpacity);
         setControlValue('modalOverlayNum', overlayOpacity);
@@ -2217,8 +2216,7 @@
             '<option value="left"' + (wallpaperPosition === 'left' ? ' selected' : '') + '>' + tr('alignLeft') + '</option>' +
             '<option value="right"' + (wallpaperPosition === 'right' ? ' selected' : '') + '>' + tr('alignRight') + '</option>' +
             '</select>';
-        var wallpaperBlurControl = '<input type="range" id="modalWallpaperBlurRange" min="0" max="15" step="1" value="' + wallpaperBlur + '">' +
-            '<input type="number" id="modalWallpaperBlurNum" class="input-w-55" min="0" max="15" step="1" value="' + wallpaperBlur + '">';
+        var wallpaperBlurControl = '<label class="switch-control"><input type="checkbox" id="modalWallpaperBlur"' + (wallpaperBlur >= 5 ? ' checked' : '') + '><span></span></label>';
         var wallpaperVignetteControl = '<select id="modalWallpaperVignette">' +
             '<option value="none"' + (wallpaperVignette === 'none' ? ' selected' : '') + '>' + tr('vignetteNone') + '</option>' +
             '<option value="soft"' + (wallpaperVignette === 'soft' ? ' selected' : '') + '>' + tr('vignetteSoft') + '</option>' +
@@ -2338,17 +2336,14 @@
     function bindWallpaperEvents() {
         var wallpaperFitSel = document.getElementById('modalWallpaperFit');
         var wallpaperPositionSel = document.getElementById('modalWallpaperPosition');
-        var wallpaperBlurRange = document.getElementById('modalWallpaperBlurRange');
-        var wallpaperBlurNum = document.getElementById('modalWallpaperBlurNum');
+        var wallpaperBlurSwitch = document.getElementById('modalWallpaperBlur');
         var wallpaperVignetteSel = document.getElementById('modalWallpaperVignette');
         var overlayRange = document.getElementById('modalOverlayRange');
         var overlayNum = document.getElementById('modalOverlayNum');
 
         if (wallpaperFitSel) wallpaperFitSel.addEventListener('change', function () { applyWallpaperFit(this.value); });
         if (wallpaperPositionSel) wallpaperPositionSel.addEventListener('change', function () { applyWallpaperPosition(this.value); });
-        if (wallpaperBlurRange) wallpaperBlurRange.addEventListener('input', function () { applyWallpaperBlur(this.value, { preview: true }); this.value = wallpaperBlur; if (wallpaperBlurNum) wallpaperBlurNum.value = wallpaperBlur; });
-        if (wallpaperBlurRange) wallpaperBlurRange.addEventListener('change', function () { applyWallpaperBlur(this.value); if (wallpaperBlurNum) wallpaperBlurNum.value = wallpaperBlur; this.value = wallpaperBlur; });
-        if (wallpaperBlurNum) wallpaperBlurNum.addEventListener('change', function () { applyWallpaperBlur(this.value); if (wallpaperBlurRange) wallpaperBlurRange.value = wallpaperBlur; this.value = wallpaperBlur; });
+        if (wallpaperBlurSwitch) wallpaperBlurSwitch.addEventListener('change', function () { applyWallpaperBlur(this.checked ? 5 : 0); });
         if (wallpaperVignetteSel) wallpaperVignetteSel.addEventListener('change', function () { applyWallpaperVignette(this.value); });
         if (overlayRange) overlayRange.addEventListener('input', function () { applyOverlayOpacity(this.value); if (overlayNum) overlayNum.value = this.value; });
         if (overlayNum) overlayNum.addEventListener('change', function () { applyOverlayOpacity(this.value); if (overlayRange) overlayRange.value = this.value; });
@@ -4104,8 +4099,7 @@
 
     function normalizeWallpaperBlur(value) {
         var normalized = clampInteger(value, 0, DEFAULT_WALLPAPER_BLUR_MAX, DEFAULT_WALLPAPER_BLUR);
-        if (normalized > 0 && normalized < 5) return 5;
-        return normalized;
+        return normalized > 0 ? 5 : 0;
     }
 
     function setWallpaperBlurCss(value) {
@@ -4375,7 +4369,7 @@
         panelOpacity = panel.opacity !== undefined ? parseFloat(panel.opacity) : DEFAULT_PANEL_OPACITY;
         wallpaperFit = wallpaper.fit || DEFAULT_WALLPAPER_FIT;
         wallpaperPosition = wallpaper.position || DEFAULT_WALLPAPER_POSITION;
-        wallpaperBlur = wallpaper.blur !== undefined ? wallpaper.blur : DEFAULT_WALLPAPER_BLUR;
+        wallpaperBlur = normalizeWallpaperBlur(wallpaper.blur !== undefined ? wallpaper.blur : DEFAULT_WALLPAPER_BLUR);
         wallpaperVignette = wallpaper.vignette || DEFAULT_WALLPAPER_VIGNETTE;
         uiRadius = appearance.radius || DEFAULT_UI_RADIUS;
         fontScale = appearance.fontScale || DEFAULT_FONT_SCALE;

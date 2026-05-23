@@ -181,7 +181,7 @@ window.I18N["pl"] = {
         "modalDescReducedMotion": "Ogranicza przejścia i animacje w interfejsie.",
         "modalDescTheme": "Wyodrębnij kolory powierzchni, obrysu, akcentu i tekstu z tapety.",
         "modalDescUiRadius": "Wybierz styl narożników dla paneli i kontrolek.",
-        "modalDescWallpaperBlur": "Zmiękcz tapetę, zachowując ostrość kontrolek na pierwszym planie.",
+        "modalDescWallpaperBlur": "Włącz lub wyłącz wysokiej jakości rozmycie tła.",
         "modalDescWallpaperFit": "Wybierz sposób wypełnienia okna przez tapetę.",
         "modalDescWallpaperPosition": "Wybierz punkt zakotwiczenia przy przycinaniu tapety.",
         "modalDescWallpaperVignette": "Przyciemnia krawędzie tapety, aby treść była czytelniejsza.",

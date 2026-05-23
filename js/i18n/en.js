@@ -181,7 +181,7 @@ window.I18N["en"] = {
         "modalDescReducedMotion": "Reduce transitions and animations across the interface.",
         "modalDescTheme": "Extract surface, stroke, accent, and text colors from the wallpaper.",
         "modalDescUiRadius": "Choose the overall corner language for panels and controls.",
-        "modalDescWallpaperBlur": "Soften the wallpaper itself while keeping foreground controls sharp.",
+        "modalDescWallpaperBlur": "Turn high-quality wallpaper blur on or off.",
         "modalDescWallpaperFit": "Choose how the wallpaper fills the viewport.",
         "modalDescWallpaperPosition": "Pick the visual anchor point when the wallpaper is cropped.",
         "modalDescWallpaperVignette": "Darken the edges of the wallpaper to keep foreground content readable.",

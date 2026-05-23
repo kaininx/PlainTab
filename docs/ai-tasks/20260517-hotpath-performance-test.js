@@ -68,7 +68,8 @@ function testWallpaperFilterStaysOffTheDefaultCompositePath() {
   assert.strictEqual(wallpaperCss.includes('wallpaper-blur-ui-open'), false, 'optimized blur should not have a UI-open override');
   assert.ok(data.includes('WALLPAPER_BLUR_THUMBS'), 'data layer should cache blurred wallpaper thumbnails separately from normal thumbnails');
   assert.ok(show.includes('function generateBlurredThumbnail'), 'wallpaper renderer should generate blurred thumbnail bitmaps');
-  assert.ok(show.includes('BLUR_THUMB_MAX_W = 960'), 'strong blur thumbnails should keep enough detail without returning to full-size filters');
+  assert.ok(show.includes('BLUR_THUMB_MIN_W = 960'), 'strong blur thumbnails should keep enough minimum detail without returning to full-size filters');
+  assert.ok(show.includes('BLUR_THUMB_MAX_W = 1920'), 'strong blur thumbnails should avoid excessive upscaling on large viewports');
   assert.ok(show.includes('ctx.filter ='), 'blurred thumbnail generation should use canvas filtering off the animation path');
   assert.ok(show.includes('drawImageCover'), 'blurred thumbnail generation should overscan edges to avoid dark borders');
   assert.ok(show.includes('showPreparedPreview'), 'strong blur mode should be able to display a prepared preview without front-layer high-res fade');

@@ -181,7 +181,7 @@ window.I18N["ko"] = {
         "modalDescReducedMotion": "인터페이스 전반의 전환과 애니메이션을 줄입니다.",
         "modalDescTheme": "배경에서 표면, 테두리, 강조, 텍스트 색상을 추출합니다.",
         "modalDescUiRadius": "패널과 컨트롤의 전체 모서리 스타일을 선택합니다.",
-        "modalDescWallpaperBlur": "배경은 부드럽게 하고 전면 컨트롤은 선명하게 유지합니다.",
+        "modalDescWallpaperBlur": "고품질 배경 블러를 켜거나 끕니다.",
         "modalDescWallpaperFit": "배경이 뷰포트를 채우는 방식을 선택합니다.",
         "modalDescWallpaperPosition": "배경이 잘릴 때의 시각적 기준점을 선택합니다.",
         "modalDescWallpaperVignette": "배경 가장자리를 어둡게 해 앞쪽 내용을 읽기 쉽게 합니다.",

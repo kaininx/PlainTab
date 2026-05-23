@@ -181,7 +181,7 @@ window.I18N["fr"] = {
         "modalDescReducedMotion": "Réduit les transitions et animations de l’interface.",
         "modalDescTheme": "Extraire les couleurs de surface, bordure, accent et texte du fond.",
         "modalDescUiRadius": "Choisir le style de coins pour panneaux et contrôles.",
-        "modalDescWallpaperBlur": "Adoucir le fond tout en gardant les contrôles nets.",
+        "modalDescWallpaperBlur": "Activer ou désactiver le flou de fond haute qualité.",
         "modalDescWallpaperFit": "Choisir comment le fond remplit la fenêtre.",
         "modalDescWallpaperPosition": "Choisir le point d'ancrage visuel lors du recadrage.",
         "modalDescWallpaperVignette": "Assombrit les bords du fond pour garder le contenu lisible.",

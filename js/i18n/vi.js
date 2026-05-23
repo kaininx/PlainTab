@@ -181,7 +181,7 @@ window.I18N["vi"] = {
         "modalDescReducedMotion": "Giảm chuyển tiếp và hoạt ảnh trong giao diện.",
         "modalDescTheme": "Trích xuất màu bề mặt, viền, nhấn và văn bản từ hình nền.",
         "modalDescUiRadius": "Chọn kiểu bo góc tổng thể cho bảng và điều khiển.",
-        "modalDescWallpaperBlur": "Làm mềm hình nền trong khi giữ các điều khiển phía trước sắc nét.",
+        "modalDescWallpaperBlur": "Bật hoặc tắt làm mờ hình nền chất lượng cao.",
         "modalDescWallpaperFit": "Chọn cách hình nền lấp đầy khung nhìn.",
         "modalDescWallpaperPosition": "Chọn điểm neo trực quan khi hình nền bị cắt.",
         "modalDescWallpaperVignette": "Làm tối mép hình nền để nội dung phía trước dễ đọc hơn.",

@@ -181,7 +181,7 @@ window.I18N["zh-CN"] = {
         "modalDescReducedMotion": "减少界面过渡和动画。",
         "modalDescTheme": "从当前壁纸提取表面、描边、强调和文字色。",
         "modalDescUiRadius": "切换面板和控件的整体圆角语言。",
-        "modalDescWallpaperBlur": "柔化壁纸本身，前景控件保持清晰。",
+        "modalDescWallpaperBlur": "开启或关闭高质量壁纸模糊。",
         "modalDescWallpaperFit": "选择壁纸如何填充整个视口。",
         "modalDescWallpaperPosition": "当壁纸被裁切时选择画面锚点。",
         "modalDescWallpaperVignette": "压暗壁纸边缘，让前景内容更容易识别。",

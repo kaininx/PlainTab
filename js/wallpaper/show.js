@@ -14,7 +14,9 @@
     var _currentWallpaperSourceUrl = null;
     var _currentWallpaperSourceId = null;
     var _themeLoadPromise = null;
-    var BLUR_THUMB_MAX_W = 960;
+    var BLUR_THUMB_MIN_W = 960;
+    var BLUR_THUMB_MAX_W = 1920;
+    var BLUR_THUMB_JPEG_QUALITY = 0.82;
 
     // DOM 元素（在脚本加载时获取一次）
     var wallpaperBackEl = document.getElementById('wallpaperBack');
@@ -419,8 +421,7 @@
         }
         var n = parseInt(value, 10);
         if (isNaN(n) || n <= 0) return 0;
-        if (n < 5) return 5;
-        return Math.max(5, Math.min(15, n));
+        return 5;
     }
 
     function drawImageCover(ctx, img, width, height, overscan) {
@@ -432,24 +433,35 @@
         ctx.drawImage(img, x, y, drawW, drawH);
     }
 
+    function blurThumbnailScale(img) {
+        var viewportW = Math.max(window.innerWidth || 0, document.documentElement ? document.documentElement.clientWidth || 0 : 0);
+        var viewportH = Math.max(window.innerHeight || 0, document.documentElement ? document.documentElement.clientHeight || 0 : 0);
+        var viewportLongEdge = Math.max(viewportW, viewportH);
+        var targetLongEdge = Math.min(BLUR_THUMB_MAX_W, Math.max(BLUR_THUMB_MIN_W, viewportLongEdge || BLUR_THUMB_MIN_W));
+        var imageLongEdge = Math.max(img.width || 1, img.height || 1);
+        return Math.min(1, targetLongEdge / imageLongEdge);
+    }
+
     function generateBlurredThumbnail(source, blur) {
         blur = normalizeBlur(blur);
         if (!blur) return generateThumbnail(source);
 
         function processImage(img) {
-            var scale = Math.min(1, BLUR_THUMB_MAX_W / img.width);
+            var scale = blurThumbnailScale(img);
             var width = Math.max(1, Math.round(img.width * scale));
             var height = Math.max(1, Math.round(img.height * scale));
-            var pad = Math.ceil(blur * 3);
+            var pad = Math.ceil(blur * 2);
             var canvas = document.createElement('canvas');
             canvas.width = width;
             canvas.height = height;
             var ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
             ctx.save();
             ctx.filter = 'blur(' + blur + 'px)';
             drawImageCover(ctx, img, width, height, pad);
             ctx.restore();
-            var thumb = 'url(' + canvas.toDataURL('image/jpeg', 0.62) + ')';
+            var thumb = 'url(' + canvas.toDataURL('image/jpeg', BLUR_THUMB_JPEG_QUALITY) + ')';
             canvas.width = 0;
             canvas.height = 0;
             return thumb;
@@ -551,6 +563,7 @@
         TRANSITION_MS: TRANSITION_MS,
         THUMB_MAX_W: THUMB_MAX_W,
         BLUR_THUMB_MAX_W: BLUR_THUMB_MAX_W,
+        BLUR_THUMB_JPEG_QUALITY: BLUR_THUMB_JPEG_QUALITY,
 
         apply: applyWallpaper,
         applyAndSavePreview: applyAndSavePreview,
