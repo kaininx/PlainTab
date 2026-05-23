@@ -1,6 +1,6 @@
 ---
 name: commit-changes
-description: Claude adapter for preparing and creating PlainTab git commits. Use when the user asks to commit, 提交, stage changes, or use Conventional Commits / Google-style commit messages.
+description: Claude adapter for preparing and creating PlainTab git commits with scoped, detailed Conventional Commit messages. Use when the user asks to commit, 提交, stage changes, or use precise Conventional Commit / Google-style commit messages.
 ---
 
 # Commit PlainTab Changes
