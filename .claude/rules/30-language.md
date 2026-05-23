@@ -5,7 +5,7 @@
 - `js/languages.js` 拥有语言加载/解析 helper，并暴露设置和命令面板需要的语言列表与运行时 i18n 对象。
 - 语言包位于 `js/i18n/*.js`。
 - UI 文案通过 `t(key)`、运行时 helper 或 `data-i18n` 读取；Chrome 环境下可优先使用 `i18n.getMessage`。
-- `ptab_locale` 保存用户选择的语言。
+- `ptab_locale` 保存用户选择的语言。它是刻意独立的 boot preference key，因为 `js/languages.js` 在完整数据层加载前就需要同步决定语言包；不要把它合并进 `ptab_ui` 或其它大 JSON。
 
 ## Fallback 策略
 
@@ -16,6 +16,7 @@
 ## 语言和 Bing 市场
 
 - 运行时语言检测顺序：保存语言、浏览器语言、可支持语言、英文。
+- `js/languages.js` 只允许直接读取 `ptab_locale`，运行时语言切换和导入导出应通过存储层 API 保存语言。
 - Bing 市场映射在 `js/wallpaper/fetch.js`。新增语言时，只有在 Bing 市场确实支持时才同步 `bingMkt(lang)`。
 
 ## 新增或修改文案

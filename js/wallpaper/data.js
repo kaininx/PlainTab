@@ -276,6 +276,9 @@
         },
         panel: {
             opacity: 0.88
+        },
+        experience: {
+            acknowledged: {}
         }
     };
 
@@ -892,6 +895,26 @@
         return clone(DEFAULT_UI[section]);
     }
 
+    function hasAcknowledgedExperience(id, version) {
+        id = String(id || '').trim();
+        version = parseInt(version, 10) || 1;
+        if (!id) return false;
+        var ui = loadUI();
+        var acknowledged = ui.experience && ui.experience.acknowledged || {};
+        return (parseInt(acknowledged[id], 10) || 0) >= version;
+    }
+
+    function acknowledgeExperience(id, version) {
+        id = String(id || '').trim();
+        version = parseInt(version, 10) || 1;
+        if (!id) return false;
+        var ui = loadUI();
+        if (!ui.experience) ui.experience = clone(DEFAULT_UI.experience);
+        if (!ui.experience.acknowledged) ui.experience.acknowledged = {};
+        ui.experience.acknowledged[id] = Math.max(parseInt(ui.experience.acknowledged[id], 10) || 0, version);
+        return saveUI(ui);
+    }
+
     function normalizeSearchHistoryLimit(value) {
         var n = parseInt(value, 10);
         return n === 10 ? 10 : (n === 0 ? 0 : 5);
@@ -1026,6 +1049,14 @@
         model.settings = defaultShortcutSettings();
         ensureDefaultGithubShortcut(model);
         return saveShortcutsModel(model);
+    }
+
+    function loadShortcutIcons() {
+        return readJSON(KEYS.SHORTCUT_ICONS, {});
+    }
+
+    function saveShortcutIcons(icons) {
+        return writeJSON(KEYS.SHORTCUT_ICONS, icons || {});
     }
 
     function loadOrder() {
@@ -1465,11 +1496,24 @@
     // 存储基线
     // ================================================================
 
+    function finalizeSchema3LocalStorage() {
+        var rawUI = readJSON(KEYS.UI, {});
+        var ui = loadUI();
+        var shouldSaveUI = !rawUI || typeof rawUI !== 'object' || Array.isArray(rawUI) ||
+            !rawUI.experience || typeof rawUI.experience !== 'object' || Array.isArray(rawUI.experience) ||
+            !rawUI.experience.acknowledged || typeof rawUI.experience.acknowledged !== 'object' ||
+            Array.isArray(rawUI.experience.acknowledged);
+        var saved = shouldSaveUI ? saveUI(ui) : true;
+        try {
+            if (saved) localStorage.setItem(KEYS.SCHEMA_VERSION, LS_VERSION);
+        } catch (e) { }
+        return Promise.resolve();
+    }
+
     function ensureBaselineSchema() {
         var stored = parseInt(localStorage.getItem(KEYS.SCHEMA_VERSION), 10) || 0;
-        if (stored >= LS_VERSION) return Promise.resolve();
-        try { localStorage.setItem(KEYS.SCHEMA_VERSION, LS_VERSION); } catch (e) { }
-        return Promise.resolve();
+        if (stored >= LS_VERSION) return finalizeSchema3LocalStorage();
+        return finalizeSchema3LocalStorage();
     }
 
     // ================================================================
@@ -1578,6 +1622,8 @@
         loadUI: loadUI,
         saveUI: saveUI,
         defaultUISection: defaultUISection,
+        hasAcknowledgedExperience: hasAcknowledgedExperience,
+        acknowledgeExperience: acknowledgeExperience,
         normalizeSearchHistoryLimit: normalizeSearchHistoryLimit,
         loadSearchHistoryLimit: loadSearchHistoryLimit,
         loadSearchHistory: loadSearchHistory,
@@ -1588,6 +1634,8 @@
         saveShortcutsModel: saveShortcutsModel,
         defaultShortcutSettings: defaultShortcutSettings,
         resetShortcutSettings: resetShortcutSettings,
+        loadShortcutIcons: loadShortcutIcons,
+        saveShortcutIcons: saveShortcutIcons,
         loadLocale: loadLocale,
         saveLocale: saveLocale,
         exportUserData: exportUserData,

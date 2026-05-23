@@ -491,8 +491,6 @@
                 if (thumb) {
                     if (window.WallpaperData && window.WallpaperData.savePreview) {
                         window.WallpaperData.savePreview(thumb);
-                    } else {
-                        try { localStorage.setItem('ptab_wallpaper_preview', thumb); } catch (e) { }
                     }
                 }
             });

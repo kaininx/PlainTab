@@ -128,7 +128,6 @@ async function testMigratesLegacyV2UploadWallpaperAndCleansOldData() {
     assert.strictEqual(writes.ptab_wallpaper_blob_upload_missing, undefined);
 
     assert.strictEqual(localStorage.getItem('ptab_schema_version'), '3');
-    assert.strictEqual(localStorage.getItem('ptab_legacy_v2_migrated'), '1');
     assert.strictEqual(localStorage.getItem('ptab_locale'), null);
 
     const wallpaper = JSON.parse(localStorage.getItem('ptab_wallpaper'));

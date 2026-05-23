@@ -12,7 +12,6 @@
     if (!D) return;
 
     var baseMigrate = D.migrate || function () { return Promise.resolve(); };
-    var MIGRATED_KEY = 'ptab_legacy_v2_migrated';
     var LEGACY_SCHEMA_KEY = 'ptab_version';
     var LEGACY_BING_BLOB = 'ptab_bing_blob';
     var LEGACY_UPLOAD_PREFIX = 'ptab_img_';
@@ -156,9 +155,6 @@
     function migrateLegacyStorage() {
         if (!hasLegacyStorage()) return baseMigrate();
 
-        var stored = parseInt(localStorage.getItem(D.KEYS.SCHEMA_VERSION), 10) || 0;
-        if (stored >= D.LS_VERSION && localStorage.getItem(MIGRATED_KEY) === '1') return baseMigrate();
-
         var legacyOrder = readJSON('ptab_img_order', []);
         return migrateUploadBlobs(legacyOrder).then(function (validUploadOrder) {
             var thumbs = migrateThumbs(validUploadOrder);
@@ -167,7 +163,6 @@
         }).then(function () {
             try {
                 localStorage.setItem(D.KEYS.SCHEMA_VERSION, D.LS_VERSION);
-                localStorage.setItem(MIGRATED_KEY, '1');
             } catch (e) { }
             return baseMigrate();
         });
@@ -175,7 +170,6 @@
 
     D.migrate = migrateLegacyStorage;
     D.legacyStorageMigration = {
-        migrate: migrateLegacyStorage,
-        migratedKey: MIGRATED_KEY
+        migrate: migrateLegacyStorage
     };
 })();

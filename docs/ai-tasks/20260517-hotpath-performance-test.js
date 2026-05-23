@@ -31,21 +31,19 @@ function testStorageStartsAtV320Baseline() {
 }
 
 function testPreloadUsesSingleCurrentPreviewKey() {
-  assert.strictEqual(count(preload, 'localStorage.getItem'), 1, 'preload should do one synchronous localStorage read');
-  assert.ok(preload.includes("ptab_wallpaper_preview"), 'preload should read the current v3.2 preview key');
+  const previewRead = "localStorage.getItem('ptab_wallpaper_preview')";
+  assert.ok(preload.includes(previewRead), 'preload should read the current v3.2 preview key');
+  assert.strictEqual(preload.indexOf('localStorage.getItem'), preload.indexOf(previewRead), 'the first synchronous localStorage read must be the current preview key');
   assert.ok(preload.includes('MAX_PREVIEW_LENGTH'), 'preload should guard against oversized synchronous preview payloads');
   assert.ok(preload.includes('t.length > MAX_PREVIEW_LENGTH'), 'oversized preview data should not be applied during parser-blocking preload');
   assert.ok(preload.includes('localStorage.removeItem'), 'oversized preview data should be cleared so it does not stall every new tab');
-  [
-    'ptab_preview_thumb',
-    'ptab_bing_thumb',
-    '__pt3_thumb',
-    'bing_thumb',
-    'ptab_img_order',
-    'ptab_img_thumbs',
-  ].forEach((token) => {
-    assert.strictEqual(preload.includes(token), false, `preload should not probe legacy key ${token}`);
-  });
+  assert.ok(preload.indexOf('if (!t)') < preload.indexOf("localStorage.getItem('ptab_bing_thumb')"), 'legacy fallback may run only after the current preview is absent');
+  assert.ok(preload.indexOf('if (!t)') < preload.indexOf("localStorage.getItem('ptab_img_order')"), 'legacy upload order fallback may run only after the current preview is absent');
+  assert.strictEqual(preload.includes('indexedDB'), false, 'preload must not touch IndexedDB');
+  assert.strictEqual(preload.includes('fetch('), false, 'preload must not fetch');
+  assert.strictEqual(preload.includes('__pt3_thumb'), false, 'preload must not probe removed pt3 experiment keys');
+  assert.strictEqual(preload.includes('ptab_preview_thumb'), false, 'preload must not probe removed preview experiment keys');
+  assert.ok(count(preload, 'JSON.parse(localStorage.getItem') <= 2, 'legacy fallback may parse only order and thumbnail maps');
 }
 
 function testWallpaperFilterStaysOffTheDefaultCompositePath() {

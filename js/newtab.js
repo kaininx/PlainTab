@@ -87,7 +87,8 @@
     var apiEveryOpenRefreshKeys = {};
     var wallpaperDownloadNoticeEl = null;
     var wallpaperDownloadNoticeTimer = null;
-    var ONBOARDING_SEEN_KEY = 'ptab_onboarding_seen_v1';
+    var FIRST_USE_HINT_ID = 'firstUseHint';
+    var FIRST_USE_HINT_VERSION = 1;
     var onboardingEl = null;
 
     // ================================================================
@@ -1463,11 +1464,11 @@
     }
 
     function onboardingSeen() {
-        try { return localStorage.getItem(ONBOARDING_SEEN_KEY) === '1'; } catch (e) { return true; }
+        return D.hasAcknowledgedExperience ? D.hasAcknowledgedExperience(FIRST_USE_HINT_ID, FIRST_USE_HINT_VERSION) : true;
     }
 
     function markOnboardingSeen() {
-        try { localStorage.setItem(ONBOARDING_SEEN_KEY, '1'); } catch (e) { }
+        if (D.acknowledgeExperience) D.acknowledgeExperience(FIRST_USE_HINT_ID, FIRST_USE_HINT_VERSION);
     }
 
     function onboardingCopy() {

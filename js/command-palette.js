@@ -22,7 +22,6 @@
     // 常量
     // ================================================================
 
-    var LS_KEY_SHORTCUT_ICONS = 'ptab_shortcut_icons';
     var BUILTIN_GITHUB = { id: 'builtin-github', name: 'GitHub', url: 'https://github.com', freq: 0, added: 0 };
     var BUILTIN_GITHUB_ICON = 'https://icons.duckduckgo.com/ip3/github.com.ico';
     var SHORTCUT_EXPORT_TYPE = 'plaintab-command-shortcuts';
@@ -80,7 +79,7 @@
     var _hiddenCache = null;
 
     // ================================================================
-    // 数据层：读写快捷链接相关 localStorage
+    // 数据层：读写快捷链接相关数据
     // ================================================================
 
     function loadShortcuts() {
@@ -94,13 +93,13 @@
     }
     function loadIcons() {
         if (_iconsCache !== null) return _iconsCache;
-        try { _iconsCache = JSON.parse(localStorage.getItem(LS_KEY_SHORTCUT_ICONS) || '{}'); } catch (e) { _iconsCache = {}; }
+        try { _iconsCache = window.WallpaperData && window.WallpaperData.loadShortcutIcons ? window.WallpaperData.loadShortcutIcons() : {}; } catch (e) { _iconsCache = {}; }
         if (ensureBuiltinGithubIcon(_iconsCache)) saveIcons(_iconsCache);
         return _iconsCache;
     }
     function saveIcons(obj) {
         _iconsCache = obj;
-        try { localStorage.setItem(LS_KEY_SHORTCUT_ICONS, JSON.stringify(obj)); return true; } catch (e) { return false; }
+        try { return window.WallpaperData && window.WallpaperData.saveShortcutIcons ? window.WallpaperData.saveShortcutIcons(obj) : false; } catch (e) { return false; }
     }
     function loadRecents() {
         if (_recentsCache !== null) return _recentsCache;

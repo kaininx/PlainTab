@@ -6,11 +6,13 @@
 
 - `#wallpaperBack` 在 `preload.js` 之前就存在。
 - `#wallpaperFront` 是过渡层。
-- `js/preload.js` 可以同步恢复已保存预览。
+- `js/preload.js` 可以同步恢复已保存预览。`ptab_wallpaper_preview` 是刻意独立的 first-paint cache key，不要为了存储整齐把它合并进 `ptab_wallpaper`、`ptab_ui` 或 IndexedDB。
 - `js/wallpaper/show.js` 拥有 DOM 应用、缩略图、模糊缩略图、主题色提取和 Blob URL 生命周期。
 - `js/newtab.js` 负责编排来源选择和刷新时机。
 
 来源切换、缓存缺失、网络错误或恢复默认时，不能让两个壁纸层同时空白。
+
+`preload.js` 首屏路径不可为重构付费：不能依赖数据层、i18n、网络、IndexedDB、canvas 或异步任务；已有 `ptab_wallpaper_preview` 时必须优先直接应用。为了 3.1.4 直接跳升后的第一帧兜底，preview 缺失时可以保留极轻 legacy v2 缩略图 fallback。
 
 ## 来源切换事务
 
@@ -93,6 +95,7 @@
 
 - 先保存大 Blob，再写指向它的元数据。
 - 恢复默认时，尽量保留 Bing 缓存/预览，并删除 upload/folder/RSS/Wallhaven/API 数据。
+- 运行时写入首屏预览必须通过存储层 API（如 `WallpaperData.savePreview()`）；除 `preload.js` 的首屏读取/坏值清理外，不要在壁纸运行时模块里直接读写 `ptab_wallpaper_preview`。
 - 图片加载完成或放弃后释放 object URL。
 - 模糊缩略图是派生缓存，可以重新生成；不要把它当作来源真相。
 - 设置页上传来源在 apply 的 prepare 阶段打开系统文件选择器。取消选择不能改变 `activeSource`，不能清空可见壁纸，也不能回退到 Bing。

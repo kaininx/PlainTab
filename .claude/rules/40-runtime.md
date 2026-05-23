@@ -18,9 +18,10 @@
 ## 启动工作
 
 - 首屏保持轻。
-- 立即加载并应用当前最好的缓存壁纸。
+- 立即加载并应用当前最好的缓存壁纸。`js/preload.js` 必须优先同步读取 `ptab_wallpaper_preview`，有 preview 时不要做额外模型解析、IDB、网络、canvas 或异步工作。
 - 网络刷新、文件夹扫描、面板预热、onboarding 提示、命令面板预热都放到启动之后，通常用 `requestIdleCallback` 加 timeout fallback。
 - 初始壁纸可见前，不要加入阻塞性的 i18n、网络、存储工作。
+- onboarding 只是一种延迟体验提示，状态应记录在 `ptab_ui.experience.acknowledged`，不要在 `newtab.js` 中新增或读写顶级 localStorage key。
 
 ## 设置协调
 
