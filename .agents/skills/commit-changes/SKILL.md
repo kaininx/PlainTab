@@ -11,14 +11,15 @@ Use this skill to make clean PlainTab commits without mixing unrelated work.
 
 - Use Conventional Commits: `feat:`, `fix:`, `perf:`, `refactor:`, `chore:`, `docs:`.
 - Prefer Chinese commit subjects and bodies when the user asks in Chinese.
-- Match the current repository history. Before committing, inspect recent subjects with `git log --oneline -10` and keep the same compact `type: 中文动宾短语` style unless the user asks for another style.
-- Keep the subject concise and imperative enough to read well in history.
-- Add a body only when the change needs context. Use short bullet lines beginning with `-`, matching the current body style; do not introduce a new template or verbose PR-style prose.
+- Match the current repository history. Before committing, inspect recent subjects with `git log --oneline -10` and keep the same Chinese Conventional Commit rhythm unless the user asks for another style.
+- Keep the subject as one concise sentence, but make it specific enough to explain the changed area and concrete action. Avoid subjects that are only a few vague characters, such as `fix: 更新文案` or `docs: 改文档`, when a slightly longer subject can be more accurate.
+- Prefer `type: 动词 + 具体对象 + 结果/目的` when it still reads naturally, for example `fix: 更新 GitHub Release 安装入口并补齐 Edge 商店链接`.
+- Add a body only when the subject cannot carry the context clearly enough. Use short bullet lines beginning with `-`, matching the current body style; do not introduce a new template or verbose PR-style prose.
 
 Example:
 
 ```text
-feat: 添加首次使用引导
+feat: 添加首次使用引导并接入运行时多语言文案
 
 - 新增轻量首次使用提示，说明搜索和命令面板入口。
 - 接入运行时 i18n 并补齐语言包。
