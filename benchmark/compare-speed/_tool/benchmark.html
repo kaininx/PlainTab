@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlainTab Wallpaper Speed Benchmark</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #10131a;
+            --surface: #171d26;
+            --surface-2: #202938;
+            --line: #334154;
+            --text: #edf3fb;
+            --muted: #9cabbc;
+            --green: #62d08f;
+            --blue: #74a9ff;
+            --yellow: #f3c95c;
+            --red: #ef7777;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        main {
+            width: min(1120px, calc(100vw - 32px));
+            margin: 0 auto;
+            padding: 24px 0 42px;
+        }
+
+        header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 0;
+        }
+
+        .lead,
+        .status,
+        .note {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .lead {
+            max-width: 900px;
+            margin: 8px 0 0;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) 130px 130px 150px;
+            gap: 10px;
+            margin: 18px 0;
+            align-items: end;
+        }
+
+        label {
+            display: grid;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        input {
+            height: 36px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            padding: 0 10px;
+            font: inherit;
+            font-size: 14px;
+        }
+
+        button {
+            height: 36px;
+            border: 1px solid rgba(98, 208, 143, 0.55);
+            border-radius: 8px;
+            background: rgba(98, 208, 143, 0.14);
+            color: var(--text);
+            padding: 0 16px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: progress;
+            opacity: 0.62;
+        }
+
+        .status {
+            min-height: 24px;
+            margin-bottom: 12px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .metric,
+        .result,
+        .note {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+        }
+
+        .metric {
+            padding: 14px;
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .metric strong {
+            display: block;
+            margin-top: 6px;
+            font-size: 20px;
+        }
+
+        .results {
+            display: grid;
+            gap: 12px;
+        }
+
+        .result {
+            padding: 14px;
+        }
+
+        .result-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 14px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .winner {
+            min-width: 190px;
+            color: var(--green);
+            font-weight: 800;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .winner.slow {
+            color: var(--red);
+        }
+
+        .winner.warn {
+            color: var(--yellow);
+        }
+
+        .sections {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .section {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px;
+        }
+
+        .section h3 {
+            margin: 0 0 4px;
+            font-size: 14px;
+        }
+
+        .section p {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .bars {
+            display: grid;
+            gap: 10px;
+        }
+
+        .bar-row {
+            display: grid;
+            grid-template-columns: 132px minmax(0, 1fr) 88px;
+            gap: 10px;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .bar-label {
+            color: var(--muted);
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .track {
+            height: 12px;
+            border-radius: 999px;
+            background: var(--surface-2);
+            overflow: hidden;
+        }
+
+        .fill {
+            height: 100%;
+            width: 1%;
+            border-radius: inherit;
+            background: var(--blue);
+        }
+
+        .fill.current {
+            background: var(--green);
+        }
+
+        .time {
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+        }
+
+        .note {
+            margin-top: 16px;
+            padding: 14px;
+        }
+
+        .progress {
+            margin: 12px 0 18px;
+            display: none;
+        }
+
+        .progress.active {
+            display: block;
+        }
+
+        .progress-track {
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: var(--surface-2);
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: var(--green);
+            transition: width 160ms ease-out;
+        }
+
+        .progress-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .preview-title {
+            margin: 20px 0 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .preview-pane {
+            min-width: 0;
+        }
+
+        .pane-label {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .pane-label strong {
+            color: var(--text);
+        }
+
+        .preview-frame {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #05070a;
+        }
+
+        .preview-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .preview-frame img.ready {
+            display: block;
+        }
+
+        .preview-empty {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        code {
+            color: var(--text);
+            font-family: "Cascadia Code", Consolas, monospace;
+        }
+
+        @media (max-width: 900px) {
+            header,
+            .controls,
+            .result-head,
+            .sections,
+            .bar-row,
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .winner,
+            .time {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <header>
+            <div>
+                <h1>PlainTab 壁纸出现速度 Benchmark</h1>
+                <p class="lead">
+                    全部场景都使用真实 Chrome/Edge 标签页测量。Cold 是全新隔离浏览器上下文打开新标签页；
+                    同页面 Warm 是已有缓存后刷新同一个真实标签页；新标签页 Warm 是已有缓存后每轮新建真实标签页。
+                    最终快慢结论采用新标签页 Warm，因为它最接近用户点击 + 打开新标签页到壁纸出现的体验。
+                </p>
+            </div>
+            <div class="actions">
+                <button id="copyBtn" type="button" disabled>复制结果</button>
+                <button id="runBtn" type="button">开始测试</button>
+            </div>
+        </header>
+
+        <section class="controls" aria-label="Benchmark controls">
+            <label>
+                对比版本目录
+                <input id="versionsInput" value="v3.1.4" spellcheck="false">
+            </label>
+            <label>
+                Cold 轮数
+                <input id="coldRunsInput" type="number" min="1" max="200" step="1" value="5">
+            </label>
+            <label>
+                Warm 轮数
+                <input id="warmRunsInput" type="number" min="1" max="200" step="1" value="50">
+            </label>
+            <label>
+                超时秒数
+                <input id="timeoutInput" type="number" min="1" max="60" step="1" value="8">
+            </label>
+        </section>
+
+        <div class="status" id="status"></div>
+        <section class="progress" id="progress">
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-line"><span id="progressStage">等待开始</span><span id="progressCount">0 / 0</span></div>
+        </section>
+        <section class="summary" id="summary"></section>
+        <section class="results" id="results"></section>
+
+        <div class="preview-title">真实浏览器预览</div>
+        <div class="preview-grid">
+            <section class="preview-pane">
+                <div class="pane-label"><strong id="baselinePreviewName">v3.1.4</strong><span id="baselinePreviewPhase">等待测试</span></div>
+                <div class="preview-frame">
+                    <img id="baselinePreviewImage" alt="Baseline benchmark preview">
+                    <div class="preview-empty" id="baselinePreviewEmpty">测试后显示真实标签页画面</div>
+                </div>
+            </section>
+            <section class="preview-pane">
+                <div class="pane-label"><strong>Current</strong><span id="currentPreviewPhase">等待测试</span></div>
+                <div class="preview-frame">
+                    <img id="currentPreviewImage" alt="Current benchmark preview">
+                    <div class="preview-empty" id="currentPreviewEmpty">测试后显示真实标签页画面</div>
+                </div>
+            </section>
+        </div>
+
+        <section class="note">
+            请用 <code>benchmark.cmd</code> 打开。测试会启动独立的真实浏览器进程，并通过 DevTools Protocol 创建真实标签页。
+            本页面只负责展示结果，不参与计时。被测版本的 <code>index.html</code> 会被本地 benchmark server 注入极小探针；
+            CSS/JS/图片仍按对应版本真实路径加载。计时停止点是不区分缩略图或完整壁纸的首次背景图 after-paint 近似点。
+            预览截图在每轮计时停止之后采集，只用于观察，不进入耗时结果。
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var CONTROL_LIMITS = {
+                coldRuns: { id: 'coldRunsInput', min: 1, max: 200, step: 1, defaultValue: 5 },
+                warmRuns: { id: 'warmRunsInput', min: 1, max: 200, step: 1, defaultValue: 50 },
+                timeoutSeconds: { id: 'timeoutInput', min: 1, max: 60, step: 1, defaultValue: 8 }
+            };
+            var lastPayload = null;
+            var activeJobId = '';
+
+            applyControlLimits();
+            document.getElementById('runBtn').addEventListener('click', runBenchmark);
+            document.getElementById('copyBtn').addEventListener('click', copyResults);
+            renderEmpty();
+
+            if (location.protocol === 'file:') {
+                setStatus('当前是 file://，真实浏览器测试不可用。请双击 benchmark.cmd 用 HTTP 打开。', true);
+                document.getElementById('runBtn').disabled = true;
+            } else {
+                setStatus('准备就绪。测试会启动独立真实浏览器，轮数越高越稳，但 Cold 会受网络影响。');
+            }
+
+            async function runBenchmark() {
+                var button = document.getElementById('runBtn');
+                button.disabled = true;
+                document.getElementById('copyBtn').disabled = true;
+                document.getElementById('results').innerHTML = '';
+                lastPayload = null;
+                activeJobId = '';
+                resetPreviews();
+
+                try {
+                    var versions = parseVersions(document.getElementById('versionsInput').value);
+                    var coldRuns = readClampedNumber(CONTROL_LIMITS.coldRuns);
+                    var warmRuns = readClampedNumber(CONTROL_LIMITS.warmRuns);
+                    var timeoutSeconds = readClampedNumber(CONTROL_LIMITS.timeoutSeconds);
+                    var endpoint = new URL('./api/job/start', location.href);
+                    endpoint.searchParams.set('versions', versions.join(','));
+                    endpoint.searchParams.set('coldRuns', String(coldRuns));
+                    endpoint.searchParams.set('warmRuns', String(warmRuns));
+                    endpoint.searchParams.set('timeout', String(timeoutSeconds));
+
+                    renderProgress({ stage: 'starting', message: '正在启动真实浏览器...', completedSteps: 0, totalSteps: 0 });
+                    setStatus('正在启动真实浏览器测试：Cold、同页面 Warm、新标签页 Warm。cmd 中也会持续显示进度。');
+
+                    var response = await fetch(endpoint.href, { cache: 'no-store' });
+                    var payload = await response.json();
+                    if (!response.ok || !payload.ok) {
+                        throw new Error(payload && payload.error ? payload.error : '真实浏览器 benchmark 失败');
+                    }
+
+                    activeJobId = payload.jobId;
+                    lastPayload = await waitForJob(activeJobId);
+                    window.__plainTabWallpaperSpeedResults = lastPayload;
+                    renderResults(lastPayload);
+                    setStatus('测试完成。最终结论采用新标签页 Warm p50。');
+                    document.getElementById('copyBtn').disabled = false;
+                } catch (error) {
+                    setStatus('测试失败：' + (error && error.message ? error.message : String(error)), true);
+                    throw error;
+                } finally {
+                    button.disabled = location.protocol === 'file:';
+                }
+            }
+
+            async function waitForJob(jobId) {
+                while (true) {
+                    var endpoint = new URL('./api/job/' + encodeURIComponent(jobId) + '/status', location.href);
+                    var response = await fetch(endpoint.href, { cache: 'no-store' });
+                    var status = await response.json();
+                    if (!response.ok || !status.ok) {
+                        throw new Error(status && status.error ? status.error : '无法读取 benchmark 进度');
+                    }
+                    renderProgress(status);
+                    updatePreviews(jobId, status.previews || {});
+                    if (status.state === 'done') return status.result;
+                    if (status.state === 'error') throw new Error(status.error || status.message || '真实浏览器 benchmark 失败');
+                    await sleep(250);
+                }
+            }
+
+            async function copyResults() {
+                if (!lastPayload) {
+                    setStatus('还没有可复制的结果，请先运行测试。', true);
+                    return;
+                }
+                try {
+                    await writeClipboard(buildResultsText(lastPayload));
+                    setStatus('结果已复制到剪贴板。');
+                } catch (error) {
+                    setStatus('复制失败：' + (error && error.message ? error.message : String(error)), true);
+                }
+            }
+
+            function buildResultsText(payload) {
+                var lines = [
+                    'PlainTab Wallpaper Speed Benchmark',
+                    '时间：' + new Date().toLocaleString(),
+                    '口径：全部场景均为真实 Chrome/Edge 标签页；Cold 为全新隔离上下文；同页面 Warm 为真实标签页 reload；新标签页 Warm 为已有缓存后新建真实标签页。最终结论采用新标签页 Warm p50。',
+                    ''
+                ];
+                comparisons(payload).forEach(function (item) {
+                    lines.push(item.baseline.label + ' vs Current');
+                    lines.push('Cold：' + item.baseline.label + ' ' + formatStat(item.baseline.cold) + ' / Current ' + formatStat(item.current.cold) + ' / ' + winnerText(item.current.cold.p50, item.baseline.cold.p50));
+                    lines.push('同页面 Warm：' + item.baseline.label + ' ' + formatStat(item.baseline.warmReload) + ' / Current ' + formatStat(item.current.warmReload) + ' / ' + winnerText(item.current.warmReload.p50, item.baseline.warmReload.p50));
+                    lines.push('最终结论（新标签页 Warm）：' + item.baseline.label + ' ' + formatStat(item.baseline.warmNewTab) + ' / Current ' + formatStat(item.current.warmNewTab) + ' / ' + winnerText(item.current.warmNewTab.p50, item.baseline.warmNewTab.p50));
+                    lines.push('命中：Cold ' + item.baseline.coldHit + '/' + item.baseline.coldRuns + ' vs ' + item.current.coldHit + '/' + item.current.coldRuns +
+                        '；同页面 Warm ' + item.baseline.warmReloadHit + '/' + item.baseline.warmRuns + ' vs ' + item.current.warmReloadHit + '/' + item.current.warmRuns +
+                        '；新标签页 Warm ' + item.baseline.warmNewTabHit + '/' + item.baseline.warmRuns + ' vs ' + item.current.warmNewTabHit + '/' + item.current.warmRuns);
+                    lines.push('');
+                });
+                lines.push('Raw JSON:');
+                lines.push(JSON.stringify(payload, null, 2));
+                return lines.join('\n');
+            }
+
+            async function writeClipboard(text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    return;
+                }
+                var textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                var ok = document.execCommand('copy');
+                textarea.remove();
+                if (!ok) throw new Error('浏览器拒绝写入剪贴板');
+            }
+
+            function comparisons(payload) {
+                var results = payload && payload.results ? payload.results : [];
+                var current = results.filter(function (item) { return item.id === 'current'; })[0];
+                if (!current) return [];
+                return results.filter(function (item) { return item.id !== 'current'; }).map(function (baseline) {
+                    return { baseline: baseline, current: current };
+                });
+            }
+
+            function renderEmpty() {
+                document.getElementById('summary').innerHTML =
+                    metric('Cold', '真实新标签页') +
+                    metric('同页面 Warm', '真实 reload') +
+                    metric('新标签页 Warm', '最终结论') +
+                    metric('默认对比', 'v3.1.4 vs Current');
+            }
+
+            function renderProgress(status) {
+                var total = Number(status.totalSteps) || 0;
+                var completed = Number(status.completedSteps) || 0;
+                var percent = total ? Math.min(100, (completed / total) * 100) : 0;
+                document.getElementById('progress').classList.add('active');
+                document.getElementById('progressFill').style.width = percent.toFixed(2) + '%';
+                document.getElementById('progressStage').textContent = status.message || stageText(status.stage);
+                document.getElementById('progressCount').textContent = total ? completed + ' / ' + total + '  (' + percent.toFixed(0) + '%)' : '准备中';
+                document.getElementById('summary').innerHTML =
+                    metric('阶段', stageText(status.stage)) +
+                    metric('当前版本', status.current && status.current.id ? displayTarget(status.current.id) : '-') +
+                    metric('当前轮次', status.current && status.current.run ? status.current.run + ' / ' + status.current.runs : '-') +
+                    metric('测量引擎', '真实浏览器') +
+                    metric('主指标', '新标签页 Warm p50');
+            }
+
+            function renderResults(payload) {
+                var current = (payload.results || []).filter(function (item) { return item.id === 'current'; })[0];
+                document.getElementById('summary').innerHTML =
+                    metric('Cold', current ? formatMs(current.cold.p50) : '-') +
+                    metric('同页面 Warm', current ? formatMs(current.warmReload.p50) : '-') +
+                    metric('新标签页 Warm', current ? formatMs(current.warmNewTab.p50) : '-') +
+                    metric('轮数', 'Cold ' + (payload.coldRuns || '-') + ' / Warm ' + (payload.warmRuns || '-'));
+                document.getElementById('results').innerHTML = comparisons(payload).map(renderComparison).join('');
+                document.getElementById('progressFill').style.width = '100%';
+            }
+
+            function updatePreviews(jobId, previews) {
+                var baselineId = Object.keys(previews).filter(function (id) { return id !== 'current'; })[0];
+                if (baselineId) {
+                    document.getElementById('baselinePreviewName').textContent = displayTarget(baselineId);
+                    setPreview('baseline', jobId, previews[baselineId]);
+                }
+                if (previews.current) setPreview('current', jobId, previews.current);
+            }
+
+            function setPreview(side, jobId, preview) {
+                if (!preview || !preview.file) return;
+                var image = document.getElementById(side + 'PreviewImage');
+                var empty = document.getElementById(side + 'PreviewEmpty');
+                var phase = document.getElementById(side + 'PreviewPhase');
+                image.src = './api/job/' + encodeURIComponent(jobId) + '/preview/' + encodeURIComponent(preview.file) + '?t=' + encodeURIComponent(preview.updatedAt || Date.now());
+                image.classList.add('ready');
+                empty.style.display = 'none';
+                phase.textContent = preview.phase || '已更新';
+            }
+
+            function resetPreviews() {
+                ['baseline', 'current'].forEach(function (side) {
+                    var image = document.getElementById(side + 'PreviewImage');
+                    var empty = document.getElementById(side + 'PreviewEmpty');
+                    var phase = document.getElementById(side + 'PreviewPhase');
+                    image.removeAttribute('src');
+                    image.classList.remove('ready');
+                    empty.style.display = '';
+                    phase.textContent = '等待测试';
+                });
+            }
+
+            function stageText(stage) {
+                return {
+                    starting: '启动中',
+                    cold: 'Cold',
+                    'warm-setup': 'Warm 准备',
+                    'warm-reload': '同页面 Warm',
+                    'warm-new-tab': '新标签页 Warm',
+                    done: '已完成'
+                }[stage] || '准备中';
+            }
+
+            function displayTarget(id) {
+                return id === 'current' ? 'Current' : id;
+            }
+
+            function renderComparison(item) {
+                var baseline = item.baseline;
+                var current = item.current;
+                return '<article class="result">' +
+                    '<div class="result-head">' +
+                    '<div><h2>' + escapeHtml(baseline.label) + ' vs Current</h2></div>' +
+                    '<div class="winner' + winnerClass(current.warmNewTab.p50, baseline.warmNewTab.p50) + '">' +
+                    escapeHtml('最终结论：' + winnerText(current.warmNewTab.p50, baseline.warmNewTab.p50)) + '</div>' +
+                    '</div>' +
+                    '<div class="sections">' +
+                    renderSection('Cold', '全新隔离上下文 + 新标签页', baseline.label, baseline.cold, 'Current', current.cold) +
+                    renderSection('同页面 Warm', '已有缓存后 reload 同一个真实标签页', baseline.label, baseline.warmReload, 'Current', current.warmReload) +
+                    renderSection('新标签页 Warm', '已有缓存后每轮新建真实标签页', baseline.label, baseline.warmNewTab, 'Current', current.warmNewTab) +
+                    '</div>' +
+                    '</article>';
+            }
+
+            function renderSection(title, desc, leftLabel, leftStat, rightLabel, rightStat) {
+                var leftValue = leftStat ? leftStat.p50 : NaN;
+                var rightValue = rightStat ? rightStat.p50 : NaN;
+                var max = Math.max(isFinite(leftValue) ? leftValue : 0, isFinite(rightValue) ? rightValue : 0, 0.001);
+                return '<section class="section">' +
+                    '<h3>' + escapeHtml(title) + '</h3>' +
+                    '<p>' + escapeHtml(desc) + '</p>' +
+                    '<div class="bars">' +
+                    renderBar(leftLabel, leftValue, max, false) +
+                    renderBar(rightLabel, rightValue, max, true) +
+                    '</div>' +
+                    '</section>';
+            }
+
+            function renderBar(label, value, max, current) {
+                var width = Math.max(1, Math.min(100, ((isFinite(value) ? value : 0) / max) * 100));
+                return '<div class="bar-row">' +
+                    '<div class="bar-label" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</div>' +
+                    '<div class="track"><div class="fill' + (current ? ' current' : '') + '" style="width:' + width.toFixed(2) + '%"></div></div>' +
+                    '<div class="time">' + formatMs(value) + '</div>' +
+                    '</div>';
+            }
+
+            function formatStat(stat) {
+                if (!stat) return '-';
+                return 'p50 ' + formatMs(stat.p50) + ', avg ' + formatMs(stat.avg) + ', p95 ' + formatMs(stat.p95);
+            }
+
+            function winnerText(current, baseline) {
+                if (!isFinite(current) || !isFinite(baseline)) return '测试未完整命中';
+                var delta = current - baseline;
+                return delta <= 0 ? '当前快 ' + formatMs(Math.abs(delta)) : '当前慢 ' + formatMs(delta);
+            }
+
+            function winnerClass(current, baseline) {
+                if (!isFinite(current) || !isFinite(baseline)) return ' warn';
+                return current <= baseline ? '' : ' slow';
+            }
+
+            function metric(label, value) {
+                return '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+            }
+
+            function setStatus(message, error) {
+                var el = document.getElementById('status');
+                el.textContent = message;
+                el.style.color = error ? 'var(--red)' : 'var(--muted)';
+            }
+
+            function applyControlLimits() {
+                Object.keys(CONTROL_LIMITS).forEach(function (key) {
+                    var config = CONTROL_LIMITS[key];
+                    var input = document.getElementById(config.id);
+                    if (!input) return;
+                    input.min = String(config.min);
+                    input.max = String(config.max);
+                    input.step = String(config.step);
+                    input.value = String(config.defaultValue);
+                });
+            }
+
+            function readClampedNumber(config) {
+                var input = document.getElementById(config.id);
+                var parsed = input ? parseInt(input.value, 10) : NaN;
+                var value = Number.isFinite(parsed) ? parsed : config.defaultValue;
+                value = clamp(value, config.min, config.max);
+                if (input) input.value = String(value);
+                return value;
+            }
+
+            function parseVersions(raw) {
+                var versions = String(raw || 'v3.1.4')
+                    .split(/[,\s]+/)
+                    .map(function (item) { return item.trim(); })
+                    .filter(Boolean);
+                if (!versions.length) versions = ['v3.1.4'];
+                versions.forEach(function (version) {
+                    if (!/^[A-Za-z0-9._-]+$/.test(version)) {
+                        throw new Error('版本目录名只支持字母、数字、点、下划线和短横线：' + version);
+                    }
+                });
+                return versions;
+            }
+
+            function clamp(value, min, max) {
+                return Math.max(min, Math.min(max, value));
+            }
+
+            function sleep(ms) {
+                return new Promise(function (resolve) {
+                    setTimeout(resolve, ms);
+                });
+            }
+
+            function formatMs(value) {
+                if (!isFinite(value)) return '-';
+                if (value < 1000) return value.toFixed(1) + ' ms';
+                return (value / 1000).toFixed(2) + ' s';
+            }
+
+            function escapeHtml(value) {
+                return String(value == null ? '' : value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+        })();
+    </script>
+</body>
+
+</html>

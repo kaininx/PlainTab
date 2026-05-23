@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = Resolve-Path (Join-Path $scriptDir '..\..')
+$repoRoot = Resolve-Path (Join-Path $scriptDir '..\..\..')
 
 function Get-PythonCommand {
     if (Get-Command py -ErrorAction SilentlyContinue) {
@@ -50,7 +50,8 @@ function Get-FreePort {
 
 $python = Get-PythonCommand
 $port = Get-FreePort
-$url = "http://127.0.0.1:$port/benchmark/compare-speed/compare.html"
+$url = "http://127.0.0.1:$port/benchmark/compare-speed/_tool/benchmark.html"
+$serverScript = Join-Path $scriptDir 'benchmark-server.py'
 $browserProfile = Join-Path ([System.IO.Path]::GetTempPath()) ('plaintab-benchmark-profile-' + [guid]::NewGuid().ToString('N'))
 
 Set-Location $repoRoot
@@ -108,7 +109,7 @@ Open-BenchmarkUrl -BenchmarkUrl $url
 
 $serverArgs = @()
 $serverArgs += $python.Args
-$serverArgs += @('-m', 'http.server', [string]$port, '--bind', '127.0.0.1')
+$serverArgs += @($serverScript, '--port', [string]$port, '--bind', '127.0.0.1', '--root', [string]$repoRoot)
 
 try {
     & $python.File @serverArgs
