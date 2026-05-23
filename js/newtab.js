@@ -1438,6 +1438,7 @@
         return !!(SP && (
             (SP.isOpen && SP.isOpen()) ||
             (SP.isModalOpen && SP.isModalOpen()) ||
+            (SP.isSearchPreviewOpen && SP.isSearchPreviewOpen()) ||
             (SP.isLangPanelOpen && SP.isLangPanelOpen())
         ));
     }
@@ -1632,6 +1633,14 @@
                 hideSearchHistory();
             }
 
+            var clickedBlankPage = e.target === document.body || e.target === wallpaperBackEl || e.target === wallpaperFrontEl || !e.target.closest('button, input, select, .settings-panel, .language-panel, .modal-overlay, .cmd-palette-overlay, .search-preview-panel');
+
+            if (SP.isSearchPreviewOpen && SP.isSearchPreviewOpen() && clickedBlankPage) {
+                SP.closeSearchPreview();
+                SP.hideCorners();
+                return;
+            }
+
             if (SP.isOpen() || SP.isLangPanelOpen()) {
                 var sp = document.getElementById('settingsPanel');
                 var lp = document.getElementById('langPanel');
@@ -1644,7 +1653,7 @@
 
             var paletteOpen = window.Palette && window.Palette.isOpen;
             if (!paletteOpen && !SP.isOpen() && !SP.isLangPanelOpen() && document.activeElement !== searchInput) {
-                if (e.target === document.body || e.target === wallpaperBackEl || e.target === wallpaperFrontEl || !e.target.closest('button, input, select, .settings-panel, .language-panel, .cmd-palette-overlay')) {
+                if (clickedBlankPage) {
                     if (canFocusSearchFromWallpaper()) {
                         suppressSearchHistoryOnFocus = true;
                         searchInput.focus();

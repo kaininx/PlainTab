@@ -441,6 +441,10 @@
         if (window.SettingsPanelFull && window.SettingsPanelFull.closeModal) window.SettingsPanelFull.closeModal();
     }
 
+    function closeSearchPreview() {
+        if (window.SettingsPanelFull && window.SettingsPanelFull.closeSearchPreview) window.SettingsPanelFull.closeSearchPreview();
+    }
+
     function openLangPanel() {
         if (window.SettingsPanelFull && window.SettingsPanelFull.isOpen && window.SettingsPanelFull.isOpen()) window.SettingsPanelFull.close();
         isLangPanelOpen = true;
@@ -457,6 +461,7 @@
     function closeAll() {
         closeSettings();
         closeLangPanel();
+        closeSearchPreview();
         closeModal();
     }
 
@@ -539,12 +544,14 @@
         isOpen: function () { return (window.SettingsPanelFull && window.SettingsPanelFull.isOpen && window.SettingsPanelFull.isOpen()) || isOpen; },
         isLangPanelOpen: function () { return isLangPanelOpen; },
         isModalOpen: function () { return window.SettingsPanelFull && window.SettingsPanelFull.isModalOpen && window.SettingsPanelFull.isModalOpen(); },
+        isSearchPreviewOpen: function () { return window.SettingsPanelFull && window.SettingsPanelFull.isSearchPreviewOpen && window.SettingsPanelFull.isSearchPreviewOpen(); },
         open: openSettings,
         close: closeSettings,
         toggle: toggleSettings,
         closeAll: closeAll,
         openModal: openModal,
         closeModal: closeModal,
+        closeSearchPreview: closeSearchPreview,
         updateLangUI: updateLangUI,
         getSearchMode: function () { return searchMode; },
         getOpacity: function () { return parseFloat((D.loadUI().icon || {}).opacity) || DEFAULT_OPACITY; },

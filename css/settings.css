@@ -1868,6 +1868,166 @@ input[type="file"] {
     background: rgba(var(--accent-rgb), 0.18);
 }
 
+.search-preview-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+    padding: 18px;
+    border: 1px solid rgba(var(--accent-rgb), 0.24);
+    border-radius: var(--radius-md);
+    background:
+        linear-gradient(135deg, rgba(var(--accent-rgb), 0.10), transparent 58%),
+        var(--settings-section-bg);
+    box-shadow: var(--settings-inset-highlight);
+}
+
+.search-preview-entry-copy {
+    min-width: 0;
+}
+
+.search-preview-entry h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 720;
+    letter-spacing: 0;
+}
+
+.search-preview-entry p {
+    max-width: 620px;
+    margin: 6px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+html[data-search-preview="true"] .search-bar {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    --search-hover-blur: var(--search-blur, 24px);
+}
+
+.search-preview-panel {
+    position: fixed;
+    z-index: 210;
+    top: 24px;
+    right: 24px;
+    bottom: 24px;
+    width: min(360px, calc(100vw - 48px));
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px;
+    color: var(--text-primary);
+    border: 1px solid var(--settings-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--settings-shell-bg);
+    box-shadow:
+        0 26px 72px rgba(0, 0, 0, 0.42),
+        0 1px 0 rgba(var(--on-surface-rgb), 0.12) inset;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(16px, 0, 0);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+}
+
+.search-preview-panel.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0);
+}
+
+.search-preview-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 34px;
+    gap: 10px;
+    align-items: start;
+}
+
+.search-preview-head h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 18px;
+    line-height: 1.25;
+    font-weight: 740;
+    letter-spacing: 0;
+}
+
+.search-preview-head p {
+    margin: 7px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.search-preview-close {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--settings-border);
+    border-radius: var(--radius-sm);
+    background: var(--settings-field-bg);
+    color: var(--text-secondary);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.search-preview-close:hover {
+    color: var(--text-primary);
+    background: var(--settings-field-bg-hover);
+}
+
+.search-preview-actions {
+    display: flex;
+    justify-content: stretch;
+}
+
+.search-preview-actions .primary-action {
+    width: 100%;
+}
+
+.search-preview-body {
+    min-height: 0;
+    overflow-y: auto;
+    border: 1px solid var(--settings-border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--settings-section-bg);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.search-preview-body::-webkit-scrollbar {
+    display: none;
+}
+
+.search-preview-panel .setting-item {
+    min-height: 0;
+    padding: 13px 14px;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.search-preview-panel .setting-control {
+    justify-content: flex-start;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.search-preview-panel .setting-item select {
+    width: 100%;
+}
+
+.search-preview-panel .setting-item input[type="range"] {
+    flex: 1;
+    min-width: 160px;
+}
+
 .secondary-action {
     min-height: 36px;
     padding: 8px 12px;
@@ -4039,6 +4199,29 @@ input[type="file"] {
 
     .wallpaper-apply-footer .primary-action {
         width: 100%;
+    }
+
+    .search-preview-entry {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .search-preview-entry .primary-action {
+        width: 100%;
+    }
+
+    .search-preview-panel {
+        top: auto;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        width: auto;
+        max-height: 72vh;
+        transform: translate3d(0, 16px, 0);
+    }
+
+    .search-preview-panel.active {
+        transform: translate3d(0, 0, 0);
     }
 
     .modal-content h2 {

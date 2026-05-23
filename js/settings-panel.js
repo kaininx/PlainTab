@@ -124,6 +124,7 @@
     var isOpen = false;
     var isLangPanelOpen = false;
     var isModalOpen = false;
+    var isSearchPreviewOpen = false;
     var cornerHideTimer = null;
     var searchMode = DEFAULT_SEARCH_MODE;
     var currentOpacity = DEFAULT_OPACITY;
@@ -160,6 +161,7 @@
     var isHydratingSettings = false;
     var _keepGalleryOpen = false;
     var modalOpenFrame = 0;
+    var searchPreviewPanel = null;
     var wallpaperBlurSaveTimer = null;
     var wallpaperBlurPreviewToken = 0;
     var activeCustomSelect = null;
@@ -353,7 +355,7 @@
         langPanel.classList.remove('active');
     }
 
-    function closeAll() { closeSettings(); closeLangPanel(); closeModal(); }
+    function closeAll() { closeSettings(); closeLangPanel(); closeSearchPreview(); closeModal(); }
 
     function pickUpload() {
         _keepGalleryOpen = false;
@@ -447,6 +449,96 @@
             _tabEventBound.wallpaper = false;
         }
         maybePromptEmptyLocalUpload(options);
+    }
+
+    function buildSearchPreviewPanelHTML() {
+        return '<aside class="search-preview-panel" id="searchPreviewPanel" role="dialog" aria-modal="false" aria-labelledby="searchPreviewTitle">' +
+            '<div class="search-preview-head">' +
+            '<div>' +
+            '<h2 id="searchPreviewTitle">' + tr('searchPreviewTitle') + '</h2>' +
+            '<p>' + modalCopy('searchPreviewDesc') + '</p>' +
+            '</div>' +
+            '<button class="search-preview-close" id="searchPreviewCloseBtn" type="button" aria-label="' + tr('searchPreviewClose') + '">×</button>' +
+            '</div>' +
+            '<div class="search-preview-actions">' +
+            '<button class="primary-action" id="searchPreviewBackBtn" type="button">' + tr('searchPreviewBack') + '</button>' +
+            '</div>' +
+            '<div class="search-preview-body">' +
+            settingItem(tr('searchSurface'), modalCopy('modalDescSearchSurface'), '<select id="previewSearchSurface">' +
+            '<option value="light">' + tr('surfaceLight') + '</option>' +
+            '<option value="glass">' + tr('surfaceGlass') + '</option>' +
+            '<option value="theme">' + tr('surfaceTheme') + '</option>' +
+            '<option value="solid">' + tr('surfaceSolid') + '</option>' +
+            '<option value="outline">' + tr('surfaceOutline') + '</option>' +
+            '<option value="clean">' + tr('surfaceClean') + '</option>' +
+            '</select>') +
+            settingItem(tr('searchBackground'), modalCopy('modalDescSearchBackground'), '<input type="range" id="previewSearchBgRange" min="0.04" max="0.32" step="0.01"><input type="number" id="previewSearchBgNum" class="input-w-55" min="0.04" max="0.32" step="0.01">') +
+            settingItem(tr('searchBlur'), modalCopy('modalDescSearchBlur'), '<input type="range" id="previewSearchBlurRange" min="0" max="40" step="1"><input type="number" id="previewSearchBlurNum" class="input-w-55" min="0" max="40" step="1">') +
+            settingItem(tr('searchRadius'), modalCopy('modalDescSearchRadius'), '<select id="previewSearchRadius"><option value="capsule">' + tr('radiusCapsule') + '</option><option value="rounded">' + tr('radiusRounded') + '</option><option value="sharp">' + tr('radiusSharp') + '</option></select>') +
+            settingItem(tr('searchShadow'), modalCopy('modalDescSearchShadow'), '<select id="previewSearchShadow"><option value="none">' + tr('shadowNone') + '</option><option value="soft">' + tr('shadowSoft') + '</option><option value="standard">' + tr('shadowStandard') + '</option></select>') +
+            settingItem(tr('searchLabel'), modalCopy('modalDescSearchMode'), '<select id="previewSearchMode"><option value="hover">' + tr('searchHover') + '</option><option value="always">' + tr('searchAlways') + '</option><option value="never">' + tr('searchNever') + '</option></select>') +
+            settingItem(tr('searchPosition'), modalCopy('modalDescSearchPosition'), '<select id="previewSearchPos">' +
+            '<option value="edge-top">' + tr('posEdgeTop') + '</option>' +
+            '<option value="top">' + tr('posHigh') + '</option>' +
+            '<option value="upper">' + tr('posUpper') + '</option>' +
+            '<option value="center-upper">' + tr('posCenterUpper') + '</option>' +
+            '<option value="center">' + tr('posCenter') + '</option>' +
+            '<option value="center-lower">' + tr('posCenterLower') + '</option>' +
+            '<option value="lower">' + tr('posLower') + '</option>' +
+            '<option value="bottom">' + tr('posLow') + '</option>' +
+            '<option value="edge-bottom">' + tr('posEdgeBottom') + '</option>' +
+            '</select>') +
+            settingItem(tr('searchWidth'), modalCopy('modalDescSearchWidth'), '<input type="range" id="previewSearchWidthRange" min="360" max="760" step="10"><input type="number" id="previewSearchWidthNum" class="input-w-55" min="360" max="760" step="10">') +
+            settingItem(tr('searchIconVisibility'), modalCopy('modalDescSearchIconVisibility'), '<select id="previewSearchIconVisibility"><option value="always">' + tr('iconVisibilityAlways') + '</option><option value="hidden">' + tr('iconVisibilityHidden') + '</option></select>') +
+            settingItem(tr('searchIconPosition'), modalCopy('modalDescSearchIconPosition'), '<select id="previewSearchIconPosition"><option value="left">' + tr('iconLeft') + '</option><option value="right">' + tr('iconRight') + '</option></select>') +
+            '</div>' +
+            '</aside>';
+    }
+
+    function ensureSearchPreviewPanel() {
+        if (searchPreviewPanel) return searchPreviewPanel;
+        var wrap = document.createElement('div');
+        wrap.innerHTML = buildSearchPreviewPanelHTML();
+        searchPreviewPanel = wrap.firstChild;
+        document.body.appendChild(searchPreviewPanel);
+        bindSearchPreviewEvents();
+        return searchPreviewPanel;
+    }
+
+    function openSearchPreview() {
+        ensureSearchPreviewPanel();
+        closeCustomSelects();
+        closeSettings({ skipEmptyLocalPicker: true });
+        closeLangPanel();
+        if (isModalOpen) {
+            saveTabScroll(activeTab);
+            isModalOpen = false;
+            modalOpenFrame++;
+            modalOverlay.classList.remove('active', 'preparing');
+        }
+        activeTab = 'search';
+        isSearchPreviewOpen = true;
+        document.documentElement.setAttribute('data-search-preview', 'true');
+        searchPreviewPanel.classList.add('active');
+        syncSearchControls();
+    }
+
+    function closeSearchPreview(options) {
+        if (!isSearchPreviewOpen) return;
+        options = options || {};
+        isSearchPreviewOpen = false;
+        document.documentElement.removeAttribute('data-search-preview');
+        if (searchPreviewPanel) searchPreviewPanel.classList.remove('active');
+        closeCustomSelects();
+        if (options.reopenSearch) {
+            activeTab = 'search';
+            openModal();
+            switchTab('search');
+        }
+    }
+
+    function returnToSearchSettings() {
+        closeSearchPreview({ reopenSearch: true });
     }
 
     // ================================================================
@@ -684,6 +776,19 @@
         setControlValue('modalSearchBlurRange', searchBlur);
         setControlValue('modalSearchBlurNum', searchBlur);
         setControlValue('modalEngineSel', currentEngine);
+        setControlValue('previewSearchMode', searchMode);
+        setControlValue('previewSearchPos', searchPosition);
+        setControlValue('previewSearchIconPosition', searchIconPosition);
+        setControlValue('previewSearchIconVisibility', searchIconVisibility);
+        setControlValue('previewSearchSurface', searchSurface);
+        setControlValue('previewSearchShadow', searchShadow);
+        setControlValue('previewSearchRadius', searchRadius);
+        setControlValue('previewSearchWidthRange', searchWidth);
+        setControlValue('previewSearchWidthNum', searchWidth);
+        setControlValue('previewSearchBgRange', searchBackgroundOpacity);
+        setControlValue('previewSearchBgNum', searchBackgroundOpacity);
+        setControlValue('previewSearchBlurRange', searchBlur);
+        setControlValue('previewSearchBlurNum', searchBlur);
         syncCustomSelects(modalContent);
     }
 
@@ -2063,7 +2168,15 @@
             '<option value="duckduckgo"' + (currentEngine === 'duckduckgo' ? ' selected' : '') + '>DuckDuckGo</option>' +
             '</select>';
         var engineDesc = IS_EXTENSION ? modalCopy('modalDescEngineExtension') : modalCopy('modalDescEngine');
+        var previewAction = '<section class="search-preview-entry">' +
+            '<div class="search-preview-entry-copy">' +
+            '<h3>' + tr('searchPreviewAction') + '</h3>' +
+            '<p>' + modalCopy('searchPreviewDesc') + '</p>' +
+            '</div>' +
+            '<button class="primary-action" id="searchPreviewOpenBtn" type="button">' + tr('searchPreviewAction') + '</button>' +
+            '</section>';
         var body =
+            previewAction +
             settingGroup(tr('settingsGroupSearchSurface'),
             settingItem(tr('searchSurface'), modalCopy('modalDescSearchSurface'), searchSurfaceControl) +
             settingItem(tr('searchBackground'), modalCopy('modalDescSearchBackground'), searchBgControl) +
@@ -2143,7 +2256,9 @@
         var searchBlurNum = document.getElementById('modalSearchBlurNum');
         var engineSel = document.getElementById('modalEngineSel');
         var resetBtn = document.getElementById('searchResetBtn');
+        var previewBtn = document.getElementById('searchPreviewOpenBtn');
 
+        if (previewBtn) previewBtn.addEventListener('click', openSearchPreview);
         if (selMode) selMode.addEventListener('change', function () { applySearchMode(this.value); });
         if (selHistoryLimit) selHistoryLimit.addEventListener('change', function () { applySearchHistoryLimit(this.value); });
         if (selPos) selPos.addEventListener('change', function () { applySearchPosition(this.value); });
@@ -2167,6 +2282,43 @@
             });
         });
         syncCustomSelects(modalContent);
+    }
+
+    function bindSearchPreviewEvents() {
+        var panel = searchPreviewPanel;
+        if (!panel) return;
+        var closeBtn = panel.querySelector('#searchPreviewCloseBtn');
+        var backBtn = panel.querySelector('#searchPreviewBackBtn');
+        var selMode = panel.querySelector('#previewSearchMode');
+        var selPos = panel.querySelector('#previewSearchPos');
+        var selIconPosition = panel.querySelector('#previewSearchIconPosition');
+        var selIconVisibility = panel.querySelector('#previewSearchIconVisibility');
+        var selSurface = panel.querySelector('#previewSearchSurface');
+        var selShadow = panel.querySelector('#previewSearchShadow');
+        var selRadius = panel.querySelector('#previewSearchRadius');
+        var searchWidthRange = panel.querySelector('#previewSearchWidthRange');
+        var searchWidthNum = panel.querySelector('#previewSearchWidthNum');
+        var searchBgRange = panel.querySelector('#previewSearchBgRange');
+        var searchBgNum = panel.querySelector('#previewSearchBgNum');
+        var searchBlurRange = panel.querySelector('#previewSearchBlurRange');
+        var searchBlurNum = panel.querySelector('#previewSearchBlurNum');
+
+        panel.addEventListener('click', function (e) { e.stopPropagation(); });
+        if (closeBtn) closeBtn.addEventListener('click', function () { closeSearchPreview(); });
+        if (backBtn) backBtn.addEventListener('click', returnToSearchSettings);
+        if (selMode) selMode.addEventListener('change', function () { applySearchMode(this.value); syncSearchControls(); });
+        if (selPos) selPos.addEventListener('change', function () { applySearchPosition(this.value); syncSearchControls(); });
+        if (selIconPosition) selIconPosition.addEventListener('change', function () { applySearchIconPosition(this.value); syncSearchControls(); });
+        if (selIconVisibility) selIconVisibility.addEventListener('change', function () { applySearchIconVisibility(this.value); syncSearchControls(); });
+        if (selSurface) selSurface.addEventListener('change', function () { applySearchSurface(this.value); syncSearchControls(); });
+        if (selShadow) selShadow.addEventListener('change', function () { applySearchShadow(this.value); syncSearchControls(); });
+        if (selRadius) selRadius.addEventListener('change', function () { applySearchRadius(this.value); syncSearchControls(); });
+        if (searchWidthRange) searchWidthRange.addEventListener('input', function () { applySearchWidth(this.value); if (searchWidthNum) searchWidthNum.value = searchWidth; });
+        if (searchWidthNum) searchWidthNum.addEventListener('change', function () { applySearchWidth(this.value); if (searchWidthRange) searchWidthRange.value = searchWidth; this.value = searchWidth; });
+        if (searchBgRange) searchBgRange.addEventListener('input', function () { applySearchBackgroundOpacity(this.value); if (searchBgNum) searchBgNum.value = searchBackgroundOpacity; });
+        if (searchBgNum) searchBgNum.addEventListener('change', function () { applySearchBackgroundOpacity(this.value); if (searchBgRange) searchBgRange.value = searchBackgroundOpacity; this.value = searchBackgroundOpacity; });
+        if (searchBlurRange) searchBlurRange.addEventListener('input', function () { applySearchBlur(this.value); if (searchBlurNum) searchBlurNum.value = searchBlur; });
+        if (searchBlurNum) searchBlurNum.addEventListener('change', function () { applySearchBlur(this.value); if (searchBlurRange) searchBlurRange.value = searchBlur; this.value = searchBlur; });
     }
 
     function bindAppearanceEvents() {
@@ -6247,12 +6399,15 @@
         isOpen: function () { return isOpen; },
         isLangPanelOpen: function () { return isLangPanelOpen; },
         isModalOpen: function () { return isModalOpen; },
+        isSearchPreviewOpen: function () { return isSearchPreviewOpen; },
         open: openSettings,
         close: closeSettings,
         toggle: toggleSettings,
         closeAll: closeAll,
         openModal: openModal,
         closeModal: closeModal,
+        openSearchPreview: openSearchPreview,
+        closeSearchPreview: closeSearchPreview,
         updateLangUI: updateLangUI,
         getSearchMode: function () { return searchMode; },
         getSearchEnterBehavior: function () { return searchEnterBehavior; },

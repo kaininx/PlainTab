@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PlainTab 搜索栏设置体验方案</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #14181d;
+      --panel: #1d232a;
+      --panel-2: #242c34;
+      --text: #edf2f7;
+      --muted: #aab5c0;
+      --line: rgba(255,255,255,.14);
+      --accent: #87b7ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #26323d 0, var(--bg) 46%);
+      color: var(--text);
+    }
+    main { max-width: 1180px; margin: 0 auto; }
+    h1 { margin: 0; font-size: 26px; letter-spacing: 0; }
+    .subtitle { max-width: 820px; margin: 10px 0 28px; color: var(--muted); line-height: 1.7; }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    .card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(29,35,42,.86);
+      box-shadow: 0 22px 52px rgba(0,0,0,.28);
+    }
+    .mock {
+      height: 260px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg,#28343d,#6f7f82 48%,#1c2227);
+    }
+    .mock.b { background: linear-gradient(135deg,#29313b,#8a725f 52%,#20292d); }
+    .mock.c { background: linear-gradient(135deg,#253340,#5d7370 44%,#2a2a31); }
+    .viewport {
+      position: absolute;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 10px;
+      background: rgba(255,255,255,.08);
+    }
+    .search {
+      position: absolute;
+      height: 42px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.2);
+      border: 1px solid rgba(255,255,255,.28);
+      box-shadow: 0 10px 28px rgba(0,0,0,.3);
+    }
+    .side-panel {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 36%;
+      padding: 18px;
+      background: rgba(18,22,28,.92);
+      border-left: 1px solid rgba(255,255,255,.14);
+    }
+    .modal {
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      top: 15%;
+      height: 70%;
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(17,21,27,.9);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+    .drawer {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 72%;
+      height: 36%;
+      padding: 16px;
+      background: rgba(18,22,28,.94);
+      border: 1px solid rgba(255,255,255,.14);
+      border-bottom: 0;
+      border-radius: 12px 12px 0 0;
+    }
+    .bar { height: 18px; width: 54%; border-radius: 6px; background: rgba(255,255,255,.22); margin-bottom: 18px; }
+    .row { height: 34px; border-radius: 7px; background: rgba(255,255,255,.12); margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .body { padding: 18px; }
+    h2 { margin: 0 0 8px; font-size: 17px; }
+    p { margin: 0; color: var(--muted); line-height: 1.65; font-size: 14px; }
+    .recommend {
+      margin-top: 22px;
+      padding: 18px 20px;
+      border: 1px solid rgba(135,183,255,.28);
+      border-radius: 12px;
+      background: rgba(135,183,255,.08);
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .recommend strong { color: var(--text); }
+    @media (max-width: 900px) {
+      body { padding: 18px; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>搜索栏设置体验：三种布局方向</h1>
+    <p class="subtitle">核心问题是：用户调位置、宽度、透明度、模糊、圆角时，需要立即看到真实效果，但当前设置模态窗挡住了搜索栏。</p>
+
+    <section class="cards">
+      <article class="card">
+        <div class="mock">
+          <div class="viewport" style="left:7%;right:42%;top:15%;height:70%;"></div>
+          <div class="search" style="left:14%;right:49%;top:45%;"></div>
+          <div class="side-panel">
+            <div class="bar"></div>
+            <div class="row"></div>
+            <div class="row"></div>
+            <div class="row"></div>
+          </div>
+        </div>
+        <div class="body">
+          <h2>A. 搜索 Tab 进入侧边调试模式</h2>
+          <p>桌面端把设置窗变成右侧窄面板，实际搜索栏强制可见，用户在真实壁纸上预览。最贴近所见即所得。</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="mock b">
+          <div class="modal">
+            <div class="bar" style="width:30%;margin-bottom:14px;"></div>
+            <div style="height:74px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);margin-bottom:12px;position:relative;">
+              <div class="search" style="left:18%;right:18%;top:22px;height:30px;"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="row"></div><div class="row"></div><div class="row"></div><div class="row"></div>
+            </div>
+          </div>
+        </div>
+        <div class="body">
+          <h2>B. 面板内增加搜索栏迷你预览</h2>
+          <p>不改变模态窗布局，只在搜索 Tab 顶部放一个预览条。实现最稳，但看不到真实壁纸位置和页面遮挡关系。</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="mock c">
+          <div class="viewport" style="left:8%;right:8%;top:15%;height:70%;border-style:dashed;background:transparent;"></div>
+          <div class="search" style="left:25%;right:25%;top:46%;"></div>
+          <div class="drawer">
+            <div class="bar" style="width:34%;height:16px;margin-bottom:12px;"></div>
+            <div class="grid"><div class="row"></div><div class="row"></div><div class="row"></div></div>
+          </div>
+        </div>
+        <div class="body">
+          <h2>C. 专属预览模式底部抽屉</h2>
+          <p>点搜索设置里的预览按钮后，面板收成底部抽屉，只保留高频控件，搜索栏在真实页面上展示。适合精调，但多一步。</p>
+        </div>
+      </article>
+    </section>
+
+    <div class="recommend">
+      <strong>我的倾向：</strong>桌面端优先 A，移动端退化成 C。这样桌面编辑路径最短，移动端也不会用侧边面板挤压窄屏。B 可以作为保守兜底，但它更像样式预览，不太能解决“真实页面里看不到效果”的痛点。
+    </div>
+  </main>
+</body>
+</html>
