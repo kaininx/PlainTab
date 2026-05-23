@@ -74,7 +74,7 @@
 
         .controls {
             display: grid;
-            grid-template-columns: minmax(220px, 1fr) 130px 130px 150px;
+            grid-template-columns: minmax(220px, 1fr) 120px 120px 130px 190px;
             gap: 10px;
             margin: 18px 0;
             align-items: end;
@@ -96,6 +96,25 @@
             padding: 0 10px;
             font: inherit;
             font-size: 14px;
+        }
+
+        .check {
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 10px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .check input {
+            width: 16px;
+            height: 16px;
+            padding: 0;
         }
 
         button {
@@ -394,6 +413,7 @@
                     全部场景都使用真实 Chrome/Edge 标签页测量。Cold 是全新隔离浏览器上下文打开新标签页；
                     同页面 Warm 是已有缓存后刷新同一个真实标签页；新标签页 Warm 是已有缓存后每轮新建真实标签页。
                     最终快慢结论采用新标签页 Warm，因为它最接近用户点击 + 打开新标签页到壁纸出现的体验。
+                    Browser NTP 是 chrome://newtab/ 截图视觉检测参考值，不参与最终结论。
                 </p>
             </div>
             <div class="actions">
@@ -418,6 +438,10 @@
             <label>
                 超时秒数
                 <input id="timeoutInput" type="number" min="1" max="60" step="1" value="8">
+            </label>
+            <label class="check">
+                <input id="browserNtpInput" type="checkbox">
+                Browser NTP 视觉参考
             </label>
         </section>
 
@@ -445,13 +469,21 @@
                     <div class="preview-empty" id="currentPreviewEmpty">测试后显示真实标签页画面</div>
                 </div>
             </section>
+            <section class="preview-pane">
+                <div class="pane-label"><strong>Browser NTP</strong><span id="browserNtpPreviewPhase">可选参考</span></div>
+                <div class="preview-frame">
+                    <img id="browserNtpPreviewImage" alt="Browser default new tab preview">
+                    <div class="preview-empty" id="browserNtpPreviewEmpty">勾选参考项后显示</div>
+                </div>
+            </section>
         </div>
 
         <section class="note">
             请用 <code>benchmark.cmd</code> 打开。测试会启动独立的真实浏览器进程，并通过 DevTools Protocol 创建真实标签页。
             本页面只负责展示结果，不参与计时。被测版本的 <code>index.html</code> 会被本地 benchmark server 注入极小探针；
             CSS/JS/图片仍按对应版本真实路径加载。计时停止点是不区分缩略图或完整壁纸的首次背景图 after-paint 近似点。
-            预览截图在每轮计时停止之后采集，只用于观察，不进入耗时结果。
+            预览截图在每轮计时停止之后采集，只用于观察，不进入耗时结果。Browser NTP 参考项使用 benchmark 启动的临时 Chrome 环境和截图变化检测，
+            无法像 PlainTab 一样注入精确探针。
         </section>
     </main>
 
@@ -493,11 +525,13 @@
                     var coldRuns = readClampedNumber(CONTROL_LIMITS.coldRuns);
                     var warmRuns = readClampedNumber(CONTROL_LIMITS.warmRuns);
                     var timeoutSeconds = readClampedNumber(CONTROL_LIMITS.timeoutSeconds);
+                    var browserNtp = document.getElementById('browserNtpInput').checked;
                     var endpoint = new URL('./api/job/start', location.href);
                     endpoint.searchParams.set('versions', versions.join(','));
                     endpoint.searchParams.set('coldRuns', String(coldRuns));
                     endpoint.searchParams.set('warmRuns', String(warmRuns));
                     endpoint.searchParams.set('timeout', String(timeoutSeconds));
+                    endpoint.searchParams.set('browserNtp', browserNtp ? '1' : '0');
 
                     renderProgress({ stage: 'starting', message: '正在启动真实浏览器...', completedSteps: 0, totalSteps: 0 });
                     setStatus('正在启动真实浏览器测试：Cold、同页面 Warm、新标签页 Warm。cmd 中也会持续显示进度。');
@@ -568,6 +602,12 @@
                         '；新标签页 Warm ' + item.baseline.warmNewTabHit + '/' + item.baseline.warmRuns + ' vs ' + item.current.warmNewTabHit + '/' + item.current.warmRuns);
                     lines.push('');
                 });
+                if (payload.browserNtp) {
+                    lines.push('Browser NTP（视觉检测参考）：' + formatStat(payload.browserNtp.warmNewTab) +
+                        ' / hit ' + payload.browserNtp.warmNewTabHit + '/' + payload.browserNtp.warmRuns);
+                    lines.push('说明：Browser NTP 使用 chrome://newtab/ 截图视觉检测，只作为参考，不参与 PlainTab 最终结论。');
+                    lines.push('');
+                }
                 lines.push('Raw JSON:');
                 lines.push(JSON.stringify(payload, null, 2));
                 return lines.join('\n');
@@ -604,6 +644,7 @@
                     metric('Cold', '真实新标签页') +
                     metric('同页面 Warm', '真实 reload') +
                     metric('新标签页 Warm', '最终结论') +
+                    metric('Browser NTP', '可选参考') +
                     metric('默认对比', 'v3.1.4 vs Current');
             }
 
@@ -631,6 +672,9 @@
                     metric('新标签页 Warm', current ? formatMs(current.warmNewTab.p50) : '-') +
                     metric('轮数', 'Cold ' + (payload.coldRuns || '-') + ' / Warm ' + (payload.warmRuns || '-'));
                 document.getElementById('results').innerHTML = comparisons(payload).map(renderComparison).join('');
+                if (payload.browserNtp) {
+                    document.getElementById('results').insertAdjacentHTML('afterbegin', renderBrowserNtpReference(payload.browserNtp));
+                }
                 document.getElementById('progressFill').style.width = '100%';
             }
 
@@ -641,6 +685,7 @@
                     setPreview('baseline', jobId, previews[baselineId]);
                 }
                 if (previews.current) setPreview('current', jobId, previews.current);
+                if (previews.browserNtp) setPreview('browserNtp', jobId, previews.browserNtp);
             }
 
             function setPreview(side, jobId, preview) {
@@ -655,7 +700,7 @@
             }
 
             function resetPreviews() {
-                ['baseline', 'current'].forEach(function (side) {
+                ['baseline', 'current', 'browserNtp'].forEach(function (side) {
                     var image = document.getElementById(side + 'PreviewImage');
                     var empty = document.getElementById(side + 'PreviewEmpty');
                     var phase = document.getElementById(side + 'PreviewPhase');
@@ -678,7 +723,20 @@
             }
 
             function displayTarget(id) {
+                if (id === 'browserNtp') return 'Browser NTP';
                 return id === 'current' ? 'Current' : id;
+            }
+
+            function renderBrowserNtpReference(item) {
+                return '<article class="result">' +
+                    '<div class="result-head">' +
+                    '<div><h2>Browser NTP 视觉检测参考</h2></div>' +
+                    '<div class="winner warn">参考值，不参与最终结论</div>' +
+                    '</div>' +
+                    '<div class="sections">' +
+                    renderSingleSection('默认新标签页', 'chrome://newtab/ 首个明显视觉帧，截图检测', item.label, item.warmNewTab) +
+                    '</div>' +
+                    '</article>';
             }
 
             function renderComparison(item) {
@@ -708,6 +766,17 @@
                     '<div class="bars">' +
                     renderBar(leftLabel, leftValue, max, false) +
                     renderBar(rightLabel, rightValue, max, true) +
+                    '</div>' +
+                    '</section>';
+            }
+
+            function renderSingleSection(title, desc, label, stat) {
+                var value = stat ? stat.p50 : NaN;
+                return '<section class="section">' +
+                    '<h3>' + escapeHtml(title) + '</h3>' +
+                    '<p>' + escapeHtml(desc) + '</p>' +
+                    '<div class="bars">' +
+                    renderBar(label, value, Math.max(isFinite(value) ? value : 0, 0.001), true) +
                     '</div>' +
                     '</section>';
             }

@@ -48,7 +48,7 @@ def read_latest_job_status(job_dir):
     if direct.exists():
         candidates.append(direct)
     candidates.extend(job_dir.glob("status.json.*.json"))
-    candidates = sorted(candidates, key=lambda item: item.stat().st_mtime, reverse=True)
+    candidates = sorted(candidates, key=status_sort_key, reverse=True)
     last_error = None
     for candidate in candidates:
         try:
@@ -58,6 +58,19 @@ def read_latest_job_status(job_dir):
     if last_error:
         raise last_error
     return None
+
+
+def status_sort_key(item):
+    name = item.name
+    match = re.fullmatch(r"status\.json\.(\d+)\.json", name)
+    if match:
+        return (2, int(match.group(1)), name)
+    match = re.fullmatch(r"status\.json\.py\.(\d+)\.[A-Fa-f0-9]+\.json", name)
+    if match:
+        return (1, int(match.group(1)), name)
+    if name == "status.json":
+        return (0, 0, name)
+    return (-1, 0, name)
 
 
 def write_job_status(job_dir, payload):
@@ -203,6 +216,7 @@ class BenchmarkHandler(SimpleHTTPRequestHandler):
         except ValueError:
             return self.send_json({"ok": False, "error": "Invalid benchmark numbers"}, status=400)
         versions = params.get("versions", ["v3.1.4"])[0]
+        browser_ntp = params.get("browserNtp", ["0"])[0].lower() in ("1", "true", "yes", "on")
         if not re.fullmatch(r"[A-Za-z0-9._,-]+", versions):
             return self.send_json({"ok": False, "error": "Invalid benchmark version list"}, status=400)
         script = self.compare_root / "_tool" / "real-browser-benchmark.js"
@@ -225,6 +239,8 @@ class BenchmarkHandler(SimpleHTTPRequestHandler):
             "--job-dir",
             str(job_dir),
         ]
+        if browser_ntp:
+            cmd.append("--browser-ntp")
         try:
             process = subprocess.Popen(
                 cmd,
@@ -242,7 +258,7 @@ class BenchmarkHandler(SimpleHTTPRequestHandler):
                 daemon=True,
             )
             thread.start()
-            print("[Benchmark] Started job %s: versions=%s, coldRuns=%s, warmRuns=%s, timeout=%ss" % (job_id[:8], versions, cold_runs, warm_runs, timeout), flush=True)
+            print("[Benchmark] Started job %s: versions=%s, coldRuns=%s, warmRuns=%s, timeout=%ss, browserNtp=%s" % (job_id[:8], versions, cold_runs, warm_runs, timeout, browser_ntp), flush=True)
             return self.send_json({"ok": True, "jobId": job_id})
         except Exception as error:
             return self.send_json({"ok": False, "error": str(error)}, status=500)

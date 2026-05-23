@@ -24,7 +24,8 @@ function parseArgs(argv) {
         headed: false,
         json: false,
         jobDir: '',
-        jobId: ''
+        jobId: '',
+        browserNtp: false
     };
     for (let i = 0; i < argv.length; i += 1) {
         const arg = argv[i];
@@ -35,6 +36,7 @@ function parseArgs(argv) {
         else if (arg === '--timeout' && argv[i + 1]) out.timeoutMs = Math.max(1000, (parseInt(argv[++i], 10) || 8) * 1000);
         else if (arg === '--job-dir' && argv[i + 1]) out.jobDir = path.resolve(argv[++i]);
         else if (arg === '--job-id' && argv[i + 1]) out.jobId = argv[++i];
+        else if (arg === '--browser-ntp') out.browserNtp = true;
         else if (arg === '--headed') out.headed = true;
         else if (arg === '--json') out.json = true;
     }
@@ -350,7 +352,7 @@ function sleepSync(ms) {
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
-function createProgress(jobDir, jobId, ids, coldRuns, warmRuns) {
+function createProgress(jobDir, jobId, ids, coldRuns, warmRuns, includeBrowserNtp) {
     if (!jobDir) return null;
     fs.mkdirSync(jobDir, { recursive: true });
     const statusFile = path.join(jobDir, 'status.json');
@@ -364,7 +366,7 @@ function createProgress(jobDir, jobId, ids, coldRuns, warmRuns) {
         warmRuns,
         targets: ids,
         completedSteps: 0,
-        totalSteps: ids.length * coldRuns + ids.length + ids.length * warmRuns * 2,
+        totalSteps: ids.length * coldRuns + ids.length + ids.length * warmRuns * 2 + (includeBrowserNtp ? warmRuns : 0),
         current: null,
         previews: {},
         result: null,
@@ -413,15 +415,7 @@ async function capturePreview(cdp, sessionId, progress, id, phase) {
             captureBeyondViewport: false
         }, sessionId);
         if (!shot || !shot.data) return;
-        const file = `preview_${safeName(id)}.jpg`;
-        fs.writeFileSync(path.join(path.dirname(progress.statusFile), file), Buffer.from(shot.data, 'base64'));
-        progress.state.previews[id] = {
-            label: id === 'current' ? 'Current' : id,
-            phase,
-            file,
-            updatedAt: new Date().toISOString()
-        };
-        progress.update({});
+        writePreview(progress, id, phase, shot.data);
     } catch (error) {
         progress.state.previews[id] = Object.assign(progress.state.previews[id] || {}, {
             label: id === 'current' ? 'Current' : id,
@@ -442,7 +436,104 @@ async function assertTargets(baseUrl, ids) {
     }
 }
 
-async function measureAll(cdp, baseUrl, ids, coldRuns, warmRuns, timeoutMs, quiet, progress) {
+function writePreview(progress, id, phase, base64Data) {
+    if (!progress || !base64Data) return;
+    const file = `preview_${safeName(id)}.jpg`;
+    fs.writeFileSync(path.join(path.dirname(progress.statusFile), file), Buffer.from(base64Data, 'base64'));
+    progress.state.previews[id] = {
+        label: id === 'current' ? 'Current' : (id === 'browserNtp' ? 'Browser NTP' : id),
+        phase,
+        file,
+        updatedAt: new Date().toISOString()
+    };
+    progress.update({});
+}
+
+function visualDifference(a, b) {
+    if (!a || !b || !a.length || !b.length) return 0;
+    const n = Math.min(a.length, b.length);
+    const step = Math.max(1, Math.floor(n / 2048));
+    let changed = 0;
+    let count = 0;
+    for (let i = 0; i < n; i += step) {
+        if (Math.abs(a[i] - b[i]) > 8) changed += 1;
+        count += 1;
+    }
+    return count ? changed / count : 0;
+}
+
+async function captureBlankBaseline(cdp) {
+    const target = await cdp.send('Target.createTarget', { url: 'about:blank', newWindow: false });
+    const sessionId = await attachTarget(cdp, target.targetId);
+    await sleep(80);
+    const shot = await cdp.send('Page.captureScreenshot', {
+        format: 'jpeg',
+        quality: 58,
+        captureBeyondViewport: false
+    }, sessionId);
+    await closeTarget(cdp, target.targetId);
+    return Buffer.from(shot.data, 'base64');
+}
+
+async function openVisualNtpTab(cdp, blank, timeoutMs) {
+    const startPerf = performance.now();
+    const target = await cdp.send('Target.createTarget', { url: 'chrome://newtab/', newWindow: false });
+    const sessionId = await attachTarget(cdp, target.targetId);
+    let lastShot = null;
+    let hit = false;
+    let ms = NaN;
+    while (performance.now() - startPerf < timeoutMs) {
+        const shot = await cdp.send('Page.captureScreenshot', {
+            format: 'jpeg',
+            quality: 58,
+            captureBeyondViewport: false
+        }, sessionId).catch(() => null);
+        if (shot && shot.data) {
+            lastShot = shot.data;
+            const buf = Buffer.from(shot.data, 'base64');
+            const diff = visualDifference(blank, buf);
+            const sizeDelta = Math.abs(buf.length - blank.length);
+            if (diff > 0.10 || sizeDelta > 2500) {
+                hit = true;
+                ms = performance.now() - startPerf;
+                break;
+            }
+        }
+        await sleep(25);
+    }
+    await closeTarget(cdp, target.targetId);
+    return { hit, ms, screenshot: lastShot };
+}
+
+async function measureBrowserNtp(cdp, warmRuns, timeoutMs, quiet, progress) {
+    const samples = [];
+    let hits = 0;
+    log(quiet, '\n[Reference] Browser NTP: visual detection');
+    if (progress) progress.update({ stage: 'browser-ntp', message: 'Browser NTP：视觉检测参考，不参与最终结论。' });
+    const blank = await captureBlankBaseline(cdp);
+    for (let run = 0; run < warmRuns; run += 1) {
+        if (progress) progress.update({ current: { id: 'browserNtp', phase: 'browser-ntp', run: run + 1, runs: warmRuns }, message: `Browser NTP 参考 ${run + 1}/${warmRuns}` });
+        const result = await openVisualNtpTab(cdp, blank, timeoutMs);
+        if (result.hit) {
+            hits += 1;
+            samples.push(result.ms);
+        }
+        if (result.screenshot) writePreview(progress, 'browserNtp', 'Browser NTP 视觉参考', result.screenshot);
+        log(quiet, `  browser ntp ${run + 1}/${warmRuns}: ${formatMs(result.ms)}`);
+        if (progress) progress.step({ message: `Browser NTP ${run + 1}/${warmRuns}: ${formatMs(result.ms)}` });
+    }
+    return {
+        id: 'browserNtp',
+        label: 'Browser NTP',
+        method: 'visual-detection',
+        note: 'chrome://newtab/ visual first-content detection; reference only, not probe-based.',
+        warmNewTab: sampleStats(samples),
+        warmNewTabHit: hits,
+        warmRuns
+    };
+}
+
+async function measureAll(cdp, baseUrl, ids, coldRuns, warmRuns, timeoutMs, quiet, progress, includeBrowserNtp) {
     await assertTargets(baseUrl, ids);
     const samples = new Map(ids.map((id) => [id, { cold: [], warmReload: [], warmNewTab: [] }]));
     const warmStates = [];
@@ -517,7 +608,7 @@ async function measureAll(cdp, baseUrl, ids, coldRuns, warmRuns, timeoutMs, quie
         await disposeContext(cdp, state.contextId);
     }
 
-    return ids.map((id) => {
+    const results = ids.map((id) => {
         const item = samples.get(id);
         const result = createResult(id, baseUrl, coldRuns, warmRuns);
         result.cold = sampleStats(item.cold);
@@ -528,6 +619,8 @@ async function measureAll(cdp, baseUrl, ids, coldRuns, warmRuns, timeoutMs, quie
         result.warmNewTabHit = item.warmNewTab.length;
         return result;
     });
+    const browserNtp = includeBrowserNtp ? await measureBrowserNtp(cdp, warmRuns, timeoutMs, quiet, progress) : null;
+    return { results, browserNtp };
 }
 
 function sleep(ms) {
@@ -571,29 +664,33 @@ async function main() {
         await cdp.connect();
 
         const ids = args.versions.concat(['current']);
-        progress = createProgress(args.jobDir, args.jobId, ids, args.coldRuns, args.warmRuns);
-        const results = await measureAll(cdp, baseUrl, ids, args.coldRuns, args.warmRuns, args.timeoutMs, args.json, progress);
+        progress = createProgress(args.jobDir, args.jobId, ids, args.coldRuns, args.warmRuns, args.browserNtp);
+        const measured = await measureAll(cdp, baseUrl, ids, args.coldRuns, args.warmRuns, args.timeoutMs, args.json, progress, args.browserNtp);
         const payload = {
             mode: 'real-browser',
             coldRuns: args.coldRuns,
             warmRuns: args.warmRuns,
             timeoutMs: args.timeoutMs,
+            browserNtpEnabled: args.browserNtp,
             primaryMetric: 'warmNewTab.p50',
             scenarios: {
                 cold: 'Fresh browser context, new real tab, no local PlainTab storage.',
                 warmReload: 'Warmed context, same real tab reload.',
-                warmNewTab: 'Warmed context, create a new real browser tab.'
+                warmNewTab: 'Warmed context, create a new real browser tab.',
+                browserNtp: 'Optional chrome://newtab/ visual first-content detection; reference only.'
             },
-            results
+            results: measured.results,
+            browserNtp: measured.browserNtp
         };
         if (progress) progress.done(payload);
 
         if (args.jobDir) {
             console.log('\nPlainTab Real Browser Wallpaper Speed Benchmark');
             console.log(`Cold runs: ${args.coldRuns}, Warm runs: ${args.warmRuns}`);
-            for (const result of results) {
+            for (const result of measured.results) {
                 console.log(`${result.id}: Cold p50 ${formatMs(result.cold.p50)} | Same-tab Warm p50 ${formatMs(result.warmReload.p50)} | New-tab Warm p50 ${formatMs(result.warmNewTab.p50)}`);
             }
+            if (measured.browserNtp) console.log(`Browser NTP reference: New-tab visual p50 ${formatMs(measured.browserNtp.warmNewTab.p50)}`);
             return;
         }
 
@@ -604,9 +701,10 @@ async function main() {
 
         console.log('\nPlainTab Real Browser Wallpaper Speed Benchmark');
         console.log(`Cold runs: ${args.coldRuns}, Warm runs: ${args.warmRuns}`);
-        for (const result of results) {
+        for (const result of measured.results) {
             console.log(`${result.id}: Cold p50 ${formatMs(result.cold.p50)} | Same-tab Warm p50 ${formatMs(result.warmReload.p50)} | New-tab Warm p50 ${formatMs(result.warmNewTab.p50)}`);
         }
+        if (measured.browserNtp) console.log(`Browser NTP reference: New-tab visual p50 ${formatMs(measured.browserNtp.warmNewTab.p50)}`);
         console.log('\nRaw JSON:');
         console.log(JSON.stringify(payload, null, 2));
     } catch (error) {
