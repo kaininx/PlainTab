@@ -1,5 +1,5 @@
 Journal des mises à jour
-• v3.2.2 · Améliore la fiabilité du stockage lors des mises à jour, l’état du guide initial et les garde-fous de publication, tout en gardant un premier fond rapide.
+• v3.2.2 · Ajoute les fonds Bing 4K UHD en option, garde le 1080p par défaut et améliore cache, sauvegarde, réglages et stockage.
 
 • v3.2.1 · Ajoute les fonds Wallhaven et vidéo, affine la configuration et l’application sécurisée des fonds, améliore la palette de commandes et les thèmes, et corrige la stabilité des fonds, réglages et i18n.
 

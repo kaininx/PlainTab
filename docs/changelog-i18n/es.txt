@@ -1,5 +1,5 @@
 Registro de cambios
-• v3.2.2 · Mejora la fiabilidad del almacenamiento al actualizar, el estado de la guía inicial y las reglas del flujo de publicación, manteniendo rápido el primer fondo.
+• v3.2.2 · Añade fondos Bing 4K UHD opcionales, mantiene 1080p por defecto y mejora caché, copias de seguridad, ajustes y almacenamiento.
 
 • v3.2.1 · Añade soporte para fondos Wallhaven y de vídeo, mejora la configuración y aplicación segura de fondos, refina el panel de comandos y los temas, y corrige estabilidad en fondos, ajustes e i18n.
 

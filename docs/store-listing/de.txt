@@ -82,7 +82,7 @@ Support
 
 Aktuelle Updates
 
-• v3.2.2: zuverlässigere Upgrades, klarerer Ersteinstieg und stabilere Release-Regeln, ohne den schnellen ersten Hintergrund zu bremsen.
+• v3.2.2: optionale Bing-4K-UHD-Hintergründe, 1080p bleibt Standard, Cache, Backup, Einstellungen und Speicherung verbessert.
 
 • v3.2.1: Wallhaven und Video-Wallpaper, sichereres Anwenden von Wallpaper-Einstellungen, verbesserte Befehlspalette, Theme-Verhalten und Stabilität.
 

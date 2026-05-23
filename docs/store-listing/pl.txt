@@ -82,7 +82,7 @@ Wsparcie
 
 Ostatnie aktualizacje
 
-• v3.2.2: pewniejsze dane przy aktualizacji, lepszy pierwszy przewodnik i zasady wydań, bez spowalniania pierwszego tła.
+• v3.2.2: opcjonalne tapety Bing 4K UHD, domyślne 1080p oraz lepszy cache, kopie, ustawienia i przechowywanie.
 
 • v3.2.1: Wallhaven i tapety wideo, bezpieczniejsze stosowanie ustawień tapet, lepsza paleta poleceń, motyw i stabilność.
 

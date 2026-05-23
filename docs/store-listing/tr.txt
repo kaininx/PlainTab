@@ -82,7 +82,7 @@ Destek
 
 Son güncellemeler
 
-• v3.2.2: yükseltme depolaması, ilk kullanım rehberi ve yayın kuralları iyileştirildi; ilk duvar kâğıdı hızlı kaldı.
+• v3.2.2: isteğe bağlı Bing 4K UHD duvar kâğıtları, varsayılan 1080p; önbellek, yedekleme, ayarlar ve depolama iyileşti.
 
 • v3.2.1: Wallhaven ve video duvar kâğıtları, daha güvenli uygulama akışı, gelişmiş komut paleti, tema ve stabilite.
 

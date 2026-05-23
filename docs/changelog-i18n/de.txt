@@ -1,5 +1,5 @@
 Änderungsprotokoll
-• v3.2.2 · Verbessert die Speicherzuverlässigkeit beim Upgrade, den Status der Ersteinführung und die Release-Regeln, ohne den schnellen ersten Hintergrund zu verlangsamen.
+• v3.2.2 · Fügt optionale Bing-4K-UHD-Hintergründe hinzu, behält 1080p als Standard bei und verbessert Cache, Backup, Einstellungen und Speicherung.
 
 • v3.2.1 · Fügt Wallhaven- und Video-Hintergründe hinzu, verfeinert Einrichtung und sichere Anwendung von Hintergründen, verbessert Befehlspalette und Themes und behebt Stabilität bei Hintergründen, Einstellungen und i18n.
 

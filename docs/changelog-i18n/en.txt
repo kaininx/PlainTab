@@ -1,5 +1,5 @@
 Changelog
-• v3.2.2 · Improved upgrade storage reliability, first-use guidance state, and release workflow guardrails while preserving fast wallpaper first paint.
+• v3.2.2 · Added optional Bing 4K UHD wallpapers, kept 1080p as default, and improved cache, backup, settings, and storage reliability.
 
 • v3.2.1 · Added Wallhaven and video wallpaper support, refined wallpaper setup and apply safety, improved command palette/theme behavior, and fixed wallpaper, settings, and i18n stability.
 

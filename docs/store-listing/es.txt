@@ -82,7 +82,7 @@ Soporte
 
 Actualizaciones recientes
 
-• v3.2.2: mejora la fiabilidad del almacenamiento al actualizar, la guía inicial y las reglas de publicación, manteniendo rápido el primer fondo.
+• v3.2.2: fondos Bing 4K UHD opcionales, 1080p por defecto y mejoras en caché, copias, ajustes y almacenamiento.
 
 • v3.2.1: añade Wallhaven y fondos de video, mejora la seguridad al aplicar fondos, refina la paleta de comandos y el tema, y corrige estabilidad en fondos, ajustes e i18n.
 

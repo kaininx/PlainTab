@@ -1,5 +1,5 @@
 Nhật Ký Cập Nhật
-• v3.2.2 · Cải thiện độ tin cậy lưu trữ khi nâng cấp, trạng thái hướng dẫn lần đầu và quy tắc phát hành, đồng thời giữ hình nền đầu tiên nhanh.
+• v3.2.2 · Thêm hình nền Bing 4K UHD tùy chọn, giữ mặc định 1080p và cải thiện bộ nhớ đệm, sao lưu, cài đặt, lưu trữ.
 
 • v3.2.1 · Bổ sung hỗ trợ hình nền Wallhaven và video, tinh chỉnh thiết lập và áp dụng hình nền an toàn, cải thiện bảng lệnh/chủ đề, đồng thời sửa độ ổn định của hình nền, cài đặt và i18n.
 

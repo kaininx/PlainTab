@@ -8,7 +8,7 @@
 
 ### 中文
 
-**摘要**：这是一版围绕存储治理、升级可靠性和维护流程的小型补丁更新。PlainTab 收口了 localStorage 的读写边界，把首次使用提示确认状态纳入统一 UI 模型，并继续保留 3.1.4 直接升级时的首屏壁纸预览兜底，避免为了内部开发期 key 增加新的兼容负担。
+**摘要**：这是一版围绕存储治理、壁纸配置、升级可靠性和维护流程的小型补丁更新。PlainTab 收口了 localStorage 的读写边界，把首次使用提示确认状态纳入统一 UI 模型，并为 Bing 每日壁纸补充可选 4K UHD 拉取，同时默认仍保持 1080p。
 
 **更新内容**
 
@@ -16,11 +16,16 @@
 - 将左下角首次使用提示的确认状态放入 `ptab_ui.experience.acknowledged`，为后续体验提示保留统一的版本化记录方式。
 - 保留 `preload.js` 的轻量首屏预览路径，在 `ptab_wallpaper_preview` 缺失时仍可读取 3.1.4 legacy 缩略图兜底，不引入 IDB、网络或异步工作。
 - 移除未发布中间 key 的兼容假设，让 schema 3 只承载真实发布升级需要的迁移范围。
+- Bing 每日壁纸新增 4K UHD 开关，默认继续拉取 1080p；切换到 4K 后会使用上游 `UHD` 分辨率请求。
+- Bing 缓存会记录当前分辨率，同一天缓存也必须同时匹配日期和分辨率才会复用，避免配置切换后沿用旧图。
+- 4K 配置保存在既有壁纸模型里，不新增 localStorage key，不提升 `LS_VERSION` 或 IndexedDB 版本；导入导出会保留合法的 4K 设置，缺失或非法值回到默认 1080p。
+- 统一数据备份导入的文件状态、口令输入和可见性按钮逻辑，让 JSON 与 `.ptab` 备份的导入体验更一致。
+- 设置页自定义下拉菜单改为通用浮层处理，避免被滚动容器裁切，同时继续复用现有设置控件视觉。
 - 更新版本发布、提交流程和存储迁移相关 agent skill，明确保持现有文案风格、README badge 风格和中文 Conventional Commit 队形。
 
 ### English
 
-**Summary**: This patch release focuses on storage governance, upgrade reliability, and maintenance workflow. PlainTab tightens localStorage ownership, moves the first-use hint acknowledgement into the unified UI model, and keeps the lightweight first-paint wallpaper preview fallback for direct 3.1.4 upgrades without carrying unpublished intermediate keys as compatibility baggage.
+**Summary**: This patch release focuses on storage governance, wallpaper configuration, upgrade reliability, and maintenance workflow. PlainTab tightens localStorage ownership, moves the first-use hint acknowledgement into the unified UI model, and adds optional 4K UHD fetching for Bing daily wallpapers while keeping 1080p as the default.
 
 **Details**
 
@@ -28,6 +33,11 @@
 - Moved the bottom-left first-use hint acknowledgement into `ptab_ui.experience.acknowledged`, giving future experience prompts one versioned model.
 - Preserved the lightweight `preload.js` first-paint path: when `ptab_wallpaper_preview` is missing, direct 3.1.4 upgrades can still use legacy thumbnails without IDB, network, or async work.
 - Removed compatibility assumptions for unpublished intermediate keys, keeping schema 3 focused on real published-version upgrades.
+- Added a 4K UHD toggle for Bing daily wallpapers while keeping 1080p as the default; enabling 4K uses the upstream `UHD` resolution request.
+- Made Bing cache freshness resolution-aware, so same-day cache reuse requires both the date and selected resolution to match.
+- Stored the 4K choice inside the existing wallpaper model without adding a new localStorage key, bumping `LS_VERSION`, or changing the IndexedDB version; import/export preserves valid 4K settings and normalizes missing or invalid values back to 1080p.
+- Unified backup import file state, passphrase input, and visibility-button behavior so JSON and `.ptab` backup flows feel more consistent.
+- Moved custom select menus to a shared floating menu path in settings, preventing clipped dropdowns inside scroll containers while preserving the existing control style.
 - Updated release, commit, and storage-migration agent skills so future maintenance keeps the existing release-copy style, README badge style, and Chinese Conventional Commit rhythm.
 
 ## v3.2.1
