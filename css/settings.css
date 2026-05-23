@@ -3810,6 +3810,75 @@ html[data-search-preview="true"] .search-bar {
     min-width: 0;
 }
 
+.data-pass-field {
+    display: flex;
+    align-items: center;
+    flex: 1 1 180px;
+    min-width: 0;
+}
+
+.data-pass-field input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.data-pass-toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    min-height: 34px;
+    padding: 0;
+    border: 1px solid var(--settings-border);
+    border-left: 0;
+    border-radius: 0 8px 8px 0;
+    background: var(--settings-field-bg);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.data-pass-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.data-pass-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.data-pass-toggle[aria-pressed="false"] .data-pass-icon-hide,
+.data-pass-toggle[aria-pressed="true"] .data-pass-icon-show {
+    display: none;
+}
+
+.data-pass-toggle:hover {
+    border-color: var(--settings-border-strong);
+    background: var(--settings-field-bg-hover);
+    color: var(--text-primary);
+}
+
+.data-pass-toggle:focus-visible {
+    outline: none;
+    box-shadow: var(--settings-focus-ring);
+}
+
+.data-pass-toggle:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 .data-inline-control .primary-action {
     flex: 0 0 auto;
     min-width: 132px;
@@ -4318,6 +4387,14 @@ html[data-search-preview="true"] .search-bar {
     .data-file-name {
         width: 100%;
         max-width: none;
+    }
+
+    .data-pass-field {
+        width: 100%;
+    }
+
+    .data-pass-field .data-pass-toggle {
+        width: auto;
     }
 
     .permission-control {

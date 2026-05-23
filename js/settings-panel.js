@@ -178,6 +178,8 @@
     var wallpaperWorkOrder = null;
     var wallpaperWorkOrderStatus = { state: 'Clean', valid: false, reasonKey: 'wallpaperApplyNoChanges', message: '' };
     var wallpaperSettingsModule = null;
+    var dataImportState = { file: null, requiresPassphrase: false };
+    var dataPassphraseVisibility = { export: false, import: false };
     var rssNoticeTimer = null;
     var rssNoticeToken = 0;
     var apiNoticeTimer = null;
@@ -3653,10 +3655,18 @@
     }
 
     function buildDataHTML() {
+        function passphraseIconHTML() {
+            return '<span class="data-pass-icon data-pass-icon-show" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>' +
+                '<span class="data-pass-icon data-pass-icon-hide" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"></path><circle cx="12" cy="12" r="3"></circle><path d="M4 4l16 16"></path></svg></span>';
+        }
+        function passphraseFieldHTML(inputId, toggleId, autocomplete, disabled) {
+            var disabledAttr = disabled ? ' disabled' : '';
+            return '<div class="data-pass-field"><input id="' + inputId + '" type="password" autocomplete="' + autocomplete + '" placeholder="' + tr('dataPassphrase') + '"' + disabledAttr + '><button class="data-pass-toggle" id="' + toggleId + '" type="button" aria-pressed="false" aria-label="' + tr('dataPassphrase') + '"' + disabledAttr + '>' + passphraseIconHTML() + '</button></div>';
+        }
         var jsonControl = '<div class="data-inline-control data-single-control"><button class="primary-action" id="dataExportJsonBtn" type="button">' + tr('dataExportJson') + '</button></div>';
-        var encryptedControl = '<div class="data-inline-control"><input id="dataExportPass" type="password" autocomplete="new-password" placeholder="' + tr('dataPassphrase') + '"><button class="primary-action" id="dataExportEncryptedBtn" type="button">' + tr('dataExportEncrypted') + '</button></div>';
+        var encryptedControl = '<div class="data-inline-control">' + passphraseFieldHTML('dataExportPass', 'dataExportPassToggle', 'new-password', false) + '<button class="primary-action" id="dataExportEncryptedBtn" type="button">' + tr('dataExportEncrypted') + '</button></div>';
         var importControl = '<div class="data-inline-control"><span class="data-file-name" id="dataImportFileName"></span><button class="primary-action" id="dataImportChooseBtn" type="button">' + tr('dataChooseFile') + '</button></div>';
-        var importPassControl = '<div class="data-inline-control"><input id="dataImportPass" type="password" autocomplete="current-password" placeholder="' + tr('dataPassphrase') + '"><button class="primary-action" id="dataImportRunBtn" type="button" disabled>' + tr('dataImport') + '</button></div>';
+        var importPassControl = '<div class="data-inline-control">' + passphraseFieldHTML('dataImportPass', 'dataImportPassToggle', 'current-password', true) + '<button class="primary-action" id="dataImportRunBtn" type="button" disabled>' + tr('dataImport') + '</button></div>';
         var body = settingGroup(tr('dataExport'),
             settingItem(tr('dataEncrypted'), modalCopy('modalDescDataEncrypted'), encryptedControl) +
             settingItem('JSON', modalCopy('modalDescDataJson'), jsonControl, 'setting-compact')) +
@@ -3744,35 +3754,95 @@
         return buildPageShell(tr('tabPermissions'), modalCopy('modalSubtitlePermissions'), body);
     }
 
+    function isPtabBackupFile(file) {
+        return !!(file && /\.ptab$/i.test(file.name || ''));
+    }
+
+    function passphraseFieldIds(scope) {
+        return scope === 'export' ?
+            { input: 'dataExportPass', toggle: 'dataExportPassToggle' } :
+            { input: 'dataImportPass', toggle: 'dataImportPassToggle' };
+    }
+
+    function updateDataPassphraseField(scope, enabled) {
+        var ids = passphraseFieldIds(scope);
+        var passInput = document.getElementById(ids.input);
+        var passToggle = document.getElementById(ids.toggle);
+        var visible = !!(enabled && dataPassphraseVisibility[scope]);
+        if (passInput) {
+            passInput.disabled = !enabled;
+            passInput.type = visible ? 'text' : 'password';
+            if (!enabled) passInput.value = '';
+        }
+        if (passToggle) {
+            passToggle.disabled = !enabled;
+            passToggle.setAttribute('aria-pressed', visible ? 'true' : 'false');
+            passToggle.setAttribute('aria-label', tr('dataPassphrase'));
+        }
+    }
+
+    function toggleDataPassphraseVisibility(scope) {
+        var ids = passphraseFieldIds(scope);
+        var passToggle = document.getElementById(ids.toggle);
+        if (passToggle && passToggle.disabled) return;
+        dataPassphraseVisibility[scope] = !dataPassphraseVisibility[scope];
+        updateDataPassphraseField(scope, true);
+    }
+
+    function setDataImportFile(file) {
+        dataImportState.file = file || null;
+        dataImportState.requiresPassphrase = isPtabBackupFile(file);
+        dataPassphraseVisibility.import = false;
+        updateDataImportControls();
+    }
+
+    function toggleDataImportPassVisibility() {
+        if (!dataImportState.requiresPassphrase) return;
+        toggleDataPassphraseVisibility('import');
+    }
+
+    function updateDataImportControls() {
+        var importBtn = document.getElementById('dataImportRunBtn');
+        var fileName = document.getElementById('dataImportFileName');
+        var hasFile = !!dataImportState.file;
+        var needsPass = hasFile && dataImportState.requiresPassphrase;
+        if (fileName) fileName.textContent = dataImportState.file ? dataImportState.file.name : '';
+        if (importBtn) importBtn.disabled = !hasFile;
+        updateDataPassphraseField('import', needsPass);
+    }
+
     function bindDataEvents() {
         var jsonBtn = document.getElementById('dataExportJsonBtn');
         var encryptedBtn = document.getElementById('dataExportEncryptedBtn');
         var chooseBtn = document.getElementById('dataImportChooseBtn');
         var importBtn = document.getElementById('dataImportRunBtn');
-        var fileName = document.getElementById('dataImportFileName');
-        var selectedImportFile = null;
+        var exportPassToggle = document.getElementById('dataExportPassToggle');
+        var passToggle = document.getElementById('dataImportPassToggle');
         var input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json,.ptab,application/json';
         if (_tabPages.data) _tabPages.data.appendChild(input);
+        dataPassphraseVisibility.export = false;
+        updateDataPassphraseField('export', true);
+        setDataImportFile(null);
 
         if (jsonBtn) jsonBtn.addEventListener('click', exportPlainDataBackup);
         if (encryptedBtn) encryptedBtn.addEventListener('click', exportEncryptedDataBackup);
         if (chooseBtn) chooseBtn.addEventListener('click', function () { input.click(); });
+        if (exportPassToggle) exportPassToggle.addEventListener('click', function () { toggleDataPassphraseVisibility('export'); });
+        if (passToggle) passToggle.addEventListener('click', toggleDataImportPassVisibility);
         if (importBtn) importBtn.addEventListener('click', function () {
-            if (!selectedImportFile) {
+            if (!dataImportState.file) {
                 setDataStatus(tr('dataChooseBackupFirst'), 'error');
                 return;
             }
-            importDataBackup(selectedImportFile);
+            importDataBackup(dataImportState.file);
         });
         input.addEventListener('change', function () {
             var file = input.files && input.files[0];
             input.value = '';
             if (!file) return;
-            selectedImportFile = file;
-            if (fileName) fileName.textContent = file.name;
-            if (importBtn) importBtn.disabled = false;
+            setDataImportFile(file);
         });
     }
 
@@ -3887,6 +3957,17 @@
         });
     }
 
+    function exportDataBackupPayload() {
+        if (D.exportUserDataAsync) return D.exportUserDataAsync();
+        return Promise.resolve(D.exportUserData());
+    }
+
+    function importDataBackupPayload(payload) {
+        if (D.importUserDataAsync) return D.importUserDataAsync(payload);
+        D.importUserData(payload);
+        return Promise.resolve(true);
+    }
+
     function bytesToBase64(bytes) {
         var binary = '';
         var chunk = 0x8000;
@@ -3943,13 +4024,13 @@
     }
 
     function exportPlainDataBackup() {
-        try {
-            var payload = D.exportUserData();
+        setDataStatus(tr('dataExporting'), 'info');
+        exportDataBackupPayload().then(function (payload) {
             downloadText('plaintab-config-' + backupDateStamp() + '.json', JSON.stringify(payload, null, 2), 'application/json');
             setDataStatus(tr('dataExportOk'), 'success');
-        } catch (e) {
+        }).catch(function (e) {
             setDataStatus(tr('dataExportFailed') + (e && e.message ? e.message : String(e)), 'error');
-        }
+        });
     }
 
     function exportEncryptedDataBackup() {
@@ -3963,19 +4044,24 @@
             return;
         }
         setDataStatus(tr('dataExporting'), 'info');
-        var payload = D.exportUserData();
-        var json = JSON.stringify(payload);
-        var bytes = new TextEncoder().encode(json);
         var salt = crypto.getRandomValues(new Uint8Array(16));
         var iv = crypto.getRandomValues(new Uint8Array(12));
         var iterations = BACKUP_KDF_ITERATIONS;
-        compressBackupBytes(bytes).then(function (compressed) {
+        exportDataBackupPayload().then(function (payload) {
+            var json = JSON.stringify(payload);
+            var bytes = new TextEncoder().encode(json);
+            return compressBackupBytes(bytes).then(function (compressed) {
+                return { payload: payload, compressed: compressed };
+            });
+        }).then(function (backup) {
+            var payload = backup.payload;
+            var compressed = backup.compressed;
             return deriveBackupKey(pass, salt, iterations).then(function (key) {
                 return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, compressed.bytes).then(function (cipherBuffer) {
                     var wrapper = {
                         app: 'PlainTab',
                         format: 'plaintab-user-config',
-                        formatVersion: 1,
+                        formatVersion: payload.formatVersion || 1,
                         encrypted: true,
                         algorithm: 'AES-GCM',
                         kdf: 'PBKDF2-SHA256',
@@ -4041,9 +4127,10 @@
             return parsed;
         }).then(function (payload) {
             validateBackupPayload(payload);
-            D.importUserData(payload);
-            refreshAfterDataImport();
-            setDataStatus(tr('dataImportOk'), 'success');
+            return importDataBackupPayload(payload).then(function () {
+                refreshAfterDataImport();
+                setDataStatus(tr('dataImportOk'), 'success');
+            });
         }).catch(function (e) {
             setDataStatus(tr('dataImportFailed') + (e && e.message ? e.message : String(e)), 'error');
         });

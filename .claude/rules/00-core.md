@@ -22,6 +22,7 @@
 ## 存储和数据安全
 
 - `js/wallpaper/data.js` 是 `localStorage` 和 IndexedDB 的所有者。其他模块应使用 `window.WallpaperData` API。
+- 任何 localStorage 或 IndexedDB 的 key、记录格式、语义、引用关系或清理策略变化，都必须在同一改动里同步迁移代码、导入导出逻辑和存储规则。
 - 先写入大 Blob 数据，再写引用。
 - 先移除引用，再删除大数据。
 - Blob URL 不再需要时必须释放。

@@ -85,6 +85,7 @@ legacy v2 -> schema 3 迁移只写用户上传壁纸连续性所需数据，不�
 - 上传视频固定保存在 `upload_video` / `ptab_wallpaper_blob_upload_video`，并由 `providers.upload.config.activeMedia` 与图片画廊互斥切换。
 - 删除上传图时，必须先移除 order/meta/thumb/blur-thumb 引用，再删除 Blob。
 - 文件夹模式在 IndexedDB 保存目录 handle 和文件索引。缺失权限、空目录、文件被移除、轻量缓存过期时，都不能让壁纸空白。
+- 文件夹模式不参与配置备份迁移；导出时必须移除 folder 状态和缓存引用，当前来源为 folder 时降级到 Bing。不要导出 folder handle、文件索引或 light cache。
 - 文件夹扫描和缩略图准备应离开启动热路径，通常使用 `requestIdleCallback`。
 
 ## 网络和 Blob Helper

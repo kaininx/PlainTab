@@ -29,6 +29,17 @@
 - 纯缓存实现细节不要求升级 `LS_VERSION`，前提是缺失或残留旧缓存不会影响用户数据、不会误读，也不需要迁移或清理。
 - 不要为一次性迁移补丁新增永久顶级 marker key。schema 3 的 legacy v2 桥接应通过遗留 key 是否存在、当前模型是否仍是默认/Bing、以及幂等清理来判断。
 
+## LS/IDB 改动清单
+
+凡是改动 localStorage 或 IndexedDB 的持久化内容，都必须在同一任务里同步处理：
+
+- 更新 `js/wallpaper/data.js` 的读写、归一化和公开 API，保持存储层单一所有权。
+- 如果 key、前缀、记录格式、引用关系、语义解释、清理策略或默认值会影响旧用户数据，升级 `LS_VERSION` 并补充 `WallpaperData.migrate()` 的幂等迁移。
+- 同步更新 `exportUserData()` / `exportUserDataAsync()` 和 `importUserData()` / `importUserDataAsync()`，确保备份能覆盖新字段、新 key、IndexedDB 大数据和它们的引用关系。
+- 遵守大数据顺序：导入时先恢复 IndexedDB Blob/大记录，再写入引用它们的 localStorage；删除时先移除引用，再删除大数据。
+- 添加或更新 `docs/ai-tasks/` 下的针对性检查，覆盖迁移与导入导出往返；改 JavaScript 后运行触及文件或全 `js` 树的 `node --check`。
+- 同步更新本规则和相关模块规则，不要让文档仍描述旧的存储边界。
+
 ## 持久化 Key
 
 当前 `localStorage` key：
@@ -118,12 +129,13 @@ legacy v2 key 只允许迁移桥接或 preload 首帧兜底读取，不属于当
 - `resetWallpaperDefaults()` 回到 Bing，尽量保留 Bing 缓存/预览，并删除 upload/folder/RSS/Wallhaven/API 的数据和引用。
 - `defaultUISection(section)` 返回界面、搜索、壁纸等默认分区。
 - `resetShortcutSettings()` 恢复命令面板设置，并补回可见的内置 GitHub 快捷链接及图标；不要删除其他用户快捷链接。
-- `exportUserData()` 导出 PlainTab 备份外壳，包含语言、壁纸模型、缩略图、预览、UI（含体验确认状态）、快捷链接和快捷图标。
-- `importUserData()` 接受备份外壳或原始 data 对象，只写入提供的分区，然后清理内存缓存。
+- `exportUserData()` 导出 PlainTab 备份外壳，包含语言、壁纸模型、缩略图、预览、UI（含体验确认状态）、快捷链接和快捷图标；导出时不迁移 folder 来源状态，当前来源为 folder 时降级为 Bing，并移除 folder order/meta/thumb/blur-thumb 引用。
+- `exportUserDataAsync()` 还会打包可 JSON 序列化的 IndexedDB 壁纸 Blob 缓存：Bing/API、RSS/Wallhaven 当前模型引用的 Blob，以及全部 upload Blob（包括可能没有缩略图或引用的孤儿 upload Blob）。folder handle、folder files 和 folder light cache 不导出。
+- `importUserData()` 接受备份外壳或原始 data 对象，只写入提供的分区，然后清理内存缓存；`importUserDataAsync()` 会先恢复备份里的 IndexedDB 大数据，再写入引用它的 localStorage 分区。
 
 ## 安全规则
 
 - 不要写入指向缺失 Blob 的引用。
 - 仍有引用时不要删除 Blob。
 - 设置 UI 不要直接修改 IndexedDB。
-- 如果改变了存储模型形状，同步更新本文件以及相关设置/壁纸规则。
+- 如果改变了存储模型形状，必须同步迁移代码、导入导出逻辑、本文件以及相关设置/壁纸/命令面板规则。

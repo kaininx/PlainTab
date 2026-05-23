@@ -147,6 +147,193 @@
     }
 
     // ================================================================
+    // Backup serialization for IndexedDB records
+    // ================================================================
+
+    var BACKUP_BLOB_MARKER = 'PlainTabBlob';
+
+    function bytesToBase64(bytes) {
+        var binary = '';
+        var chunk = 0x8000;
+        for (var i = 0; i < bytes.length; i += chunk) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        return btoa(binary);
+    }
+
+    function base64ToBytes(value) {
+        var binary = atob(String(value || ''));
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+    }
+
+    function blobToBase64(blob) {
+        if (blob && blob.arrayBuffer) {
+            return blob.arrayBuffer().then(function (buffer) {
+                return bytesToBase64(new Uint8Array(buffer));
+            });
+        }
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function () {
+                var result = String(reader.result || '');
+                resolve(result.indexOf(',') === -1 ? result : result.slice(result.indexOf(',') + 1));
+            };
+            reader.onerror = function () { reject(reader.error || new Error('blob read failed')); };
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    function isBlobValue(value) {
+        return typeof Blob !== 'undefined' && value instanceof Blob;
+    }
+
+    function serializeBackupValue(value) {
+        if (isBlobValue(value)) {
+            return blobToBase64(value).then(function (data) {
+                return {
+                    __plainTabType: BACKUP_BLOB_MARKER,
+                    mime: value.type || '',
+                    data: data
+                };
+            });
+        }
+        if (Array.isArray(value)) return Promise.all(value.map(serializeBackupValue));
+        if (value && typeof value === 'object') {
+            var keys = Object.keys(value);
+            var out = {};
+            return Promise.all(keys.map(function (key) {
+                return serializeBackupValue(value[key]).then(function (serialized) {
+                    out[key] = serialized;
+                });
+            })).then(function () { return out; });
+        }
+        return Promise.resolve(value);
+    }
+
+    function deserializeBackupValue(value) {
+        if (value && typeof value === 'object' && value.__plainTabType === BACKUP_BLOB_MARKER) {
+            return new Blob([base64ToBytes(value.data)], { type: value.mime || '' });
+        }
+        if (Array.isArray(value)) return value.map(deserializeBackupValue);
+        if (value && typeof value === 'object') {
+            var out = {};
+            Object.keys(value).forEach(function (key) {
+                out[key] = deserializeBackupValue(value[key]);
+            });
+            return out;
+        }
+        return value;
+    }
+
+    function isImportableBackupIdbKey(key) {
+        key = String(key || '');
+        return key === DB.BING_BLOB ||
+            key === DB.API_BLOB ||
+            key.indexOf(DB.UPLOAD_PREFIX) === 0 ||
+            key.indexOf(DB.RSS_PREFIX) === 0 ||
+            key.indexOf(DB.WALLHAVEN_PREFIX) === 0;
+    }
+
+    function backupIdFromKey(key) {
+        key = String(key || '');
+        if (key === DB.BING_BLOB) return 'bing';
+        if (key === DB.API_BLOB) return 'api';
+        if (key.indexOf(DB.RSS_PREFIX) === 0) return 'rss_' + key.slice(DB.RSS_PREFIX.length);
+        if (key.indexOf(DB.WALLHAVEN_PREFIX) === 0) return 'wallhaven_' + key.slice(DB.WALLHAVEN_PREFIX.length);
+        if (key.indexOf(DB.UPLOAD_PREFIX) === 0) return 'upload_' + key.slice(DB.UPLOAD_PREFIX.length);
+        return '';
+    }
+
+    function backupKeyFromId(id) {
+        id = String(id || '');
+        if (id === 'bing') return DB.BING_BLOB;
+        if (id === 'api') return DB.API_BLOB;
+        if (id.indexOf('rss_') === 0) return DB.RSS_PREFIX + id.slice(4);
+        if (id.indexOf('wallhaven_') === 0) return DB.WALLHAVEN_PREFIX + id.slice(10);
+        if (id.indexOf('upload_') === 0) return DB.UPLOAD_PREFIX + id.slice(7);
+        return '';
+    }
+
+    function collectBackupIdbKeys(keys) {
+        var existing = {};
+        (keys || []).forEach(function (key) { existing[String(key)] = true; });
+        var include = {};
+        function addKey(key) {
+            key = String(key || '');
+            if (key && existing[key] && isImportableBackupIdbKey(key)) include[key] = true;
+        }
+        function addId(id) {
+            addKey(backupKeyFromId(id));
+        }
+
+        addKey(DB.BING_BLOB);
+        addKey(DB.API_BLOB);
+
+        (keys || []).forEach(function (key) {
+            if (String(key).indexOf(DB.UPLOAD_PREFIX) === 0) addKey(key);
+        });
+
+        var wallpaper = loadWallpaper();
+        var thumbs = loadThumbs();
+        var blurThumbs = loadBlurThumbs();
+        var meta = wallpaper.cache && wallpaper.cache.meta ? wallpaper.cache.meta : {};
+        [].concat(
+            wallpaper.cache && wallpaper.cache.order || [],
+            Object.keys(meta || {}),
+            Object.keys(thumbs || {}),
+            Object.keys(blurThumbs || {})
+        ).forEach(function (id) {
+            if (String(id).indexOf('rss_') === 0 || String(id).indexOf('wallhaven_') === 0) addId(id);
+        });
+
+        return Object.keys(include).filter(function (key) {
+            return !backupIdFromKey(key) || String(backupIdFromKey(key)).indexOf('folder:') !== 0;
+        });
+    }
+
+    function exportBackupIdbRecords() {
+        return idbKeys().then(function (keys) {
+            var backupKeys = collectBackupIdbKeys(keys);
+            return Promise.all(backupKeys.map(function (key) {
+                return idbGet(key).then(function (value) {
+                    return serializeBackupValue(value).then(function (serialized) {
+                        return { key: key, value: serialized };
+                    });
+                });
+            }));
+        }).then(function (records) {
+            return {
+                database: DB.NAME,
+                store: DB.STORE,
+                records: records
+            };
+        });
+    }
+
+    function importBackupIdbRecords(idbBackup) {
+        var records = idbBackup && Array.isArray(idbBackup.records) ? idbBackup.records : null;
+        if (!records) return Promise.resolve(false);
+        var keep = {};
+        records.forEach(function (record) {
+            if (record && record.key) keep[String(record.key)] = true;
+        });
+        return Promise.all(records.map(function (record) {
+            if (!record || !record.key || !isImportableBackupIdbKey(record.key)) return Promise.resolve(false);
+            return idbPut(record.key, deserializeBackupValue(record.value));
+        })).then(function () {
+            return idbKeys();
+        }).then(function (keys) {
+            return idbDeleteMany((keys || []).filter(function (key) {
+                return isImportableBackupIdbKey(key) && !keep[String(key)];
+            }));
+        }).then(function () {
+            return true;
+        });
+    }
+
+    // ================================================================
     // v3.2 localStorage models
     // ================================================================
 
@@ -1447,6 +1634,56 @@
     // 用户配置备份
     // ================================================================
 
+    function removeFolderEntries(obj) {
+        Object.keys(obj || {}).forEach(function (key) {
+            if (String(key).indexOf('folder:') === 0) delete obj[key];
+        });
+    }
+
+    function removeFolderBackupState(data) {
+        var wallpaper = data.wallpaper || {};
+        var cache = wallpaper.cache || {};
+        var activeSource = normalizeSource(wallpaper.activeSource);
+
+        if (wallpaper.providers && wallpaper.providers.folder) {
+            wallpaper.providers.folder.config = clone(DEFAULT_WALLPAPER.providers.folder.config);
+            wallpaper.providers.folder.state = clone(DEFAULT_WALLPAPER.providers.folder.state);
+        }
+
+        cache.order = (cache.order || []).filter(function (id) {
+            return String(id || '').indexOf('folder:') !== 0;
+        });
+        cache.meta = cache.meta || {};
+        removeFolderEntries(cache.meta);
+        removeFolderEntries(data.wallpaperThumbs);
+        removeFolderEntries(data.wallpaperBlurThumbs);
+
+        if (activeSource === 'folder') {
+            wallpaper.activeSource = 'bing';
+            cache.order = ['bing'];
+            cache.index = 0;
+            if (!cache.meta.bing) cache.meta.bing = {};
+            data.wallpaperPreview = data.wallpaperThumbs && data.wallpaperThumbs.bing || '';
+        } else {
+            cache.index = Math.min(parseInt(cache.index, 10) || 0, Math.max(cache.order.length - 1, 0));
+        }
+        wallpaper.cache = cache;
+        return data;
+    }
+
+    function createBackupData() {
+        return removeFolderBackupState({
+            locale: loadLocale() || '',
+            wallpaper: clone(loadWallpaper()),
+            wallpaperThumbs: clone(loadThumbs()),
+            wallpaperBlurThumbs: clone(loadBlurThumbs()),
+            wallpaperPreview: loadPreview() || '',
+            ui: clone(loadUI()),
+            shortcuts: clone(loadShortcutsModel()),
+            shortcutIcons: readJSON(KEYS.SHORTCUT_ICONS, {})
+        });
+    }
+
     function exportUserData() {
         return {
             app: 'PlainTab',
@@ -1455,17 +1692,17 @@
             appVersion: BASELINE_APP_VERSION,
             schemaVersion: LS_VERSION,
             exportedAt: new Date().toISOString(),
-            data: {
-                locale: loadLocale() || '',
-                wallpaper: clone(loadWallpaper()),
-                wallpaperThumbs: clone(loadThumbs()),
-                wallpaperBlurThumbs: clone(loadBlurThumbs()),
-                wallpaperPreview: loadPreview() || '',
-                ui: clone(loadUI()),
-                shortcuts: clone(loadShortcutsModel()),
-                shortcutIcons: readJSON(KEYS.SHORTCUT_ICONS, {})
-            }
+            data: createBackupData()
         };
+    }
+
+    function exportUserDataAsync() {
+        var payload = exportUserData();
+        return exportBackupIdbRecords().then(function (idbBackup) {
+            payload.formatVersion = 2;
+            payload.data.indexedDb = idbBackup;
+            return payload;
+        });
     }
 
     function importUserData(payload) {
@@ -1490,6 +1727,14 @@
         clearCaches();
         if (!ok) throw new Error('import write failed');
         return true;
+    }
+
+    function importUserDataAsync(payload) {
+        if (!payload || typeof payload !== 'object') return Promise.reject(new Error('invalid backup'));
+        var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+        return importBackupIdbRecords(data.indexedDb).then(function () {
+            return importUserData(payload);
+        });
     }
 
     // ================================================================
@@ -1639,7 +1884,9 @@
         loadLocale: loadLocale,
         saveLocale: saveLocale,
         exportUserData: exportUserData,
+        exportUserDataAsync: exportUserDataAsync,
         importUserData: importUserData,
+        importUserDataAsync: importUserDataAsync,
 
         // Bing 元数据
         loadBingMeta: loadBingMeta,
