@@ -4,7 +4,7 @@
 
 **PlainTab v3.2.2**
 
-- Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo) for automatic updates.
+- Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo) or [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/plaintab-%C2%B7-%E6%9E%81%E7%AE%80%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5/liljpbjkhafejhcidneknjokfcaiebem) for automatic updates.
 - Or download the `.crx` file below and drag it into `chrome://extensions`.
 
 **Highlights**
@@ -23,7 +23,7 @@ v3.2.2 is a storage reliability and maintenance polish release. PlainTab now kee
 
 **PlainTab v3.2.2**
 
-- 前往 [Chrome 网上应用店](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo) 安装，可自动更新。
+- 前往 [Chrome 网上应用店](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo) 或 [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/plaintab-%C2%B7-%E6%9E%81%E7%AE%80%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5/liljpbjkhafejhcidneknjokfcaiebem) 安装，可自动更新。
 - 或下载下方 `.crx` 文件，拖入 `chrome://extensions` 页面即可。
 
 **更新重点**
