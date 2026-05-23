@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>404 · Page not found | PlainTab</title>
+    <style>
+        :root {
+            --bg1: #1a1a2e;
+            --bg2: #16213e;
+            --bg3: #0f3460;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 50%, var(--bg3) 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .card {
+            position: relative;
+            z-index: 10;
+            max-width: 480px;
+            width: 88vw;
+            background: rgba(22, 22, 30, 0.7);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 32px;
+            padding: 2.5rem 2rem 2.2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .code {
+            font-size: 5.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 20%, rgba(255,255,255,0.55) 80%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 0.06em;
+            line-height: 1;
+            margin-bottom: 0.4rem;
+        }
+
+        .title {
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .desc {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.88rem;
+            margin-bottom: 2rem;
+            line-height: 1.55;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px 28px;
+            border-radius: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.22s ease;
+            font-family: inherit;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.32);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+        }
+        .btn svg { width: 18px; height: 18px; fill: #fff; }
+
+        .timer {
+            margin-top: 1.4rem;
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.32);
+        }
+        .timer span { color: rgba(255, 255, 255, 0.6); font-weight: 600; }
+
+        @media (max-width: 480px) {
+            .card { padding: 1.8rem 1.2rem 1.6rem; }
+            .code { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 背景光晕 -->
+    <div class="bg-orb" style="width:260px;height:260px;top:-80px;left:-80px;"></div>
+    <div class="bg-orb" style="width:320px;height:320px;bottom:-100px;right:-100px;"></div>
+    <div class="bg-orb" style="width:140px;height:140px;top:30%;right:8%;"></div>
+
+    <main class="card">
+        <div class="code">404</div>
+        <div class="title">This page has drifted away</div>
+        <div class="desc">
+            It may have gone to a simpler world…<br>
+            Or maybe the address was mistyped?
+        </div>
+
+        <a href="/" class="btn" id="homeBtn">
+            <svg viewBox="0 0 24 24"><path d="M12 3L3 9l2 1.67V19h6v-6h2v6h6v-8.33L21 9l-9-6z"/></svg>
+            Back to PlainTab
+        </a>
+
+        <div class="timer">Auto-redirect in <span id="countdown">5</span>s</div>
+    </main>
+
+    <script>
+    (function () {
+        // --- 稳健的基础路径检测 ---
+        // 优先级：1) <base> 标签  2) 脚本路径推断  3) '/'
+        var basePath = '/';
+
+        // 方法 1：检查页面中是否有 <base> 标签
+        var baseEl = document.querySelector('base');
+        if (baseEl && baseEl.href) {
+            try { basePath = new URL(baseEl.href).pathname; } catch (e) {}
+        }
+
+        // 方法 2：从当前脚本的 src 或 404.html 的位置推断
+        // 404.html 被访问时的 URL 就是实际路径：如 /PlainTab/404.html 或 /something/nonexistent
+        // 我们取当前路径，去掉最后一段不存在的部分
+        if (basePath === '/') {
+            var scripts = document.getElementsByTagName('script');
+            var selfScript = scripts[scripts.length - 1];
+            // 无法通过脚本路径推断（inline script），回退到 URL 分析
+            var path = window.location.pathname;
+            // 如果路径中包含 404.html，取其所在目录
+            if (path.indexOf('404.html') !== -1) {
+                basePath = path.substring(0, path.lastIndexOf('/') + 1);
+            } else {
+                // 对于 SPA 部署：404.html 被 serve 在原始请求的路径上
+                // 例如访问 /foo/bar 返回的是 404.html，但 pathname 仍是 /foo/bar
+                // 这种情况下，真正的首页在根 '/'
+                // 我们保持 basePath = '/' 即可
+            }
+        }
+
+        // 确保以 / 结尾
+        if (basePath.charAt(basePath.length - 1) !== '/') basePath += '/';
+
+        var homeUrl = basePath;
+        var homeBtn = document.getElementById('homeBtn');
+        var countdownEl = document.getElementById('countdown');
+        homeBtn.href = homeUrl;
+
+        // --- 自动倒计时跳转 ---
+        var seconds = 5;
+        var timer = setInterval(function () {
+            seconds--;
+            countdownEl.textContent = seconds + 's';
+            if (seconds <= 0) {
+                clearInterval(timer);
+                window.location.href = homeUrl;
+            }
+        }, 1000);
+
+        // --- 点击按钮立即跳转（不等待倒计时） ---
+        homeBtn.addEventListener('click', function (e) {
+            clearInterval(timer);
+            // 允许默认行为（a 标签跳转）
+        });
+
+        // --- Esc 重置倒计时 ---
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                clearInterval(timer);
+                seconds = 6; // 重置为 6（下一个 tick 变成 5）
+                countdownEl.textContent = '5s';
+                timer = setInterval(function () {
+                    seconds--;
+                    countdownEl.textContent = seconds + 's';
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        window.location.href = homeUrl;
+                    }
+                }, 1000);
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

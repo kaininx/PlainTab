@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlainTab Wallpaper Speed Benchmark</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #10131a;
+            --surface: #171d26;
+            --surface-2: #202938;
+            --line: #334154;
+            --text: #edf3fb;
+            --muted: #9cabbc;
+            --green: #62d08f;
+            --blue: #74a9ff;
+            --yellow: #f3c95c;
+            --red: #ef7777;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        main {
+            width: min(1120px, calc(100vw - 32px));
+            margin: 0 auto;
+            padding: 24px 0 42px;
+        }
+
+        header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 0;
+        }
+
+        .lead,
+        .status,
+        .note {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .lead {
+            max-width: 860px;
+            margin: 8px 0 0;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) 130px 150px 150px;
+            gap: 10px;
+            margin: 18px 0;
+            align-items: end;
+        }
+
+        label {
+            display: grid;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        input {
+            height: 36px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            padding: 0 10px;
+            font: inherit;
+            font-size: 14px;
+        }
+
+        button {
+            height: 36px;
+            border: 1px solid rgba(98, 208, 143, 0.55);
+            border-radius: 8px;
+            background: rgba(98, 208, 143, 0.14);
+            color: var(--text);
+            padding: 0 16px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: progress;
+            opacity: 0.62;
+        }
+
+        .status {
+            min-height: 24px;
+            margin-bottom: 12px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .metric,
+        .result,
+        .note {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--surface);
+        }
+
+        .metric {
+            padding: 14px;
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .metric strong {
+            display: block;
+            margin-top: 6px;
+            font-size: 20px;
+        }
+
+        .results {
+            display: grid;
+            gap: 12px;
+        }
+
+        .result {
+            padding: 14px;
+        }
+
+        .result-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 14px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .winner {
+            min-width: 150px;
+            color: var(--green);
+            font-weight: 800;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .winner.slow {
+            color: var(--red);
+        }
+
+        .winner.warn {
+            color: var(--yellow);
+        }
+
+        .sections {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .section {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px;
+        }
+
+        .section h3 {
+            margin: 0 0 10px;
+            font-size: 14px;
+        }
+
+        .bars {
+            display: grid;
+            gap: 10px;
+        }
+
+        .bar-row {
+            display: grid;
+            grid-template-columns: 132px minmax(0, 1fr) 88px;
+            gap: 10px;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .bar-label {
+            color: var(--muted);
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .track {
+            height: 12px;
+            border-radius: 999px;
+            background: var(--surface-2);
+            overflow: hidden;
+        }
+
+        .fill {
+            height: 100%;
+            width: 1%;
+            border-radius: inherit;
+            background: var(--blue);
+        }
+
+        .fill.current {
+            background: var(--green);
+        }
+
+        .time {
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+        }
+
+        .note {
+            margin-top: 16px;
+            padding: 14px;
+        }
+
+        .preview-title {
+            margin: 18px 0 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .runner {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            height: auto;
+            position: relative;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #05070a;
+            overflow: hidden;
+        }
+
+        .runner iframe {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1280px;
+            height: 720px;
+            border: 0;
+            transform-origin: top left;
+            transform: scale(var(--preview-scale, 1));
+        }
+
+        .runner-empty {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: var(--muted);
+            font-size: 13px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .preview-pane {
+            min-width: 0;
+        }
+
+        .pane-label {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .pane-label strong {
+            color: var(--text);
+        }
+
+        code {
+            color: var(--text);
+            font-family: "Cascadia Code", Consolas, monospace;
+        }
+
+        @media (max-width: 900px) {
+            header,
+            .controls,
+            .result-head,
+            .sections,
+            .preview-grid,
+            .bar-row {
+                grid-template-columns: 1fr;
+            }
+
+            .summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .winner,
+            .time {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <header>
+            <div>
+                <h1>PlainTab 壁纸出现速度 Benchmark</h1>
+                <p class="lead">
+                    只测两个时间：Cold 是没有任何数据时第一次打开多久看到壁纸；Warm 是已有数据后再次打开多久看到壁纸。
+                    不区分缩略图还是完整壁纸，只要 <code>#wallpaperBack</code> 或 <code>#wallpaperFront</code>
+                    第一次出现背景图就立刻记时。
+                </p>
+            </div>
+            <button id="runBtn" type="button">开始测试</button>
+        </header>
+
+        <section class="controls" aria-label="Benchmark controls">
+            <label>
+                对比版本目录
+                <input id="versionsInput" value="v3.1.4" spellcheck="false">
+            </label>
+            <label>
+                Warm 轮数
+                <input id="runsInput" type="number" min="1" max="200" step="1" value="50">
+            </label>
+            <label>
+                Cold 超时秒数
+                <input id="coldTimeoutInput" type="number" min="1" max="90" step="1" value="8">
+            </label>
+            <label>
+                Warm 超时秒数
+                <input id="warmTimeoutInput" type="number" min="1" max="60" step="1" value="8">
+            </label>
+        </section>
+
+        <div class="status" id="status"></div>
+        <section class="summary" id="summary"></section>
+        <section class="results" id="results"></section>
+
+        <div class="preview-title">实时预览</div>
+        <div class="preview-grid">
+            <section class="preview-pane">
+                <div class="pane-label"><strong id="baselinePreviewName">Baseline</strong><span id="baselinePreviewPhase">等待测试</span></div>
+                <div class="runner" id="baselineRunner" aria-label="Baseline live preview"></div>
+            </section>
+            <section class="preview-pane">
+                <div class="pane-label"><strong>Current</strong><span id="currentPreviewPhase">等待测试</span></div>
+                <div class="runner" id="currentRunner" aria-label="Current live preview"></div>
+            </section>
+        </div>
+
+        <section class="note">
+            请用 <code>open-benchmark.cmd</code> 打开。直接 <code>file://</code> 打开无法做完整测试，因为浏览器会隔离本地文件，
+            父页面不能可靠读取 iframe 里的页面状态。测试结束后会自动清理当前本地 HTTP origin 的
+            <code>localStorage</code>、<code>sessionStorage</code> 和 IndexedDB <code>PlainTab</code>。
+            为保证存储隔离，左右预览不会同时运行；当前正在测试哪一侧，哪一侧会显示实时页面。
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var DB_NAME = 'PlainTab';
+            var TEST_VIEWPORT_WIDTH = 1280;
+            var CONTROL_LIMITS = {
+                warmRuns: { id: 'runsInput', min: 1, max: 200, step: 1, defaultValue: 50 },
+                coldTimeoutSeconds: { id: 'coldTimeoutInput', min: 1, max: 90, step: 1, defaultValue: 8 },
+                warmTimeoutSeconds: { id: 'warmTimeoutInput', min: 1, max: 60, step: 1, defaultValue: 8 }
+            };
+            var CURRENT_TARGET = {
+                id: 'current',
+                label: 'Current',
+                url: new URL('../../index.html', location.href).href
+            };
+            var runToken = 0;
+
+            applyControlLimits();
+            document.getElementById('runBtn').addEventListener('click', runBenchmark);
+            window.addEventListener('resize', updatePreviewScale);
+            window.addEventListener('beforeunload', function () {
+                clearAllRunners();
+                cleanupStorage();
+            });
+            renderEmpty();
+            clearAllRunners();
+            updatePreviewScale();
+            if (location.protocol === 'file:') {
+                setStatus('当前是 file://，完整测试不可用。请双击 open-benchmark.cmd 用 HTTP 打开。', true);
+                document.getElementById('runBtn').disabled = true;
+            } else {
+                setStatus('准备就绪。Cold 会真实联网拉 Bing，结果受网络影响；Warm 更接近日常打开体验。');
+            }
+
+            async function runBenchmark() {
+                var token = ++runToken;
+                var button = document.getElementById('runBtn');
+                button.disabled = true;
+                document.getElementById('results').innerHTML = '';
+
+                try {
+                    var versions = parseVersions(document.getElementById('versionsInput').value);
+                    var runs = readClampedNumber(CONTROL_LIMITS.warmRuns);
+                    var coldTimeoutMs = readClampedNumber(CONTROL_LIMITS.coldTimeoutSeconds) * 1000;
+                    var warmTimeoutMs = readClampedNumber(CONTROL_LIMITS.warmTimeoutSeconds) * 1000;
+                    var targets = versions.map(function (version) {
+                        return {
+                            id: version,
+                            label: version,
+                            url: new URL('./' + version + '/index.html', location.href).href,
+                            pane: 'baseline'
+                        };
+                    }).concat([Object.assign({}, CURRENT_TARGET, { pane: 'current' })]);
+                    var measured = [];
+
+                    await assertTargetsAvailable(targets);
+                    renderProgress('开始', 0, targets.length);
+                    for (var i = 0; i < targets.length; i++) {
+                        if (token !== runToken) return;
+                        measured.push(await measureTarget(targets[i], runs, coldTimeoutMs, warmTimeoutMs, i + 1, targets.length));
+                        renderProgress('已完成 ' + targets[i].label, i + 1, targets.length);
+                    }
+
+                    var current = measured[measured.length - 1];
+                    var comparisons = measured.slice(0, -1).map(function (baseline) {
+                        return { baseline: baseline, current: current };
+                    });
+                    window.__plainTabWallpaperSpeedResults = comparisons;
+                    renderResults(comparisons);
+                    setStatus('测试完成，已清理测试存储。');
+                } catch (error) {
+                    setStatus('测试失败：' + (error && error.message ? error.message : String(error)), true);
+                    throw error;
+                } finally {
+                    clearAllRunners();
+                    await cleanupStorage();
+                    button.disabled = location.protocol === 'file:';
+                }
+            }
+
+            async function measureTarget(target, runs, coldTimeoutMs, warmTimeoutMs, index, total) {
+                setPreviewPane(target);
+                setStatus('[' + index + '/' + total + '] 清理数据，准备 Cold：' + target.label);
+                clearAllRunners();
+                await cleanupStorage();
+
+                setStatus('[' + index + '/' + total + '] Cold：第一次打开 ' + target.label + '，等待第一次看到壁纸...');
+                var cold = await openAndWaitForWallpaper(target, 'cold', coldTimeoutMs);
+
+                if (!cold.hit) {
+                    setStatus('[' + index + '/' + total + '] ' + target.label + ' Cold 超时：没有看到壁纸，继续下一个目标。', true);
+                    markActivePane('Cold 超时');
+                    clearAllRunners();
+                    await cleanupStorage();
+                    return {
+                        id: target.id,
+                        label: target.label,
+                        url: target.url,
+                        cold: NaN,
+                        warm: stats([]),
+                        warmHit: 0,
+                        warmRuns: runs
+                    };
+                }
+
+                setStatus('[' + index + '/' + total + '] 等待缓存写入，确保 Warm 是有数据状态...');
+                var warmReady = await waitForWarmData(coldTimeoutMs);
+                if (!warmReady) {
+                    setStatus('[' + index + '/' + total + '] ' + target.label + ' 已看到壁纸，但没有等到缓存，Warm 记为未命中。', true);
+                    markActivePane('Warm 无缓存');
+                    clearAllRunners();
+                    await cleanupStorage();
+                    return {
+                        id: target.id,
+                        label: target.label,
+                        url: target.url,
+                        cold: cold.ms,
+                        warm: stats([]),
+                        warmHit: 0,
+                        warmRuns: runs
+                    };
+                }
+
+                setStatus('[' + index + '/' + total + '] Warm：重新打开 ' + target.label + '，采样 ' + runs + ' 轮...');
+                var warmSamples = [];
+                var warmMisses = 0;
+                for (var i = 0; i < runs; i++) {
+                    var warm = await openAndWaitForWallpaper(target, 'warm', warmTimeoutMs);
+                    if (warm.hit) warmSamples.push(warm.ms);
+                    else warmMisses += 1;
+                    renderProgress(target.label + ' Warm ' + (i + 1) + '/' + runs, index - 1, total);
+                }
+
+                markActivePane('完成');
+                clearAllRunners();
+                await cleanupStorage();
+
+                return {
+                    id: target.id,
+                    label: target.label,
+                    url: target.url,
+                    cold: cold.hit ? cold.ms : NaN,
+                    warm: stats(warmSamples),
+                    warmHit: runs - warmMisses,
+                    warmRuns: runs
+                };
+            }
+
+            function openAndWaitForWallpaper(target, phase, timeoutMs) {
+                var startedAt = performance.now();
+                openFrame(target.url, phase);
+                return waitForAnyWallpaper(startedAt, timeoutMs);
+            }
+
+            function openFrame(url, phase) {
+                var runner = getRunnerForPhase(phase);
+                clearRunner(runner, false);
+                var frame = document.createElement('iframe');
+                frame.src = url + (url.indexOf('?') === -1 ? '?' : '&') +
+                    'ptab_benchmark_phase=' + encodeURIComponent(phase) +
+                    '&ptab_benchmark_t=' + Date.now() + '_' + Math.random().toString(36).slice(2);
+                runner.appendChild(frame);
+                return frame;
+            }
+
+            function waitForAnyWallpaper(startedAt, timeoutMs) {
+                return new Promise(function (resolve) {
+                    function poll() {
+                        if (hasVisibleWallpaper(getActiveRunner())) {
+                            resolve({ hit: true, ms: performance.now() - startedAt });
+                            return;
+                        }
+                        if (performance.now() - startedAt > timeoutMs) {
+                            resolve({ hit: false, ms: NaN });
+                            return;
+                        }
+                        setTimeout(poll, 5);
+                    }
+                    poll();
+                });
+            }
+
+            function hasVisibleWallpaper(runner) {
+                try {
+                    var frame = runner && runner.querySelector('iframe');
+                    var doc = frame && frame.contentDocument;
+                    var back = doc && doc.getElementById('wallpaperBack');
+                    var front = doc && doc.getElementById('wallpaperFront');
+                    return hasBackground(back) || hasBackground(front);
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            function hasBackground(el) {
+                if (!el) return false;
+                var bg = el.style && el.style.backgroundImage;
+                if (!bg || bg === 'none') return false;
+                if (el.id !== 'wallpaperFront') return true;
+                if (el.classList && el.classList.contains('active')) return true;
+                try {
+                    return parseFloat(getComputedStyle(el).opacity) > 0.01;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            function waitForWarmData(timeoutMs) {
+                var startedAt = performance.now();
+                return new Promise(function (resolve) {
+                    function poll() {
+                        if (hasWarmData()) {
+                            resolve(true);
+                            return;
+                        }
+                        if (performance.now() - startedAt > timeoutMs) {
+                            resolve(false);
+                            return;
+                        }
+                        setTimeout(poll, 100);
+                    }
+                    poll();
+                });
+            }
+
+            function hasWarmData() {
+                try {
+                    return !!(
+                        localStorage.getItem('ptab_wallpaper_preview') ||
+                        localStorage.getItem('ptab_bing_thumb')
+                    );
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            async function cleanupStorage() {
+                await sleep(100);
+                try { localStorage.clear(); } catch (e) { }
+                try { sessionStorage.clear(); } catch (e) { }
+                for (var i = 0; i < 3; i++) {
+                    var deleted = await deleteDatabase(DB_NAME).catch(function () { return false; });
+                    if (deleted) break;
+                    await sleep(120);
+                }
+            }
+
+            function deleteDatabase(name) {
+                if (!window.indexedDB) return Promise.resolve();
+                return new Promise(function (resolve) {
+                    var done = false;
+                    var timer = setTimeout(function () {
+                        if (!done) {
+                            done = true;
+                            resolve(false);
+                        }
+                    }, 1500);
+                    var req = indexedDB.deleteDatabase(name);
+                    req.onsuccess = function () {
+                        if (!done) {
+                            done = true;
+                            clearTimeout(timer);
+                            resolve(true);
+                        }
+                    };
+                    req.onerror = req.onblocked = function () {
+                        if (!done) {
+                            done = true;
+                            clearTimeout(timer);
+                            resolve(false);
+                        }
+                    };
+                });
+            }
+
+            function getRunnerForPhase(phase) {
+                var targetPane = window.__plainTabActivePreviewPane || 'baseline';
+                var id = targetPane === 'current' ? 'currentRunner' : 'baselineRunner';
+                var phaseId = targetPane === 'current' ? 'currentPreviewPhase' : 'baselinePreviewPhase';
+                var phaseEl = document.getElementById(phaseId);
+                if (phaseEl) phaseEl.textContent = phase === 'cold' ? 'Cold 测试中' : 'Warm 测试中';
+                return document.getElementById(id);
+            }
+
+            function setPreviewPane(target) {
+                window.__plainTabActivePreviewPane = target.pane || 'baseline';
+                if (target.pane === 'baseline') {
+                    document.getElementById('baselinePreviewName').textContent = target.label;
+                    document.getElementById('baselinePreviewPhase').textContent = '准备中';
+                } else {
+                    document.getElementById('currentPreviewPhase').textContent = '准备中';
+                }
+            }
+
+            function markActivePane(text) {
+                var targetPane = window.__plainTabActivePreviewPane || 'baseline';
+                var phaseId = targetPane === 'current' ? 'currentPreviewPhase' : 'baselinePreviewPhase';
+                var phaseEl = document.getElementById(phaseId);
+                if (phaseEl) phaseEl.textContent = text;
+            }
+
+            function clearRunner(runner, showPlaceholder) {
+                if (runner) {
+                    runner.innerHTML = showPlaceholder === false ? '' : '<div class="runner-empty">等待预览</div>';
+                }
+            }
+
+            function clearAllRunners() {
+                clearRunner(document.getElementById('baselineRunner'));
+                clearRunner(document.getElementById('currentRunner'));
+            }
+
+            function getActiveRunner() {
+                var targetPane = window.__plainTabActivePreviewPane || 'baseline';
+                return document.getElementById(targetPane === 'current' ? 'currentRunner' : 'baselineRunner');
+            }
+
+            function updatePreviewScale() {
+                ['baselineRunner', 'currentRunner'].forEach(function (id) {
+                    var runner = document.getElementById(id);
+                    if (!runner) return;
+                    runner.style.setProperty('--preview-scale', String(runner.clientWidth / TEST_VIEWPORT_WIDTH));
+                });
+            }
+
+            async function assertTargetsAvailable(targets) {
+                for (var i = 0; i < targets.length; i++) {
+                    var response = await fetch(targets[i].url, { cache: 'no-store' });
+                    if (!response.ok) {
+                        throw new Error(targets[i].label + ' index.html 不可访问：HTTP ' + response.status);
+                    }
+                }
+            }
+
+            function sleep(ms) {
+                return new Promise(function (resolve) {
+                    setTimeout(resolve, ms);
+                });
+            }
+
+            function applyControlLimits() {
+                Object.keys(CONTROL_LIMITS).forEach(function (key) {
+                    var config = CONTROL_LIMITS[key];
+                    var input = document.getElementById(config.id);
+                    if (!input) return;
+                    input.min = String(config.min);
+                    input.max = String(config.max);
+                    input.step = String(config.step);
+                    input.value = String(config.defaultValue);
+                });
+            }
+
+            function readClampedNumber(config) {
+                var input = document.getElementById(config.id);
+                var parsed = input ? parseInt(input.value, 10) : NaN;
+                var value = Number.isFinite(parsed) ? parsed : config.defaultValue;
+                value = clamp(value, config.min, config.max);
+                if (input) input.value = String(value);
+                return value;
+            }
+
+            function parseVersions(raw) {
+                var versions = String(raw || 'v3.1.4')
+                    .split(/[,\s]+/)
+                    .map(function (item) { return item.trim(); })
+                    .filter(Boolean);
+                if (!versions.length) versions = ['v3.1.4'];
+                versions.forEach(function (version) {
+                    if (!/^[A-Za-z0-9._-]+$/.test(version)) {
+                        throw new Error('版本目录名只支持字母、数字、点、下划线和短横线：' + version);
+                    }
+                });
+                return versions;
+            }
+
+            function stats(samples) {
+                var sorted = samples.slice().sort(function (a, b) { return a - b; });
+                if (!sorted.length) return { avg: NaN, p50: NaN, p95: NaN };
+                var sum = sorted.reduce(function (acc, item) { return acc + item; }, 0);
+                return {
+                    avg: sum / sorted.length,
+                    p50: percentile(sorted, 0.50),
+                    p95: percentile(sorted, 0.95)
+                };
+            }
+
+            function percentile(sorted, p) {
+                var index = Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * p) - 1));
+                return sorted[index] || 0;
+            }
+
+            function clamp(value, min, max) {
+                return Math.max(min, Math.min(max, value));
+            }
+
+            function renderEmpty() {
+                document.getElementById('summary').innerHTML =
+                    metric('Cold', '无数据首次看到壁纸') +
+                    metric('Warm', '有数据再次看到壁纸') +
+                    metric('默认对比', 'v3.1.4 vs Current') +
+                    metric('清理', '自动');
+            }
+
+            function renderProgress(label, done, total) {
+                document.getElementById('summary').innerHTML =
+                    metric('进度', done + ' / ' + total) +
+                    metric('阶段', label) +
+                    metric('Cold', '第一次打开') +
+                    metric('Warm', '缓存后打开');
+            }
+
+            function renderResults(results) {
+                document.getElementById('summary').innerHTML =
+                    metric('结果', 'Cold + Warm') +
+                    metric('当前 Warm', results[0] ? formatMs(results[0].current.warm.avg) : '-') +
+                    metric('对比数量', results.length) +
+                    metric('清理', '完成');
+                document.getElementById('results').innerHTML = results.map(renderResult).join('');
+            }
+
+            function renderResult(item) {
+                var baseline = item.baseline;
+                var current = item.current;
+                return '<article class="result">' +
+                    '<div class="result-head">' +
+                    '<div><h2>' + escapeHtml(baseline.label) + ' vs Current</h2></div>' +
+                    '<div class="winner' + winnerClass(current.warm.avg, baseline.warm.avg) + '">' +
+                    escapeHtml(winnerText(current.warm.avg, baseline.warm.avg)) + '</div>' +
+                    '</div>' +
+                    '<div class="sections">' +
+                    renderSection('Cold：无数据第一次看到壁纸', baseline.label, baseline.cold, 'Current', current.cold) +
+                    renderSection('Warm：有数据再次看到壁纸', baseline.label, baseline.warm.avg, 'Current', current.warm.avg) +
+                    '</div>' +
+                    '</article>';
+            }
+
+            function renderSection(title, leftLabel, leftValue, rightLabel, rightValue) {
+                var max = Math.max(isFinite(leftValue) ? leftValue : 0, isFinite(rightValue) ? rightValue : 0, 0.001);
+                return '<section class="section">' +
+                    '<h3>' + escapeHtml(title) + '</h3>' +
+                    '<div class="bars">' +
+                    renderBar(leftLabel, leftValue, max, false) +
+                    renderBar(rightLabel, rightValue, max, true) +
+                    '</div>' +
+                    '</section>';
+            }
+
+            function renderBar(label, value, max, current) {
+                var width = Math.max(1, Math.min(100, ((isFinite(value) ? value : 0) / max) * 100));
+                return '<div class="bar-row">' +
+                    '<div class="bar-label" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</div>' +
+                    '<div class="track"><div class="fill' + (current ? ' current' : '') + '" style="width:' + width.toFixed(2) + '%"></div></div>' +
+                    '<div class="time">' + formatMs(value) + '</div>' +
+                    '</div>';
+            }
+
+            function winnerText(current, baseline) {
+                if (!isFinite(current) || !isFinite(baseline)) return '测试未完整命中';
+                var delta = current - baseline;
+                return delta <= 0 ? '当前快 ' + formatMs(Math.abs(delta)) : '当前慢 ' + formatMs(delta);
+            }
+
+            function winnerClass(current, baseline) {
+                if (!isFinite(current) || !isFinite(baseline)) return ' warn';
+                return current <= baseline ? '' : ' slow';
+            }
+
+            function metric(label, value) {
+                return '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+            }
+
+            function setStatus(message, error) {
+                var el = document.getElementById('status');
+                el.textContent = message;
+                el.style.color = error ? 'var(--red)' : 'var(--muted)';
+            }
+
+            function formatMs(value) {
+                if (!isFinite(value)) return '-';
+                if (value < 1000) return value.toFixed(1) + ' ms';
+                return (value / 1000).toFixed(2) + ' s';
+            }
+
+            function escapeHtml(value) {
+                return String(value == null ? '' : value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+        })();
+    </script>
+</body>
+
+</html>
