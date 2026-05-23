@@ -4386,12 +4386,6 @@
         saveAllSettings();
     }
 
-    function customAccentThemePalette(value) {
-        return window.PlainTabTheme && window.PlainTabTheme.customAccentThemePalette
-            ? window.PlainTabTheme.customAccentThemePalette(value)
-            : null;
-    }
-
     function applyCustomAccentTheme(value) {
         if (window.PlainTabTheme && window.PlainTabTheme.applyCustomAccentTheme) {
             return window.PlainTabTheme.applyCustomAccentTheme(value);

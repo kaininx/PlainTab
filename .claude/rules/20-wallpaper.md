@@ -14,6 +14,8 @@
 
 `preload.js` 首屏路径不可为重构付费：不能依赖数据层、i18n、网络、IndexedDB、canvas 或异步任务；已有 `ptab_wallpaper_preview` 时必须优先直接应用。为了 3.1.4 直接跳升后的第一帧兜底，preview 缺失时可以保留极轻 legacy v2 缩略图 fallback。
 
+legacy v2 -> schema 3 迁移只写用户上传壁纸连续性所需数据，不迁移 Bing 可再生缓存，也不写主题色策略。壁纸主题色由当前可见壁纸在运行时重新提取，缺失主题设置时不要在迁移里补默认值。
+
 ## 来源切换事务
 
 - 切换来源时先验证 work order，再准备新来源缓存/预览，最后才写入 `activeSource`。

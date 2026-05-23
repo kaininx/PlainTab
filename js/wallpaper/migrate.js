@@ -107,6 +107,7 @@
     }
 
     function migrateThumbs(validUploadOrder) {
+        if (!validUploadOrder.length) return null;
         var thumbs = D.loadThumbs();
         var legacyUploadThumbs = readJSON('ptab_img_thumbs', {});
         var legacyArrayThumbs = readJSON('local_thumbs', []);
@@ -128,14 +129,14 @@
         var shouldApplyLegacy = isDefaultOrBingWallpaper(model);
 
         if (!shouldApplyLegacy) return;
+        if (!legacyWantsUpload) return;
 
-        model.activeSource = legacyWantsUpload ? 'upload' : 'bing';
-        model.cache.order = legacyWantsUpload ? validUploadOrder.slice() : ['bing'];
-        model.cache.index = legacyWantsUpload ? normalizeIndex(localStorage.getItem('ptab_local_index'), validUploadOrder.length) : 0;
+        model.activeSource = 'upload';
+        model.cache.order = validUploadOrder.slice();
+        model.cache.index = normalizeIndex(localStorage.getItem('ptab_local_index'), validUploadOrder.length);
         D.saveWallpaper(model);
 
-        var preview = '';
-        if (legacyWantsUpload) preview = thumbs[validUploadOrder[model.cache.index]] || '';
+        var preview = thumbs[validUploadOrder[model.cache.index]] || '';
         if (preview) D.savePreview(preview);
     }
 
@@ -158,13 +159,13 @@
         var legacyOrder = readJSON('ptab_img_order', []);
         return migrateUploadBlobs(legacyOrder).then(function (validUploadOrder) {
             var thumbs = migrateThumbs(validUploadOrder);
-            migrateWallpaper(validUploadOrder, thumbs);
+            if (thumbs) migrateWallpaper(validUploadOrder, thumbs);
             return cleanupLegacyData(legacyOrder);
         }).then(function () {
             try {
                 localStorage.setItem(D.KEYS.SCHEMA_VERSION, D.LS_VERSION);
             } catch (e) { }
-            return baseMigrate();
+            return Promise.resolve();
         });
     }
 

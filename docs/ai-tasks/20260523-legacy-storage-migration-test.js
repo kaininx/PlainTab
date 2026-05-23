@@ -83,6 +83,7 @@ async function testPreloadFallsBackToLegacyLocalThumb() {
 
 async function testMigratesLegacyV2UploadWallpaperAndCleansOldData() {
     const legacyBing = { blob: 'bing-blob', mime: 'image/jpeg', name: 'bing.jpg' };
+    const legacyBingMeta = { src: 'https://example.test/bing.jpg', date: 'Fri May 22 2026', provider: 'legacy' };
     const legacyUploadA = { blob: 'upload-a', mime: 'image/png', name: 'a.png' };
     const legacyUploadB = { blob: 'upload-b', mime: 'image/png', name: 'b.png' };
     const writes = {};
@@ -99,6 +100,7 @@ async function testMigratesLegacyV2UploadWallpaperAndCleansOldData() {
         }),
         ptab_local_index: '1',
         ptab_bing_thumb: 'url(data:image/jpeg;base64,bing)',
+        ptab_bing_meta: JSON.stringify(legacyBingMeta),
         ptab_search_mode: 'hover',
         ptab_search_engine: 'duckduckgo'
     }, {
@@ -134,6 +136,9 @@ async function testMigratesLegacyV2UploadWallpaperAndCleansOldData() {
     assert.strictEqual(wallpaper.activeSource, 'upload');
     assert.deepStrictEqual(wallpaper.cache.order, ['upload_abc', 'upload_def']);
     assert.strictEqual(wallpaper.cache.index, 1);
+    assert.strictEqual(wallpaper.providers.bing.state.src, '');
+    assert.strictEqual(wallpaper.providers.bing.state.date, '');
+    assert.strictEqual(wallpaper.providers.bing.state.provider, '');
 
     const thumbs = JSON.parse(localStorage.getItem('ptab_wallpaper_thumbs'));
     assert.strictEqual(thumbs.upload_abc, 'url(data:image/png;base64,abc)');
@@ -141,6 +146,7 @@ async function testMigratesLegacyV2UploadWallpaperAndCleansOldData() {
     assert.strictEqual(thumbs.upload_missing, undefined);
     assert.strictEqual(thumbs.bing, undefined);
     assert.strictEqual(localStorage.getItem('ptab_wallpaper_preview'), 'url(data:image/png;base64,def)');
+    assert.strictEqual(localStorage.getItem('ptab_ui'), null);
 
     assert.strictEqual(localStorage.getItem('ptab_version'), null);
     assert.strictEqual(localStorage.getItem('ptab_img_order'), null);
@@ -154,9 +160,57 @@ async function testMigratesLegacyV2UploadWallpaperAndCleansOldData() {
     assert.ok(deletes.includes('ptab_img_missing'));
 }
 
+async function testDropsLegacyV2BingCacheWithoutThemeOrUiSettings() {
+    const legacyBing = { blob: 'bing-blob', mime: 'image/jpeg', name: 'bing.jpg' };
+    const legacyBingMeta = { src: 'https://example.test/bing.jpg', date: 'Fri May 22 2026', provider: 'legacy' };
+    const writes = {};
+    const deletes = [];
+    const { D, localStorage } = await loadWallpaperData({
+        ptab_version: '2',
+        ptab_lang: 'zh-CN',
+        ptab_mode: 'bing',
+        ptab_bing_thumb: 'url(data:image/jpeg;base64,bing)',
+        ptab_bing_meta: JSON.stringify(legacyBingMeta),
+        ptab_search_mode: 'hover',
+        ptab_search_engine: 'duckduckgo',
+        ptab_icon_opacity: '0.33'
+    }, {
+        indexedDB: { open() { } }
+    });
+
+    D.idbGet = function (key) {
+        if (key === 'ptab_bing_blob') return Promise.resolve(legacyBing);
+        return Promise.resolve(null);
+    };
+    D.idbPut = function (key, value) {
+        writes[key] = value;
+        return Promise.resolve();
+    };
+    D.idbDeleteMany = function (keys) {
+        deletes.push(...keys);
+        return Promise.resolve();
+    };
+
+    await D.migrate();
+
+    assert.strictEqual(writes.ptab_wallpaper_blob_bing, undefined);
+    assert.strictEqual(localStorage.getItem('ptab_schema_version'), '3');
+    assert.strictEqual(localStorage.getItem('ptab_wallpaper_preview'), null);
+    assert.strictEqual(localStorage.getItem('ptab_ui'), null, 'legacy UI choices should reset to current defaults');
+    assert.strictEqual(localStorage.getItem('ptab_wallpaper'), null);
+    assert.strictEqual(localStorage.getItem('ptab_wallpaper_thumbs'), null);
+
+    assert.strictEqual(localStorage.getItem('ptab_lang'), null);
+    assert.strictEqual(localStorage.getItem('ptab_search_mode'), null);
+    assert.strictEqual(localStorage.getItem('ptab_search_engine'), null);
+    assert.strictEqual(localStorage.getItem('ptab_icon_opacity'), null);
+    assert.ok(deletes.includes('ptab_bing_blob'));
+}
+
 async function main() {
     await testPreloadFallsBackToLegacyLocalThumb();
     await testMigratesLegacyV2UploadWallpaperAndCleansOldData();
+    await testDropsLegacyV2BingCacheWithoutThemeOrUiSettings();
     console.log('legacy storage migration tests passed');
 }
 

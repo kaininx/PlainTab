@@ -172,12 +172,6 @@
         vignetteEl.style.background = 'radial-gradient(circle at center, rgba(0,0,0,0) 42%, rgba(0,0,0,0.55) 100%)';
     }
 
-    function customAccentThemePalette(value) {
-        return window.PlainTabTheme && window.PlainTabTheme.customAccentThemePalette
-            ? window.PlainTabTheme.customAccentThemePalette(value)
-            : null;
-    }
-
     function applyCustomAccentTheme(value) {
         if (window.PlainTabTheme && window.PlainTabTheme.applyCustomAccentTheme) {
             return window.PlainTabTheme.applyCustomAccentTheme(value);

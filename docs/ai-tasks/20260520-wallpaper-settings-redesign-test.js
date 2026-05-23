@@ -161,13 +161,15 @@ function testCustomAccentOnlyOverridesAccentAlias() {
   assert(index.includes('<script src="js/theme.js"></script>'), 'shared theme module should load before settings bootstrap');
   assert(index.indexOf('js/theme.js') < index.indexOf('js/settings-bootstrap.js'), 'theme module should be available to startup settings');
   [
-    'customAccentThemePalette',
     'applyCustomAccentTheme',
-    'applyDefaultSurfaceTheme',
-    'applyPaletteAliases'
+    'applyDefaultSurfaceTheme'
   ].forEach((name) => {
     assert(theme.includes(`function ${name}`), `shared theme module should define ${name}`);
   });
+  assert(!theme.includes('function customAccentThemePalette'), 'theme module should not keep the legacy custom palette generator');
+  assert(!theme.includes('function applyPaletteAliases'), 'theme module should not keep the legacy direct alias writer');
+  assert(!settingsPanel.includes('customAccentThemePalette'), 'settings panel should not keep a wrapper for the removed palette generator');
+  assert(!settingsBootstrap.includes('customAccentThemePalette'), 'startup bootstrap should not keep a wrapper for the removed palette generator');
   assert(theme.includes('window.PlainTabTheme'), 'theme module should expose a shared global API');
   assert(/applyCustomAccentTheme\(value\)[\s\S]*--accent-rgb[\s\S]*--accent-contrast-rgb/.test(theme), 'custom accent should write only the active accent aliases');
   assert(!/applyCustomAccentTheme\(value\)[\s\S]*writePalette\(root, palette\);[\s\S]*applyPaletteAliases\(root, palette\);/.test(theme), 'custom accent should not replace the active surface palette');

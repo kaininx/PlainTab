@@ -59,6 +59,13 @@ function testCustomAccentOnDefaultThemeLeavesDefaultSurfacesAlone() {
   assert.strictEqual(props['--accent-rgb'], '34, 204, 136', 'custom accent should still override the active accent alias');
 }
 
+function testLegacyCustomPaletteApisAreNotPublicThemeContract() {
+  const { theme } = loadThemeModule();
+  assert.strictEqual(theme.customAccentThemePalette, undefined, 'custom accent should not expose a full surface palette generator');
+  assert.strictEqual(theme.applyPaletteAliases, undefined, 'theme module should not expose direct palette alias replacement');
+}
+
 testCustomAccentDoesNotReplaceWallpaperSurfaceAliases();
 testCustomAccentOnDefaultThemeLeavesDefaultSurfacesAlone();
+testLegacyCustomPaletteApisAreNotPublicThemeContract();
 console.log('theme accent linkage behavior ok');
