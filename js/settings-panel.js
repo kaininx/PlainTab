@@ -4053,7 +4053,7 @@
         return buildPageShell(tr('tabAbout'), modalCopy('modalSubtitleAbout'),
             '<div class="about-section">' +
             '<div class="about-name">PlainTab</div>' +
-            '<div class="about-version">v3.2.1</div>' +
+            '<div class="about-version">v3.2.2</div>' +
             '<p class="about-desc">' + tr('aboutDesc') + '</p>' +
             '<a class="about-link" href="https://github.com/kaininx/PlainTab" target="_blank">github.com/kaininx/PlainTab</a>' +
             '<div class="about-footer">' + tr('aboutFooter') + '</div>' +

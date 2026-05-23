@@ -82,6 +82,8 @@ Hỗ trợ
 
 Cập nhật gần đây
 
+• v3.2.2: cải thiện độ tin cậy lưu trữ khi nâng cấp, hướng dẫn lần đầu và quy tắc phát hành, vẫn giữ hình nền đầu tiên nhanh.
+
 • v3.2.1: thêm Wallhaven và hình nền video, cải thiện an toàn khi áp dụng hình nền, command palette, theme và độ ổn định.
 
 • v3.2.0: thêm command palette, hình nền RSS/API/thư mục cục bộ, màu theme WASM, import/export và lịch sử tìm kiếm.

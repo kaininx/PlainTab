@@ -1,4 +1,6 @@
 Changelog
+• v3.2.2 · Improved upgrade storage reliability, first-use guidance state, and release workflow guardrails while preserving fast wallpaper first paint.
+
 • v3.2.1 · Added Wallhaven and video wallpaper support, refined wallpaper setup and apply safety, improved command palette/theme behavior, and fixed wallpaper, settings, and i18n stability.
 
 • v3.2.0 · Major feature and performance update: added command palette, RSS/API/local-folder wallpapers, WASM wallpaper theme colors, config import/export and search history; migrated storage to the v3.2 model, tightened permissions and search fallback, and modularized/optimized startup, wallpaper, gallery, and settings paths.

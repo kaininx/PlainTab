@@ -1,4 +1,6 @@
 Güncelleme Geçmişi
+• v3.2.2 · Yükseltme depolama güvenilirliğini, ilk kullanım rehberi durumunu ve yayın akışı kurallarını geliştirirken ilk duvar kâğıdını hızlı tutar.
+
 • v3.2.1 · Wallhaven ve video duvar kağıdı desteği eklendi, duvar kağıdı kurulumu ve güvenli uygulama akışı iyileştirildi, komut paleti/tema deneyimi geliştirildi ve duvar kağıdı, ayarlar, i18n kararlılığı düzeltildi.
 
 • v3.2.0 · Büyük özellik ve performans güncellemesi: komut paneli, RSS/API/yerel klasör duvar kâğıtları, WASM duvar kâğıdı tema renkleri, yapılandırma içe/dışa aktarma ve arama geçmişi eklendi; depolama v3.2 modeline taşındı, izinler ve arama fallback'i sıkılaştırıldı, başlangıç, duvar kâğıdı, galeri ve ayarlar yolları modülerleştirilip optimize edildi.

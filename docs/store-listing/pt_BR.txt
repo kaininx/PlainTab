@@ -82,6 +82,8 @@ Suporte
 
 Atualizações recentes
 
+• v3.2.2: melhora a confiabilidade do armazenamento em upgrades, a orientação inicial e as regras de lançamento, mantendo rápido o primeiro papel de parede.
+
 • v3.2.1: adiciona Wallhaven e papéis de vídeo, melhora segurança ao aplicar papéis, paleta de comandos, tema e estabilidade.
 
 • v3.2.0: adiciona paleta de comandos, papéis RSS/API/pasta local, cores de tema WASM, importação/exportação e histórico de busca.

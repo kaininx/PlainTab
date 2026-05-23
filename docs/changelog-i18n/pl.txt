@@ -1,4 +1,6 @@
 Historia Aktualizacji
+• v3.2.2 · Poprawia niezawodność danych przy aktualizacji, stan pierwszego przewodnika i zasady wydań, zachowując szybkie pierwsze tło.
+
 • v3.2.1 · Dodaje obsługę tapet Wallhaven i wideo, dopracowuje konfigurację oraz bezpieczne stosowanie tapet, ulepsza paletę poleceń i motywy oraz poprawia stabilność tapet, ustawień i i18n.
 
 • v3.2.0 · Duża aktualizacja funkcji i wydajności: dodano paletę poleceń, tapety RSS/API/z lokalnego folderu, kolory motywu tapety w WASM, import/eksport konfiguracji i historię wyszukiwania; przeniesiono pamięć do modelu v3.2, zaostrzono uprawnienia i fallback wyszukiwania oraz zmodularyzowano i zoptymalizowano start, tapety, galerię i ustawienia.

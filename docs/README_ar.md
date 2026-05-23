@@ -1,4 +1,4 @@
-﻿<p align="center">
+<p align="center">
   <img src="../icon/icon2048.png" alt="PlainTab Logo" width="92">
 </p>
 
@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/version-3.2.1-111827?style=flat-square" alt="Version 3.2.1">
+  <img src="https://img.shields.io/badge/version-3.2.2-111827?style=flat-square" alt="Version 3.2.2">
   <img src="https://img.shields.io/badge/Manifest-V3-4285f4?style=flat-square&logo=googlechrome" alt="Manifest V3">
   <img src="https://img.shields.io/badge/No_Build_Step-00a884?style=flat-square" alt="لا يحتاج إلى بناء">
   <img src="https://img.shields.io/badge/Vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=111827" alt="Vanilla JavaScript">

@@ -20,7 +20,7 @@ Do not recreate removed files such as `docs/CHANGELOG.md`, `docs/release-note.md
 
 Ask for missing essentials only:
 
-- Target version, for example `3.2.1`.
+- Target version, for example `3.3.0`.
 - Release summary in Chinese or English.
 - Important changes, grouped as user-facing bullets. Conventional commit lines may be used as source material, but do not expose commit tags in user-facing docs unless the user explicitly asks.
 

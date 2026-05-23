@@ -82,6 +82,8 @@ Supporto
 
 Aggiornamenti recenti
 
+• v3.2.2: storage più affidabile negli aggiornamenti, guida iniziale e regole di rilascio migliorate, primo sfondo ancora rapido.
+
 • v3.2.1: aggiunti Wallhaven e sfondi video, migliorata la sicurezza di applicazione degli sfondi, palette comandi, tema e stabilità.
 
 • v3.2.0: palette comandi, sfondi RSS/API/cartelle locali, colori tema WASM, import/export e cronologia ricerche.

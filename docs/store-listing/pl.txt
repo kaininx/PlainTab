@@ -82,6 +82,8 @@ Wsparcie
 
 Ostatnie aktualizacje
 
+• v3.2.2: pewniejsze dane przy aktualizacji, lepszy pierwszy przewodnik i zasady wydań, bez spowalniania pierwszego tła.
+
 • v3.2.1: Wallhaven i tapety wideo, bezpieczniejsze stosowanie ustawień tapet, lepsza paleta poleceń, motyw i stabilność.
 
 • v3.2.0: paleta poleceń, tapety RSS/API/folder lokalny, kolory motywu WASM, import/export i historia wyszukiwania.

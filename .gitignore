@@ -1,5 +1,4 @@
 .gitignore
-# .claude/
 venv/
 __pycache__/
 .superpowers/
@@ -7,7 +6,6 @@ __pycache__/
 .playwright-mcp/
 .playwright-cli/
 release/
-skills/
 wasm/*.wasm
 wasm/*.js
 ISSUES.md

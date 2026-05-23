@@ -82,6 +82,8 @@ Destek
 
 Son güncellemeler
 
+• v3.2.2: yükseltme depolaması, ilk kullanım rehberi ve yayın kuralları iyileştirildi; ilk duvar kâğıdı hızlı kaldı.
+
 • v3.2.1: Wallhaven ve video duvar kâğıtları, daha güvenli uygulama akışı, gelişmiş komut paleti, tema ve stabilite.
 
 • v3.2.0: komut paleti, RSS/API/yerel klasör duvar kâğıtları, WASM tema renkleri, içe/dışa aktarma ve arama geçmişi.

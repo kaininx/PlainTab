@@ -82,6 +82,8 @@ Support
 
 Mises à jour récentes
 
+• v3.2.2 : meilleure fiabilité du stockage lors des mises à jour, guide initial plus net et garde-fous de publication, sans ralentir le premier fond.
+
 • v3.2.1 : ajout de Wallhaven et des fonds vidéo, amélioration de la sécurité d'application des fonds, meilleure palette de commandes et meilleure stabilité.
 
 • v3.2.0 : ajout de la palette de commandes, des fonds RSS/API/dossier local, des couleurs de thème WASM, de l'import/export et de l'historique de recherche.

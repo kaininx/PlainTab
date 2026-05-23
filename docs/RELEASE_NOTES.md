@@ -4,6 +4,32 @@
 >
 > This file contains the detailed release notes for PlainTab, maintained in Chinese and English only. For one-line localized changelog summaries, see `docs/changelog-i18n/`.
 
+## v3.2.2
+
+### 中文
+
+**摘要**：这是一版围绕存储治理、升级可靠性和维护流程的小型补丁更新。PlainTab 收口了 localStorage 的读写边界，把首次使用提示确认状态纳入统一 UI 模型，并继续保留 3.1.4 直接升级时的首屏壁纸预览兜底，避免为了内部开发期 key 增加新的兼容负担。
+
+**更新内容**
+
+- 收口 localStorage 所有权，运行时模块通过 `WallpaperData` 读写快捷图标、壁纸预览和体验确认状态，减少游离的顶层存储 key。
+- 将左下角首次使用提示的确认状态放入 `ptab_ui.experience.acknowledged`，为后续体验提示保留统一的版本化记录方式。
+- 保留 `preload.js` 的轻量首屏预览路径，在 `ptab_wallpaper_preview` 缺失时仍可读取 3.1.4 legacy 缩略图兜底，不引入 IDB、网络或异步工作。
+- 移除未发布中间 key 的兼容假设，让 schema 3 只承载真实发布升级需要的迁移范围。
+- 更新版本发布、提交流程和存储迁移相关 agent skill，明确保持现有文案风格、README badge 风格和中文 Conventional Commit 队形。
+
+### English
+
+**Summary**: This patch release focuses on storage governance, upgrade reliability, and maintenance workflow. PlainTab tightens localStorage ownership, moves the first-use hint acknowledgement into the unified UI model, and keeps the lightweight first-paint wallpaper preview fallback for direct 3.1.4 upgrades without carrying unpublished intermediate keys as compatibility baggage.
+
+**Details**
+
+- Centralized localStorage ownership so runtime modules use `WallpaperData` for shortcut icons, wallpaper previews, and experience acknowledgements instead of scattered top-level keys.
+- Moved the bottom-left first-use hint acknowledgement into `ptab_ui.experience.acknowledged`, giving future experience prompts one versioned model.
+- Preserved the lightweight `preload.js` first-paint path: when `ptab_wallpaper_preview` is missing, direct 3.1.4 upgrades can still use legacy thumbnails without IDB, network, or async work.
+- Removed compatibility assumptions for unpublished intermediate keys, keeping schema 3 focused on real published-version upgrades.
+- Updated release, commit, and storage-migration agent skills so future maintenance keeps the existing release-copy style, README badge style, and Chinese Conventional Commit rhythm.
+
 ## v3.2.1
 
 ### 中文

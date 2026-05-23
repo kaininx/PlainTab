@@ -1,4 +1,6 @@
 Nhật Ký Cập Nhật
+• v3.2.2 · Cải thiện độ tin cậy lưu trữ khi nâng cấp, trạng thái hướng dẫn lần đầu và quy tắc phát hành, đồng thời giữ hình nền đầu tiên nhanh.
+
 • v3.2.1 · Bổ sung hỗ trợ hình nền Wallhaven và video, tinh chỉnh thiết lập và áp dụng hình nền an toàn, cải thiện bảng lệnh/chủ đề, đồng thời sửa độ ổn định của hình nền, cài đặt và i18n.
 
 • v3.2.0 · Bản cập nhật lớn về tính năng và hiệu năng: thêm bảng lệnh, hình nền RSS/API/thư mục cục bộ, màu chủ đề hình nền bằng WASM, nhập/xuất cấu hình và lịch sử tìm kiếm; di chuyển lưu trữ sang mô hình v3.2, siết quyền và fallback tìm kiếm, đồng thời mô-đun hóa/tối ưu luồng khởi động, hình nền, thư viện và cài đặt.
