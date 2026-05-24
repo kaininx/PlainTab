@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo">Chrome Web Store</a>
   ·
-  <a href="https://microsoftedge.microsoft.com/addons/detail/plaintab-%C2%B7-%E6%9E%81%E7%AE%80%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5/liljpbjkhafejhcidneknjokfcaiebem">Microsoft Edge Add-ons</a>
+  <a href="https://microsoftedge.microsoft.com/addons/detail/liljpbjkhafejhcidneknjokfcaiebem">Microsoft Edge Add-ons</a>
   ·
   <a href="https://plaintab.kaininx.workers.dev">Live Demo</a>
   ·
@@ -57,7 +57,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT License"></a>
   <a href="https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo"><img src="https://img.shields.io/badge/Chrome-Web_Store-4285f4?style=flat-square&logo=googlechrome&logoColor=white" alt="Chrome Web Store"></a>
-  <a href="https://microsoftedge.microsoft.com/addons/detail/plaintab-%C2%B7-%E6%9E%81%E7%AE%80%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5/liljpbjkhafejhcidneknjokfcaiebem"><img src="https://img.shields.io/badge/Edge-Add--ons-0078d7?style=flat-square&logo=microsoftedge&logoColor=white" alt="Microsoft Edge Add-ons"></a>
+  <a href="https://microsoftedge.microsoft.com/addons/detail/liljpbjkhafejhcidneknjokfcaiebem"><img src="https://img.shields.io/badge/Edge-Add--ons-0078d7?style=flat-square&logo=microsoftedge&logoColor=white" alt="Microsoft Edge Add-ons"></a>
   <img src="https://img.shields.io/badge/Manifest-V3-4285f4?style=flat-square&logo=googlechrome" alt="Manifest V3">
   <img src="https://img.shields.io/badge/No_Build_Step-00a884?style=flat-square" alt="No Build Step">
   <img src="https://img.shields.io/badge/Vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=111827" alt="Vanilla JavaScript">
@@ -85,7 +85,7 @@ The same page can also run as a standalone website by opening `index.html` direc
 
 [Install PlainTab from the Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
 
-[Install PlainTab from Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/plaintab-%C2%B7-%E6%9E%81%E7%AE%80%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5/liljpbjkhafejhcidneknjokfcaiebem)
+[Install PlainTab from Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/liljpbjkhafejhcidneknjokfcaiebem)
 
 ### Open the live demo
 
@@ -268,7 +268,7 @@ Before changing startup, wallpaper, storage, search, settings, or command palett
 - [Memory and storage diagnostic](docs/ai-tasks/20260519-memory-storage-diagnostic-report.md)
 - [Live demo](https://plaintab.kaininx.workers.dev)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/plaintab-%C2%B7-%E6%9E%81%E7%AE%80%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5/liljpbjkhafejhcidneknjokfcaiebem)
+- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/liljpbjkhafejhcidneknjokfcaiebem)
 - [GitHub](https://github.com/kaininx/PlainTab)
 
 ## License

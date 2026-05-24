@@ -465,7 +465,7 @@ PlainTab 是一个大量使用 AI 协作推进的项目。值得学习的不只�
 - [中文介绍](../README_zh-CN.md)
 - [详细更新说明](../RELEASE_NOTES.md)
 - [Chrome Web Store](https://chromewebstore.google.com/detail/plaintab-%C2%B7-minimal-new-ta/jhpfjcefcmooplmaimgdafohdlhacjdo)
-- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/plaintab-%C2%B7-%E6%9E%81%E7%AE%80%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5/liljpbjkhafejhcidneknjokfcaiebem)
+- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/liljpbjkhafejhcidneknjokfcaiebem)
 - [GitHub 项目主页](https://github.com/kaininx/PlainTab)
 
 ## 许可
