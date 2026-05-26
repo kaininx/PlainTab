@@ -9,5 +9,9 @@ release/
 wasm/*.wasm
 wasm/*.js
 ISSUES.md
+upload/store-secrets.toml
+!upload/store-secrets.example.toml
+upload/.chrome-webstore-profile/
+upload/.tool-cache/
 *local*
 *tmp*

@@ -48,7 +48,7 @@ jobs:
           echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
 
       - name: Build release zip
-        run: python build_release.py "$RELEASE_TAG"
+        run: python upload/tools/build_release.py "$RELEASE_TAG"
 
       - name: Create GitHub Release
         env:
