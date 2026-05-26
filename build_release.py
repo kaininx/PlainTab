@@ -102,6 +102,6 @@ def build_zip(tag, output_name):
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.makedirs('release', exist_ok=True)
-    tag = get_latest_tag()
+    tag = sys.argv[1] if len(sys.argv) > 1 else get_latest_tag()
     output_name = os.path.join('release', f'PlainTab-{tag}.zip')
     build_zip(tag, output_name)

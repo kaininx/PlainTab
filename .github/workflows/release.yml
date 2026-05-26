@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate release version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${GITHUB_REF_NAME}"
+          version="${tag#v}"
+
+          if [[ "$tag" == "$version" || -z "$version" ]]; then
+            echo "::error::Release tag must use the vX.Y.Z format, got '$tag'."
+            exit 1
+          fi
+
+          manifest_version="$(python -c "import json; print(json.load(open('manifest.json', encoding='utf-8'))['version'])")"
+
+          if [[ "$manifest_version" != "$version" ]]; then
+            echo "::error::manifest.json version '$manifest_version' does not match tag '$tag'."
+            exit 1
+          fi
+
+          if ! grep -Fq "PlainTab v${version}" docs/GITHUB_RELEASE.md; then
+            echo "::error::docs/GITHUB_RELEASE.md must contain 'PlainTab v${version}'."
+            exit 1
+          fi
+
+          echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Build release zip
+        run: python build_release.py "$RELEASE_TAG"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" \
+            "release/PlainTab-${RELEASE_TAG}.zip" \
+            --title "$RELEASE_VERSION" \
+            --verify-tag \
+            --notes-file docs/GITHUB_RELEASE.md
