@@ -82,6 +82,8 @@ Suporte
 
 Atualizações recentes
 
+• v3.2.3: Remove a permissão tabs não usada e atualiza os dados da versão para que o PlainTab peça menos permissões.
+
 • v3.2.2: papéis de parede Bing 4K UHD opcionais, 1080p como padrão e melhorias em cache, backup, ajustes e armazenamento.
 
 • v3.2.1: adiciona Wallhaven e papéis de vídeo, melhora segurança ao aplicar papéis, paleta de comandos, tema e estabilidade.

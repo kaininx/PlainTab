@@ -29,7 +29,7 @@
 
 - PlainTab 是 Chrome/Edge Manifest V3 新标签页扩展，也可以直接打开 `index.html` 作为网页运行。
 - 项目使用原生 JavaScript、CSS、静态资源、`localStorage` 和 IndexedDB。不要引入 npm、构建工具、前端框架、lint/test 框架或大型运行时依赖。
-- 当前存储基线是 `LS_VERSION = 3`、`BASELINE_APP_VERSION = 3.2.2`、IndexedDB `PlainTab` v1。
+- 当前存储基线是 `LS_VERSION = 3`、`BASELINE_APP_VERSION = 3.2.3`、IndexedDB `PlainTab` v1。
 - 当前设置页包含：界面、搜索、壁纸、命令面板、权限、数据、恢复、关于。
 - 主要持久化模型仍是扁平 key：`ptab_ui`、`ptab_wallpaper`、`ptab_shortcuts`，以及缩略图/缓存相关 key。除非任务明确要求重做存储结构，否则不要发明新的分层总配置对象。
 - 首屏路径固定：`#wallpaperBack`、同步 `js/preload.js`、`#wallpaperFront`，再加载其余 DOM 和运行时脚本。不要把网络、IndexedDB、canvas 或文件夹扫描放进这条路径。

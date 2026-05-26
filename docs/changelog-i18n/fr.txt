@@ -1,4 +1,6 @@
 Journal des mises à jour
+• v3.2.3 · Supprime l'autorisation tabs inutilisée et actualise les informations de version pour que PlainTab demande moins d'autorisations.
+
 • v3.2.2 · Ajoute les fonds Bing 4K UHD en option, garde le 1080p par défaut et améliore cache, sauvegarde, réglages et stockage.
 
 • v3.2.1 · Ajoute les fonds Wallhaven et vidéo, affine la configuration et l’application sécurisée des fonds, améliore la palette de commandes et les thèmes, et corrige la stabilité des fonds, réglages et i18n.

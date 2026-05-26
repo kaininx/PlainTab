@@ -82,6 +82,8 @@ Wsparcie
 
 Ostatnie aktualizacje
 
+• v3.2.3: Usuwa nieużywane uprawnienie tabs i aktualizuje dane wydania, aby PlainTab prosił o mniej uprawnień.
+
 • v3.2.2: opcjonalne tapety Bing 4K UHD, domyślne 1080p oraz lepszy cache, kopie, ustawienia i przechowywanie.
 
 • v3.2.1: Wallhaven i tapety wideo, bezpieczniejsze stosowanie ustawień tapet, lepsza paleta poleceń, motyw i stabilność.

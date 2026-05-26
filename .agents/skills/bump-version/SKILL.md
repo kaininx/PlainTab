@@ -32,7 +32,7 @@ If the user does not provide release notes, derive candidate changes from `git l
 - Keep product copy user-facing. Translate implementation work into outcomes; do not paste raw commit subjects, module names, storage keys, or test names unless the user asks for maintainer-facing wording.
 - Keep Chinese release copy in the existing concise PlainTab tone. Do not add marketing hype, emoji, slogans, or unrelated feature explanation.
 - Keep English release copy in the existing calm, compact product tone. Do not switch to a different launch-note style mid-file.
-- Keep commit style aligned with the current history: Chinese Conventional Commit subject by default, for example `docs: 更新版本发布资料` or `chore: 准备 3.2.2 发布`. Do not switch to English, long titles, or a different body format unless the user asks.
+- Keep commit style aligned with the current history: Chinese Conventional Commit subject by default, for example `docs: 更新版本发布资料` or `chore: 准备 X.Y.Z 发布`. Do not switch to English, long titles, or a different body format unless the user asks.
 
 ## Step 1: Read Current State
 

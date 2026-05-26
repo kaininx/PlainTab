@@ -22,7 +22,7 @@ const settingsCss = read('css/settings.css');
 const baseCss = read('css/base.css');
 
 function testStorageStartsAtV320Baseline() {
-  assert.ok(data.includes("BASELINE_APP_VERSION = '3.2.2'"), 'storage should document v3.2.2 as the migration baseline');
+  assert.ok(data.includes("BASELINE_APP_VERSION = '3.2.3'"), 'storage should document v3.2.3 as the migration baseline');
   assert.strictEqual(data.includes('LEGACY_KEYS'), false, 'legacy localStorage migration map should not stay in the hot data module');
   assert.strictEqual(data.includes('migrate_1_to_2'), false, 'v1 migration should be removed from the hot data module');
   assert.strictEqual(data.includes('migrate_2_to_3'), false, 'v2 migration should be removed from the hot data module');

@@ -1,4 +1,6 @@
 Registro de cambios
+• v3.2.3 · Elimina el permiso tabs no usado y actualiza los datos de lanzamiento para que PlainTab pida menos permisos.
+
 • v3.2.2 · Añade fondos Bing 4K UHD opcionales, mantiene 1080p por defecto y mejora caché, copias de seguridad, ajustes y almacenamiento.
 
 • v3.2.1 · Añade soporte para fondos Wallhaven y de vídeo, mejora la configuración y aplicación segura de fondos, refina el panel de comandos y los temas, y corrige estabilidad en fondos, ajustes e i18n.

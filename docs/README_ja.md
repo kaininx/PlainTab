@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/version-3.2.2-111827?style=flat-square" alt="Version 3.2.2">
+  <img src="https://img.shields.io/badge/version-3.2.3-111827?style=flat-square" alt="Version 3.2.3">
   <img src="https://img.shields.io/badge/Manifest-V3-4285f4?style=flat-square&logo=googlechrome" alt="Manifest V3">
   <img src="https://img.shields.io/badge/No_Build_Step-00a884?style=flat-square" alt="ビルド不要">
   <img src="https://img.shields.io/badge/Vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=111827" alt="Vanilla JavaScript">

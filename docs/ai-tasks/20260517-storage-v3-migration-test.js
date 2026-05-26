@@ -100,7 +100,7 @@ async function testInitializesEmptyInstallAsCurrentSchema() {
   await context.WallpaperData.migrate();
   const ls = localStorage.dump();
 
-  assert.strictEqual(context.WallpaperData.BASELINE_APP_VERSION, '3.2.2');
+  assert.strictEqual(context.WallpaperData.BASELINE_APP_VERSION, '3.2.3');
   assert.strictEqual(ls.ptab_schema_version, '3');
   assert.strictEqual(context.WallpaperData.getActiveSource(), 'bing');
   assert.deepStrictEqual(context.WallpaperData.loadOrder(), []);

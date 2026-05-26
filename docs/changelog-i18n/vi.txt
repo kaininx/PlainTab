@@ -1,4 +1,6 @@
 Nhật Ký Cập Nhật
+• v3.2.3 · Xóa quyền tabs không dùng và cập nhật thông tin phát hành để PlainTab yêu cầu ít quyền hơn.
+
 • v3.2.2 · Thêm hình nền Bing 4K UHD tùy chọn, giữ mặc định 1080p và cải thiện bộ nhớ đệm, sao lưu, cài đặt, lưu trữ.
 
 • v3.2.1 · Bổ sung hỗ trợ hình nền Wallhaven và video, tinh chỉnh thiết lập và áp dụng hình nền an toàn, cải thiện bảng lệnh/chủ đề, đồng thời sửa độ ổn định của hình nền, cài đặt và i18n.

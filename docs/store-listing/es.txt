@@ -82,6 +82,8 @@ Soporte
 
 Actualizaciones recientes
 
+• v3.2.3: Elimina el permiso tabs no usado y actualiza los datos de lanzamiento para que PlainTab pida menos permisos.
+
 • v3.2.2: fondos Bing 4K UHD opcionales, 1080p por defecto y mejoras en caché, copias, ajustes y almacenamiento.
 
 • v3.2.1: añade Wallhaven y fondos de video, mejora la seguridad al aplicar fondos, refina la paleta de comandos y el tema, y corrige estabilidad en fondos, ajustes e i18n.

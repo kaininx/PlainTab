@@ -14,12 +14,12 @@
 ## 基线
 
 - `LS_VERSION = 3`
-- `BASELINE_APP_VERSION = 3.2.2`
+- `BASELINE_APP_VERSION = 3.2.3`
 - IndexedDB：`PlainTab`，版本 `1`，object store 为 `wallpaper`
 - `js/wallpaper/migrate.js` 是一次性 legacy storage v2 -> schema 3 桥接模块，只迁移用户上传壁纸顺序、缩略图和 Blob；Bing legacy 预览/元数据/Blob 是可再生缓存，只清理不迁移。legacy UI、搜索、语言、图标透明度、主题色策略不迁移，运行时模块仍只读 schema 3 模型。
-- schema 3 是 PlainTab 3.2.2 的当前存储基线。不要为了开发期脏 key 或一次性清理升到 `LS_VERSION = 4`。
+- schema 3 是 PlainTab 3.2.3 的当前存储基线。不要为了开发期脏 key 或一次性清理升到 `LS_VERSION = 4`。
 
-除这次 legacy v2 升级桥接外，PlainTab 3.2.2 不承诺兼容更早的实验性布局。除非任务明确要求，否则不要新增迁移代码。
+除这次 legacy v2 升级桥接外，PlainTab 3.2.3 不承诺兼容更早的实验性布局。除非任务明确要求，否则不要新增迁移代码。
 
 ## 版本与迁移职责
 

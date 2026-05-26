@@ -4,6 +4,26 @@
 >
 > This file contains the detailed release notes for PlainTab, maintained in Chinese and English only. For one-line localized changelog summaries, see `docs/changelog-i18n/`.
 
+## v3.2.3
+
+### 中文
+
+**摘要**：这是一版很小的权限清理补丁。PlainTab 移除了 manifest 中未使用的 `tabs` 权限，让扩展请求的浏览器权限更少，并同步更新了本次发布资料。
+
+**更新内容**
+
+- 移除未使用的 `tabs` 权限，保留当前新标签页、搜索、脚本交互和可选网络壁纸来源所需的权限声明。
+- 更新 3.2.3 发布说明、商店更新摘要和多语言版本徽章，让公开发布资料与当前版本一致。
+
+### English
+
+**Summary**: This is a very small permission cleanup patch. PlainTab removes the unused `tabs` permission from the manifest so the extension asks for fewer browser permissions, and refreshes the release materials for this version.
+
+**Details**
+
+- Removed the unused `tabs` permission while keeping the permissions needed for the new tab page, search, scripting interactions, and optional network wallpaper sources.
+- Updated the 3.2.3 release notes, store update summaries, and localized version badges so public release materials match the current version.
+
 ## v3.2.2
 
 ### 中文
