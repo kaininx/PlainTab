@@ -19,35 +19,40 @@
     var log = window.log || function (tag, msg) { console.log('[' + tag + '] ' + msg); };
     var warn = window.warn || function (tag, msg) { console.warn('[' + tag + '] ' + msg); };
 
+    function defaultUiValue(section, key, fallback) {
+        var defaults = D.defaultUISection ? D.defaultUISection(section) : {};
+        return defaults && defaults[key] !== undefined ? defaults[key] : fallback;
+    }
+
     // ================================================================
     // 常量
     // ================================================================
-    var DEFAULT_SEARCH_MODE = 'always';
-    var DEFAULT_OPACITY = 0.45;
-    var DEFAULT_ENGINE = 'google';
-    var DEFAULT_SEARCH_POSITION = 'center';
-    var DEFAULT_OVERLAY_OPACITY = 0;
-    var DEFAULT_PANEL_OPACITY = 0.88;
-    var DEFAULT_SEARCH_RADIUS = 'capsule';
-    var DEFAULT_SEARCH_ALIGN = 'center';
-    var DEFAULT_SEARCH_ICON_POSITION = 'right';
-    var DEFAULT_SEARCH_ICON_VISIBILITY = 'always';
-    var DEFAULT_SEARCH_SURFACE = 'glass';
-    var DEFAULT_SEARCH_SHADOW = 'standard';
-    var DEFAULT_SEARCH_ENTER_BEHAVIOR = 'current';
-    var DEFAULT_SEARCH_WIDTH = 560;
-    var DEFAULT_SEARCH_BG_OPACITY = 0.1;
-    var DEFAULT_SEARCH_BLUR = 24;
-    var DEFAULT_SEARCH_HISTORY_LIMIT = 5;
-    var DEFAULT_WALLPAPER_VIGNETTE = 'none';
-    var DEFAULT_WALLPAPER_FIT = 'cover';
-    var DEFAULT_WALLPAPER_POSITION = 'center';
-    var DEFAULT_WALLPAPER_BLUR = 0;
+    var DEFAULT_SEARCH_MODE = defaultUiValue('search', 'visibility', 'always');
+    var DEFAULT_OPACITY = defaultUiValue('icon', 'opacity', 0.45);
+    var DEFAULT_ENGINE = defaultUiValue('search', 'engine', 'google');
+    var DEFAULT_SEARCH_POSITION = defaultUiValue('search', 'position', 'center');
+    var DEFAULT_OVERLAY_OPACITY = defaultUiValue('wallpaper', 'overlayOpacity', 0);
+    var DEFAULT_PANEL_OPACITY = defaultUiValue('panel', 'opacity', 0.88);
+    var DEFAULT_SEARCH_RADIUS = defaultUiValue('search', 'radius', 'capsule');
+    var DEFAULT_SEARCH_ALIGN = defaultUiValue('search', 'align', 'center');
+    var DEFAULT_SEARCH_ICON_POSITION = defaultUiValue('search', 'iconPosition', 'right');
+    var DEFAULT_SEARCH_ICON_VISIBILITY = defaultUiValue('search', 'iconVisibility', 'always');
+    var DEFAULT_SEARCH_SURFACE = defaultUiValue('search', 'surface', 'glass');
+    var DEFAULT_SEARCH_SHADOW = defaultUiValue('search', 'shadow', 'standard');
+    var DEFAULT_SEARCH_ENTER_BEHAVIOR = defaultUiValue('search', 'enterBehavior', 'current');
+    var DEFAULT_SEARCH_WIDTH = defaultUiValue('search', 'width', 560);
+    var DEFAULT_SEARCH_BG_OPACITY = defaultUiValue('search', 'backgroundOpacity', 0.1);
+    var DEFAULT_SEARCH_BLUR = defaultUiValue('search', 'blur', 24);
+    var DEFAULT_SEARCH_HISTORY_LIMIT = defaultUiValue('search', 'historyLimit', 5);
+    var DEFAULT_WALLPAPER_VIGNETTE = defaultUiValue('wallpaper', 'vignette', 'none');
+    var DEFAULT_WALLPAPER_FIT = defaultUiValue('wallpaper', 'fit', 'cover');
+    var DEFAULT_WALLPAPER_POSITION = defaultUiValue('wallpaper', 'position', 'center');
+    var DEFAULT_WALLPAPER_BLUR = defaultUiValue('wallpaper', 'blur', 0);
     var DEFAULT_WALLPAPER_BLUR_MAX = 5;
-    var DEFAULT_UI_RADIUS = 'soft';
-    var DEFAULT_FONT_SCALE = 'standard';
-    var DEFAULT_ACCENT_MODE = 'auto';
-    var DEFAULT_ACCENT_COLOR = '#6366f1';
+    var DEFAULT_UI_RADIUS = defaultUiValue('appearance', 'radius', 'soft');
+    var DEFAULT_FONT_SCALE = defaultUiValue('appearance', 'fontScale', 'standard');
+    var DEFAULT_ACCENT_MODE = defaultUiValue('appearance', 'accentMode', 'auto');
+    var DEFAULT_ACCENT_COLOR = defaultUiValue('appearance', 'accentColor', '#6366f1');
     var BACKUP_KDF_ITERATIONS = 150000;
     var HTTPS_ALL_ORIGIN = 'https://*/*';
 
@@ -1952,6 +1957,9 @@
         var config = pendingConfigForSource('rss');
         var state = D.loadWallpaper().providers.rss.state || {};
         function selected(value, current) { return String(value) === String(current) ? ' selected' : ''; }
+        function refreshOption(option) {
+            return '<option value="' + option.value + '"' + selected(option.value, config.refreshIntervalMs) + '>' + tr(option.labelKey) + '</option>';
+        }
         var rows = config.sources.map(function (source) {
             var checked = source.id === config.activeSourceId ? ' checked' : '';
             var selectedClass = checked ? ' selected' : '';
@@ -1972,7 +1980,7 @@
             '<div class="rss-add-row"><input id="rssNameInput" type="text" placeholder="' + tr('rssNamePlaceholder') + '"><input id="rssUrlInput" type="url" placeholder="https://example.com/feed.xml"><button id="rssAddBtn" type="button" disabled>' + tr('rssAdd') + '</button></div>' +
             '<div class="rss-options">' +
             settingItem(rssDisplayText('displayMode'), '', '<select id="rssDisplayMode"><option value="cycle"' + selected('cycle', config.displayMode || 'cycle') + '>' + rssDisplayText('cycle') + '</option><option value="latest"' + selected('latest', config.displayMode) + '>' + rssDisplayText('latest') + '</option></select>', 'setting-compact') +
-            settingItem(tr('rssRefreshInterval'), '', '<select id="rssRefreshInterval"><option value="0"' + selected(0, config.refreshIntervalMs) + '>' + tr('rssRefreshOff') + '</option><option value="86400000"' + selected(86400000, config.refreshIntervalMs) + '>' + tr('rssRefreshOneDay') + '</option><option value="259200000"' + selected(259200000, config.refreshIntervalMs) + '>' + tr('rssRefreshThreeDays') + '</option><option value="604800000"' + selected(604800000, config.refreshIntervalMs) + '>' + tr('rssRefreshSevenDays') + '</option></select>', 'setting-compact') +
+            settingItem(tr('rssRefreshInterval'), '', '<select id="rssRefreshInterval">' + refreshIntervalOptions(false).map(refreshOption).join('') + '</select>', 'setting-compact') +
             settingItem(tr('rssSummaryPosition'), '', '<select id="rssSummaryPosition"><option value="bottom"' + selected('bottom', config.summaryPosition) + '>' + tr('bottom') + '</option><option value="top"' + selected('top', config.summaryPosition) + '>' + tr('top') + '</option></select>', 'setting-compact') +
             settingItem(tr('rssSummaryMode'), '', '<select id="rssSummaryMode"><option value="expanded"' + selected('expanded', config.summaryMode) + '>' + tr('rssExpanded') + '</option><option value="icon"' + selected('icon', config.summaryMode) + '>' + tr('rssIconOnly') + '</option></select>', 'setting-compact') +
             settingItem(tr('rssShowSummary'), '', '<label class="switch-control"><input type="checkbox" id="rssShowSummary"><span></span></label>', 'setting-compact') +
@@ -2002,16 +2010,8 @@
         var sources = apiType === 'json' ? config.jsonSources : config.imageSources;
         var activeId = apiType === 'json' ? config.activeJsonSourceId : config.activeImageSourceId;
         var rows = sources.map(function (source) { return apiSourceRowHTML(source, apiType, activeId); }).join('');
-        function segment(value, label) {
-            var active = String(value) === String(config.refreshIntervalMs);
-            return '<button type="button" data-api-refresh-interval="' + value + '" class="' + (active ? 'active' : '') + '" aria-pressed="' + (active ? 'true' : 'false') + '">' + label + '</button>';
-        }
         var refreshControl = '<div class="api-refresh-segments" role="group" aria-label="' + tr('rssRefreshInterval') + '">' +
-            segment(0, tr('rssRefreshOff')) +
-            segment(-1, tr('apiRefreshEveryTab')) +
-            segment(86400000, tr('rssRefreshOneDay')) +
-            segment(259200000, tr('rssRefreshThreeDays')) +
-            segment(604800000, tr('rssRefreshSevenDays')) +
+            refreshSegmentButtons('api', config.refreshIntervalMs, true) +
             '</div>';
         return '<div class="api-config" data-api-type="' + apiType + '">' +
             '<div class="api-type-tabs"><button type="button" data-api-type-tab="image" class="' + (apiType === 'image' ? 'active' : '') + '">' + tr('apiTypeImage') + '</button><button type="button" data-api-type-tab="json" class="' + (apiType === 'json' ? 'active' : '') + '">' + tr('apiTypeJson') + '</button></div>' +
@@ -2031,6 +2031,27 @@
 
     function wallhavenOption(value, label, current) {
         return '<option value="' + escapeHtml(value) + '"' + (String(value) === String(current) ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+    }
+
+    function refreshIntervalOptions(includeEveryOpen) {
+        if (D.refreshIntervalOptions) return D.refreshIntervalOptions(includeEveryOpen);
+        var day = 24 * 60 * 60 * 1000;
+        var options = [{ value: 0, labelKey: 'rssRefreshOff' }];
+        if (includeEveryOpen) options.push({ value: -1, labelKey: 'apiRefreshEveryTab' });
+        options.push(
+            { value: day, labelKey: 'rssRefreshOneDay' },
+            { value: day * 3, labelKey: 'rssRefreshThreeDays' },
+            { value: day * 7, labelKey: 'rssRefreshSevenDays' }
+        );
+        return options;
+    }
+
+    function refreshSegmentButtons(source, current, includeEveryOpen) {
+        return refreshIntervalOptions(includeEveryOpen).map(function (option) {
+            var active = String(option.value) === String(current);
+            var attr = source === 'wallhaven' ? 'data-wallhaven-refresh-interval' : 'data-api-refresh-interval';
+            return '<button type="button" ' + attr + '="' + option.value + '" class="' + (active ? 'active' : '') + '" aria-pressed="' + (active ? 'true' : 'false') + '">' + tr(option.labelKey) + '</button>';
+        }).join('');
     }
 
     function wallhavenCategoryToggle(bit, glyph, index, categories) {
@@ -2120,10 +2141,7 @@
             wallhavenOption('21x9', '21:9', config.ratio) +
             wallhavenOption('4x3', '4:3', config.ratio);
         var refreshControl = '<div class="wallhaven-refresh-segments" role="group" aria-label="' + tr('rssRefreshInterval') + '">' +
-            '<button type="button" data-wallhaven-refresh-interval="0" class="' + (String(config.refreshIntervalMs) === '0' ? 'active' : '') + '" aria-pressed="' + (String(config.refreshIntervalMs) === '0' ? 'true' : 'false') + '">' + tr('rssRefreshOff') + '</button>' +
-            '<button type="button" data-wallhaven-refresh-interval="86400000" class="' + (String(config.refreshIntervalMs) === '86400000' ? 'active' : '') + '" aria-pressed="' + (String(config.refreshIntervalMs) === '86400000' ? 'true' : 'false') + '">' + tr('rssRefreshOneDay') + '</button>' +
-            '<button type="button" data-wallhaven-refresh-interval="259200000" class="' + (String(config.refreshIntervalMs) === '259200000' ? 'active' : '') + '" aria-pressed="' + (String(config.refreshIntervalMs) === '259200000' ? 'true' : 'false') + '">' + tr('rssRefreshThreeDays') + '</button>' +
-            '<button type="button" data-wallhaven-refresh-interval="604800000" class="' + (String(config.refreshIntervalMs) === '604800000' ? 'active' : '') + '" aria-pressed="' + (String(config.refreshIntervalMs) === '604800000' ? 'true' : 'false') + '">' + tr('rssRefreshSevenDays') + '</button>' +
+            refreshSegmentButtons('wallhaven', config.refreshIntervalMs, false) +
             '</div>';
         return '<div class="wallhaven-config">' +
             '<div class="wallhaven-controls">' +

@@ -95,28 +95,46 @@
     opacity: 0.86;
 }
 
-.wp-mode-chip.bing {
-    --chip-signal-rgb: 59, 130, 246;
+.wp-mode-chip.bing,
+.wallpaper-source-glyph.bing,
+.wallpaper-detail-source-dot.bing {
+    --source-rgb: 59, 130, 246;
+    --chip-signal-rgb: var(--source-rgb);
 }
 
-.wp-mode-chip.upload {
-    --chip-signal-rgb: 34, 197, 94;
+.wp-mode-chip.upload,
+.wallpaper-source-glyph.upload,
+.wallpaper-detail-source-dot.upload {
+    --source-rgb: 34, 197, 94;
+    --chip-signal-rgb: var(--source-rgb);
 }
 
-.wp-mode-chip.folder {
-    --chip-signal-rgb: 234, 179, 8;
+.wp-mode-chip.folder,
+.wallpaper-source-glyph.folder,
+.wallpaper-detail-source-dot.folder {
+    --source-rgb: 234, 179, 8;
+    --chip-signal-rgb: var(--source-rgb);
 }
 
-.wp-mode-chip.rss {
-    --chip-signal-rgb: 249, 115, 22;
+.wp-mode-chip.rss,
+.wallpaper-source-glyph.rss,
+.wallpaper-detail-source-dot.rss {
+    --source-rgb: 249, 115, 22;
+    --chip-signal-rgb: var(--source-rgb);
 }
 
-.wp-mode-chip.wallhaven {
-    --chip-signal-rgb: 6, 182, 212;
+.wp-mode-chip.wallhaven,
+.wallpaper-source-glyph.wallhaven,
+.wallpaper-detail-source-dot.wallhaven {
+    --source-rgb: 6, 182, 212;
+    --chip-signal-rgb: var(--source-rgb);
 }
 
-.wp-mode-chip.api {
-    --chip-signal-rgb: 168, 85, 247;
+.wp-mode-chip.api,
+.wallpaper-source-glyph.api,
+.wallpaper-detail-source-dot.api {
+    --source-rgb: 168, 85, 247;
+    --chip-signal-rgb: var(--source-rgb);
 }
 
 /* L1 buttons */
@@ -1452,18 +1470,6 @@ input[type="file"] {
     box-shadow: 2px 0 0 var(--settings-accent-rail) inset;
 }
 
-.wallpaper-source-glyph.bing { --source-rgb: 59, 130, 246; }
-
-.wallpaper-source-glyph.upload { --source-rgb: 34, 197, 94; }
-
-.wallpaper-source-glyph.folder { --source-rgb: 234, 179, 8; }
-
-.wallpaper-source-glyph.rss { --source-rgb: 249, 115, 22; }
-
-.wallpaper-source-glyph.wallhaven { --source-rgb: 6, 182, 212; }
-
-.wallpaper-source-glyph.api { --source-rgb: 168, 85, 247; }
-
 .wallpaper-source-glyph {
     display: grid;
     place-items: center;
@@ -1620,13 +1626,6 @@ input[type="file"] {
         0 0 0 1px rgba(var(--source-rgb), 0.28),
         0 0 0 5px rgba(var(--source-rgb), 0.065);
 }
-
-.wallpaper-detail-source-dot.bing { --source-rgb: 59, 130, 246; }
-.wallpaper-detail-source-dot.upload { --source-rgb: 34, 197, 94; }
-.wallpaper-detail-source-dot.folder { --source-rgb: 20, 184, 166; }
-.wallpaper-detail-source-dot.rss { --source-rgb: 249, 115, 22; }
-.wallpaper-detail-source-dot.wallhaven { --source-rgb: 234, 179, 8; }
-.wallpaper-detail-source-dot.api { --source-rgb: 168, 85, 247; }
 
 .wallpaper-detail-title-stack {
     min-width: 0;

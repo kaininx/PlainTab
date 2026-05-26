@@ -40,6 +40,14 @@
 
     var UPLOAD_VIDEO_ID = 'upload_video';
 
+    var REFRESH_INTERVALS = {
+        OFF: 0,
+        EVERY_OPEN: -1,
+        ONE_DAY: 24 * 60 * 60 * 1000,
+        THREE_DAYS: 3 * 24 * 60 * 60 * 1000,
+        SEVEN_DAYS: 7 * 24 * 60 * 60 * 1000
+    };
+
     var BUILTIN_RSS_SOURCES = [
         { id: 'github-trending', name: 'GitHub Trending', url: 'https://mshibanami.github.io/GitHubTrendingRSS/weekly/all.xml', builtIn: true },
         { id: 'ruanyifeng', name: 'ruanyifeng\'s Blog', url: 'https://feeds.feedburner.com/ruanyifeng', builtIn: true }
@@ -369,7 +377,7 @@
                 config: {
                     sources: clone(BUILTIN_RSS_SOURCES),
                     activeSourceId: 'nasa-earth-observatory',
-                    refreshIntervalMs: 86400000,
+                    refreshIntervalMs: REFRESH_INTERVALS.ONE_DAY,
                     displayMode: 'cycle',
                     showSummary: true,
                     showLink: true,
@@ -383,7 +391,7 @@
                     apiType: 'image',
                     activeImageSourceId: 'picsum-photos',
                     activeJsonSourceId: '',
-                    refreshIntervalMs: 86400000,
+                    refreshIntervalMs: REFRESH_INTERVALS.ONE_DAY,
                     imageSources: [
                         { id: 'picsum-photos', name: 'Picsum Photos', url: 'https://picsum.photos/1920/1080' }
                     ],
@@ -402,7 +410,7 @@
                     resolutionMode: 'atleast-1920x1080',
                     ratio: '',
                     color: '',
-                    refreshIntervalMs: 86400000
+                    refreshIntervalMs: REFRESH_INTERVALS.ONE_DAY
                 },
                 state: {
                     lastCheckedAt: 0,
@@ -636,6 +644,23 @@
         return clone(DEFAULT_WALLPAPER.providers.rss.config);
     }
 
+    function refreshIntervalOptions(includeEveryOpen) {
+        var options = [
+            { value: REFRESH_INTERVALS.OFF, labelKey: 'rssRefreshOff' }
+        ];
+        if (includeEveryOpen) options.push({ value: REFRESH_INTERVALS.EVERY_OPEN, labelKey: 'apiRefreshEveryTab' });
+        options.push(
+            { value: REFRESH_INTERVALS.ONE_DAY, labelKey: 'rssRefreshOneDay' },
+            { value: REFRESH_INTERVALS.THREE_DAYS, labelKey: 'rssRefreshThreeDays' },
+            { value: REFRESH_INTERVALS.SEVEN_DAYS, labelKey: 'rssRefreshSevenDays' }
+        );
+        return options;
+    }
+
+    function allowedRefreshIntervals(includeEveryOpen) {
+        return refreshIntervalOptions(includeEveryOpen).map(function (option) { return option.value; });
+    }
+
     function normalizeRssSource(source, index) {
         source = source || {};
         var id = String(source.id || ('rss-source-' + index)).trim();
@@ -732,7 +757,7 @@
         if (!merged.sources.some(function (source) { return source.id === merged.activeSourceId; })) {
             merged.activeSourceId = merged.sources[0] ? merged.sources[0].id : '';
         }
-        var allowedIntervals = [0, 86400000, 259200000, 604800000];
+        var allowedIntervals = allowedRefreshIntervals(false);
         if (allowedIntervals.indexOf(merged.refreshIntervalMs) === -1) merged.refreshIntervalMs = defaults.refreshIntervalMs;
         if (merged.displayMode !== 'latest' && merged.displayMode !== 'cycle') merged.displayMode = defaults.displayMode;
         if (merged.summaryPosition !== 'top' && merged.summaryPosition !== 'bottom') merged.summaryPosition = 'bottom';
@@ -797,7 +822,7 @@
                 merged.activeImageSourceId = merged.imageSources[0].id;
             }
         }
-        var allowedIntervals = [-1, 0, 86400000, 259200000, 604800000];
+        var allowedIntervals = allowedRefreshIntervals(true);
         if (allowedIntervals.indexOf(parseInt(merged.refreshIntervalMs, 10)) === -1) merged.refreshIntervalMs = defaults.refreshIntervalMs;
         else merged.refreshIntervalMs = parseInt(merged.refreshIntervalMs, 10);
         if (!merged.imageSources.some(function (source) { return source.id === merged.activeImageSourceId; })) {
@@ -857,7 +882,7 @@
         merged.ratio = ratios[merged.ratio] ? merged.ratio : '';
         merged.color = String(merged.color || '').replace(/[^a-fA-F0-9]/g, '').toLowerCase();
         if (!/^[a-f0-9]{6}$/.test(merged.color)) merged.color = '';
-        var allowedIntervals = [0, 86400000, 259200000, 604800000];
+        var allowedIntervals = allowedRefreshIntervals(false);
         if (allowedIntervals.indexOf(parseInt(merged.refreshIntervalMs, 10)) === -1) merged.refreshIntervalMs = defaults.refreshIntervalMs;
         else merged.refreshIntervalMs = parseInt(merged.refreshIntervalMs, 10);
         merged.test = sourceTest(
@@ -1862,6 +1887,7 @@
         loadWallpaper: loadWallpaper,
         saveWallpaper: saveWallpaper,
         updateWallpaper: updateWallpaper,
+        refreshIntervalOptions: refreshIntervalOptions,
         defaultRssConfig: defaultRssConfig,
         rssFieldHash: rssFieldHash,
         apiFieldHash: apiFieldHash,

@@ -9,30 +9,35 @@
     var I18N = window.I18N || {};
     var LanguageList = window.LanguageList || [];
 
-    var DEFAULT_SEARCH_MODE = 'always';
-    var DEFAULT_OPACITY = 0.45;
-    var DEFAULT_ENGINE = 'google';
-    var DEFAULT_SEARCH_POSITION = 'center';
-    var DEFAULT_SEARCH_ALIGN = 'center';
-    var DEFAULT_SEARCH_ICON_POSITION = 'right';
-    var DEFAULT_SEARCH_ICON_VISIBILITY = 'always';
-    var DEFAULT_SEARCH_SURFACE = 'glass';
-    var DEFAULT_SEARCH_SHADOW = 'standard';
-    var DEFAULT_SEARCH_ENTER_BEHAVIOR = 'current';
-    var DEFAULT_SEARCH_WIDTH = 560;
-    var DEFAULT_SEARCH_BG_OPACITY = 0.1;
-    var DEFAULT_SEARCH_BLUR = 24;
-    var DEFAULT_OVERLAY_OPACITY = 0;
-    var DEFAULT_PANEL_OPACITY = 0.88;
-    var DEFAULT_SEARCH_RADIUS = 'capsule';
-    var DEFAULT_WALLPAPER_VIGNETTE = 'none';
-    var DEFAULT_WALLPAPER_FIT = 'cover';
-    var DEFAULT_WALLPAPER_POSITION = 'center';
-    var DEFAULT_WALLPAPER_BLUR = 0;
-    var DEFAULT_UI_RADIUS = 'soft';
-    var DEFAULT_FONT_SCALE = 'standard';
-    var DEFAULT_ACCENT_MODE = 'auto';
-    var DEFAULT_ACCENT_COLOR = '#6366f1';
+    function defaultUiValue(section, key, fallback) {
+        var defaults = D.defaultUISection ? D.defaultUISection(section) : {};
+        return defaults && defaults[key] !== undefined ? defaults[key] : fallback;
+    }
+
+    var DEFAULT_SEARCH_MODE = defaultUiValue('search', 'visibility', 'always');
+    var DEFAULT_OPACITY = defaultUiValue('icon', 'opacity', 0.45);
+    var DEFAULT_ENGINE = defaultUiValue('search', 'engine', 'google');
+    var DEFAULT_SEARCH_POSITION = defaultUiValue('search', 'position', 'center');
+    var DEFAULT_SEARCH_ALIGN = defaultUiValue('search', 'align', 'center');
+    var DEFAULT_SEARCH_ICON_POSITION = defaultUiValue('search', 'iconPosition', 'right');
+    var DEFAULT_SEARCH_ICON_VISIBILITY = defaultUiValue('search', 'iconVisibility', 'always');
+    var DEFAULT_SEARCH_SURFACE = defaultUiValue('search', 'surface', 'glass');
+    var DEFAULT_SEARCH_SHADOW = defaultUiValue('search', 'shadow', 'standard');
+    var DEFAULT_SEARCH_ENTER_BEHAVIOR = defaultUiValue('search', 'enterBehavior', 'current');
+    var DEFAULT_SEARCH_WIDTH = defaultUiValue('search', 'width', 560);
+    var DEFAULT_SEARCH_BG_OPACITY = defaultUiValue('search', 'backgroundOpacity', 0.1);
+    var DEFAULT_SEARCH_BLUR = defaultUiValue('search', 'blur', 24);
+    var DEFAULT_OVERLAY_OPACITY = defaultUiValue('wallpaper', 'overlayOpacity', 0);
+    var DEFAULT_PANEL_OPACITY = defaultUiValue('panel', 'opacity', 0.88);
+    var DEFAULT_SEARCH_RADIUS = defaultUiValue('search', 'radius', 'capsule');
+    var DEFAULT_WALLPAPER_VIGNETTE = defaultUiValue('wallpaper', 'vignette', 'none');
+    var DEFAULT_WALLPAPER_FIT = defaultUiValue('wallpaper', 'fit', 'cover');
+    var DEFAULT_WALLPAPER_POSITION = defaultUiValue('wallpaper', 'position', 'center');
+    var DEFAULT_WALLPAPER_BLUR = defaultUiValue('wallpaper', 'blur', 0);
+    var DEFAULT_UI_RADIUS = defaultUiValue('appearance', 'radius', 'soft');
+    var DEFAULT_FONT_SCALE = defaultUiValue('appearance', 'fontScale', 'standard');
+    var DEFAULT_ACCENT_MODE = defaultUiValue('appearance', 'accentMode', 'auto');
+    var DEFAULT_ACCENT_COLOR = defaultUiValue('appearance', 'accentColor', '#6366f1');
 
     var IS_EXTENSION = typeof chrome !== 'undefined' && chrome.runtime && !!chrome.runtime.id;
     var ENGINES = ['google', 'bing', 'baidu', 'duckduckgo'];
