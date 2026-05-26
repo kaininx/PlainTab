@@ -1,4 +1,3 @@
-# PlainTab GitHub Release Body
 
 ---
 
