@@ -17,7 +17,6 @@
     },
     "permissions": [
         "search",
-        "tabs",
         "scripting"
     ],
     "content_security_policy": {
